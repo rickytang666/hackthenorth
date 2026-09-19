@@ -13,17 +13,31 @@ import json
 import sys
 from pathlib import Path
 
+import fastapi
 import websockets
 
 
+# Reuse the real class so `except fastapi.WebSocketDisconnect` in a model
+# behaves identically here and deployed.
+WebSocketDisconnect = fastapi.WebSocketDisconnect
+
+
 class TextAdapter:
-    """Presents a `websockets` connection with the Truss websocket interface."""
+    """Presents a `websockets` connection with the fastapi.WebSocket surface
+    Baseten actually provides: receive_text() and send_text(), not iter_text().
+
+    Matching it exactly is the point of this runner: a model that works here
+    must work deployed, and the mismatch is what hid a deploy failure earlier.
+    """
 
     def __init__(self, connection):
         self._connection = connection
 
-    def iter_text(self):
-        return self._connection.__aiter__()
+    async def receive_text(self) -> str:
+        try:
+            return await self._connection.recv()
+        except websockets.ConnectionClosed as exc:
+            raise WebSocketDisconnect(code=1000) from exc
 
     async def send_text(self, text: str) -> None:
         await self._connection.send(text)

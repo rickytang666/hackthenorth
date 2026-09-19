@@ -17,6 +17,8 @@ train/cohere/preflight.py and decode_cohere.py:
 
 import base64
 import json
+
+import fastapi
 import os
 import sys
 import time
@@ -110,22 +112,59 @@ class Recognizer:
 
 class Model:
     def __init__(self, **kwargs):
+        # The base weights are a gated HF repo. Truss hands secrets in here, and
+        # transformers only reads them from the environment, so bridge the two
+        # before anything touches the hub.
+        self._secrets = kwargs.get("secrets") or {}
         self._model = self._processor = self._prompt = None
+        self.model_id = MODEL_ID
+        self._ready = False
         self._device = "cuda" if torch.cuda.is_available() else "cpu"
-        adapter = os.environ.get("COHERE_ADAPTER_PATH")
-        if adapter and not Path(adapter).is_absolute():
-            adapter = str(Path(__file__).resolve().parents[1] / adapter)
-        self._adapter = adapter if adapter and Path(adapter).exists() else None
+        # Truss bundles packages/ at the container filesystem root (verified:
+        # /packages/best), not next to model/, so the local and deployed paths
+        # differ and both are searched. A missing adapter must be loud: silently
+        # serving the base model would invalidate the sealed test's numbers.
+        name = os.environ.get("COHERE_ADAPTER_PATH", "packages/best")
+        here = Path(__file__).resolve()
+        leaf = Path(name).name
+        candidates = [Path(name)] if Path(name).is_absolute() else [
+            here.parents[1] / name, here.parents[2] / name, Path.cwd() / name,
+            here.parents[1] / leaf, Path("/packages") / leaf, Path("/app/packages") / leaf,
+        ]
+        self._adapter = next((str(c) for c in candidates
+                              if (c / "adapter_config.json").exists()), None)
+        self._adapter_searched = [str(c) for c in candidates]
 
     def load(self) -> None:
+        token = self._secrets.get("hf_token")
+        if token:
+            os.environ["HF_TOKEN"] = token
+            os.environ["HUGGING_FACE_HUB_TOKEN"] = token
         from transformers import AutoProcessor
         dtype = torch.bfloat16 if self._device == "cuda" else torch.float32
         self._processor = AutoProcessor.from_pretrained(MODEL_ID, trust_remote_code=True)
+        if self._adapter is None:
+            raise RuntimeError(
+                "LoRA adapter not found; refusing to serve the untuned base model. "
+                f"searched: {self._adapter_searched}"
+            )
+        # Printed because the container layout of bundled packages is not
+        # documented and this is the only record of which path won.
+        print(f"cohere adapter resolved to {self._adapter}", flush=True)
         self._model = load(dtype, self._adapter).eval().to(self._device)
+        self.model_id = f"{MODEL_ID}+{os.path.basename(self._adapter)}"
         self._prompt = torch.tensor(
             [prompt_ids(self._processor.tokenizer, "en", punctuation=False)],
             dtype=torch.long, device=self._device,
         )
+        if self._device != "cuda":
+            # Refuse rather than silently serving a CPU model: it would pass a
+            # smoke test and then miss every latency number on stage.
+            raise RuntimeError(
+                "CUDA unavailable. torch fell back to CPU, which usually means "
+                "the torch build does not match the base image driver."
+            )
+
         # Warm once so the first real request is not reported as steady state.
         warm = self._processor([np.zeros(SAMPLE_RATE, dtype=np.float32)],
                                sampling_rate=SAMPLE_RATE, return_tensors="pt",
@@ -133,17 +172,23 @@ class Model:
         with torch.inference_mode():
             self._model.generate(**{k: v.to(self._device) for k, v in warm.items()},
                                  decoder_input_ids=self._prompt, max_new_tokens=4)
+        self._ready = True
 
-    @property
-    def model_id(self) -> str:
-        return MODEL_ID + (f"+{os.path.basename(self._adapter)}" if self._adapter else "")
+    def is_healthy(self) -> bool:
+        """Declare readiness explicitly. Inferred readiness left the replica
+        marked unhealthy after a 60 s load, and the router then refused every
+        websocket handshake with a 500 before it reached this container."""
+        return self._ready
 
-    async def websocket(self, websocket) -> None:
+    async def websocket(self, websocket: fastapi.WebSocket) -> None:
         recognizer = Recognizer(self._model, self._processor, self._prompt, self._device)
         began = time.perf_counter()
         try:
-            async for raw in websocket.iter_text():
-                message = json.loads(raw)
+            # Documented Baseten pattern: receive_text() in a loop, not
+            # iter_text(). Baseten accepts the connection itself, so never
+            # call websocket.accept().
+            while True:
+                message = json.loads(await websocket.receive_text())
                 if message.get("type") == "audio":
                     partial = recognizer.push(base64.b64decode(message["pcm16_b64"]))
                     if partial:
@@ -158,6 +203,8 @@ class Model:
                         "model_id": self.model_id,
                     }))
                     return
+        except fastapi.WebSocketDisconnect:
+            return
         except Exception as exc:
             await websocket.send_text(json.dumps({"type": "error", "message": str(exc)}))
             raise
