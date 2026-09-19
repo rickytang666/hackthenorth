@@ -4,6 +4,7 @@ import torch
 from kernels.attention import grouped_attention
 from kernels.fused import norm_rope_cache
 from kernels.projection import norm_projection
+from kernels.down import down_residual
 
 
 class FusedProjectionLayer(torch.nn.Module):
@@ -51,10 +52,9 @@ class FusedProjectionLayer(torch.nn.Module):
         if "mlp" in selected:
             intermediate = self.project(residual, layer.post_attention_layernorm,
                                         layer.mlp.gate_up_weight, selected["mlp"], swiglu=True)
-            result = layer.mlp.down_proj(intermediate)
+            result = down_residual(intermediate, layer.mlp.down_proj.weight, residual)
         else:
-            result = layer.mlp(layer.post_attention_layernorm(residual))
-        result = residual + result
+            result = residual + layer.mlp(layer.post_attention_layernorm(residual))
         return (result,None) if output_attentions else (result,)
 
 

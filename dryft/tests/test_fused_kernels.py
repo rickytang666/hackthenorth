@@ -13,6 +13,50 @@ except ImportError:
 
 @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA and Triton")
 class FusedKernelTests(unittest.TestCase):
+    def test_greedy_head_rounding_ties_and_graph_replay(self):
+        from kernels.greedy import greedy_token
+
+        torch.manual_seed(1709)
+        with torch.inference_mode():
+            weight=torch.randn(151936,2560,device="cuda",dtype=torch.bfloat16)*0.02
+            for rows in (1,3,16,17,32,33):
+                x=torch.randn(rows,1,2560,device="cuda",dtype=torch.bfloat16)
+                greedy_token(x,weight)
+                torch.cuda.synchronize()
+                graph=torch.cuda.CUDAGraph()
+                with torch.cuda.graph(graph):
+                    actual=greedy_token(x,weight)
+                for scale in (0.,1.,4.):
+                    x.normal_(std=scale)
+                    graph.replay()
+                    expected=torch.nn.functional.linear(x,weight).argmax(-1)
+                    torch.testing.assert_close(actual,expected,atol=0,rtol=0)
+            weight.zero_()
+            weight[3].fill_(1)
+            weight[-1].fill_(1)
+            x.fill_(1)
+            self.assertTrue(bool((greedy_token(x[:3],weight)==3).all()))
+
+    def test_vector_down_residual_native_bf16_rounding(self):
+        from kernels.down import down_residual
+
+        torch.manual_seed(1709)
+        with torch.inference_mode():
+            weight=torch.randn(2560,9728,device="cuda",dtype=torch.bfloat16)*0.02
+            x=torch.randn(1,1,9728,device="cuda",dtype=torch.bfloat16)
+            residual=torch.randn(1,1,2560,device="cuda",dtype=torch.bfloat16)
+            down_residual(x,weight,residual)
+            torch.cuda.synchronize()
+            graph=torch.cuda.CUDAGraph()
+            with torch.cuda.graph(graph):
+                actual=down_residual(x,weight,residual)
+            for scale in (0.25,1.,4.):
+                x.normal_(std=scale)
+                residual.normal_()
+                graph.replay()
+                expected=torch.nn.functional.linear(x,weight)+residual
+                torch.testing.assert_close(actual,expected,atol=0.04,rtol=0.02)
+
     def test_gateup_epilogue_matches_native_under_graph_replay(self):
         from kernels.gateup import gate_up_swiglu
 

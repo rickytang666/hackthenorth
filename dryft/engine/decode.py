@@ -44,6 +44,9 @@ def forward(model, token_ids, cache, positions, attention_mask=None, last_only=T
             position_embeddings=embeddings,
         )[0]
     x = base.norm(x[:, -1:, :] if last_only else x)
+    if x.is_cuda and x.dtype == torch.bfloat16 and x.shape[-1] == 2560:
+        from kernels.greedy import greedy_token
+        return greedy_token(x, model.lm_head.weight)
     return model.lm_head(x).argmax(dim=-1)
 
 
