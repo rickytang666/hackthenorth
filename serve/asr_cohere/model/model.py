@@ -16,10 +16,18 @@ train/cohere/preflight.py and decode_cohere.py:
 """
 
 import base64
-import io
 import json
 import os
+import sys
 import time
+from pathlib import Path
+
+# contract/ and train/cohere/model.py are vendored into packages/ by
+# sync_packages.sh so the Truss is self-contained. Locally they resolve from
+# the repo root instead, which is why this is a prepend and not a replace.
+_PACKAGES = Path(__file__).resolve().parents[1] / "packages"
+if _PACKAGES.exists():
+    sys.path.insert(0, str(_PACKAGES))
 
 import numpy as np
 import soundfile as sf
@@ -104,7 +112,10 @@ class Model:
     def __init__(self, **kwargs):
         self._model = self._processor = self._prompt = None
         self._device = "cuda" if torch.cuda.is_available() else "cpu"
-        self._adapter = os.environ.get("COHERE_ADAPTER_PATH") or None
+        adapter = os.environ.get("COHERE_ADAPTER_PATH")
+        if adapter and not Path(adapter).is_absolute():
+            adapter = str(Path(__file__).resolve().parents[1] / adapter)
+        self._adapter = adapter if adapter and Path(adapter).exists() else None
 
     def load(self) -> None:
         from transformers import AutoProcessor

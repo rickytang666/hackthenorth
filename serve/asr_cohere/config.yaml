@@ -17,5 +17,10 @@ runtime:
   predict_concurrency: 4
   is_websocket_endpoint: true
 environment_variables:
-  HF_TOKEN: null  # set from the workspace secret at deploy time
-secrets: {}
+  # The 13.7 MB adapter ships inside the Truss rather than being fetched at
+  # boot: no network dependency on cold start, and the served weights are
+  # pinned to the exact checkpoint the sealed test measured.
+  # Resolved relative to the Truss root at runtime; see model.py.
+  COHERE_ADAPTER_PATH: packages/adapter
+secrets:
+  hf_token: null
