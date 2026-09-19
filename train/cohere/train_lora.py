@@ -93,6 +93,7 @@ def main() -> None:
     step = 0
     began = time.perf_counter()
     history = []
+    best = {"dev_loss": float("inf"), "step": None}
     stop = args.probe_steps or args.max_steps
 
     while step < stop:
@@ -120,11 +121,16 @@ def main() -> None:
             if step % args.eval_every == 0:
                 value = dev_loss(model, dev_loader, device)
                 history.append({"step": step, "dev_loss": value})
-                print(f"  dev loss at step {step}: {value:.4f}", flush=True)
+                marker = ""
+                if value < best["dev_loss"]:
+                    best = {"dev_loss": value, "step": step}
+                    model.save_pretrained(out / "best")
+                    marker = "  <- best so far, saved"
+                print(f"  dev loss at step {step}: {value:.4f}{marker}", flush=True)
                 # The 200-step kill rule lives in the queue, not here: this
                 # prints the number the human decides on.
-                model.save_pretrained(out / f"step-{step}")
-                (out / "history.json").write_text(json.dumps(history, indent=2))
+                (out / "history.json").write_text(json.dumps(
+                    {"history": history, "best": best}, indent=2))
             if step >= stop:
                 break
 
@@ -139,9 +145,15 @@ def main() -> None:
         print("Pick max_steps from this, not from the plan's 400.")
         return
 
-    model.save_pretrained(out / "best")
-    (out / "history.json").write_text(json.dumps(history, indent=2))
-    print(f"saved adapter to {out/'best'}")
+    final = dev_loss(model, dev_loader, device)
+    history.append({"step": step, "dev_loss": final})
+    if final < best["dev_loss"]:
+        best = {"dev_loss": final, "step": step}
+        model.save_pretrained(out / "best")
+    model.save_pretrained(out / "last")
+    (out / "history.json").write_text(json.dumps({"history": history, "best": best}, indent=2))
+    print(f"best dev loss {best['dev_loss']:.4f} at step {best['step']}, saved to {out/'best'}")
+    print(f"final dev loss {final:.4f} at step {step}, saved to {out/'last'}")
 
 
 if __name__ == "__main__":

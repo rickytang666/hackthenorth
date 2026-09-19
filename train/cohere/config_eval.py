@@ -1,7 +1,10 @@
-"""Baseten Training Job for the Cohere LoRA lane.
+"""Baseten job that decodes frozen and tuned Cohere on one box.
 
-    uv run truss train push train/cohere/config.py
-    uv run truss train logs --job-id "$JOB_ID" --tail
+The experimental contract requires the same hardware and the same evaluator for
+every number in the promotion table, so the baseline and the adapter are decoded
+in a single job rather than wherever is convenient.
+
+    ADAPTER_JOB_ID=qkeeyeq uv run truss train push train/cohere/config_eval.py --team 34
 """
 
 import os
@@ -12,28 +15,23 @@ from truss_train import definitions
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-# Upload the whole repo, not just this directory: run.sh needs contract/,
-# data/ and train/, and the manifest hashes must be the committed ones.
 workspace = definitions.Workspace(
     workspace_root=str(REPO_ROOT),
-    # Only top-level children may be excluded, and they resolve against this
-    # file's directory, so pass absolute paths. The dataset lives outside the
-    # repo entirely (see env.sh); `serve` and `app` are not needed to train.
     exclude_dirs=[str(REPO_ROOT / d) for d in
                   (".git", ".venv", "results", "serve", "app", "plans", "bench")],
 )
 
 runtime = definitions.Runtime(
-    start_commands=["/bin/bash ./train/cohere/run.sh"],
+    start_commands=["/bin/bash ./train/cohere/eval.sh"],
     environment_variables={
         "VOICEBRIDGE_DATA": "/tmp/voicebridge-data",
         "HF_TOKEN": definitions.SecretReference(name="hf_token"),
-        "MAX_STEPS": os.environ.get("MAX_STEPS", "1200"),
-        "PROBE_STEPS": os.environ.get("PROBE_STEPS", "0"),
+        "EVAL_MANIFEST": os.environ.get("EVAL_MANIFEST", "torgo_dys_dev.jsonl"),
+        # The adapter travels in the workspace: 13.7 MB, cheaper than wiring
+        # cross-job checkpoint mounts for a file this small.
+        "ADAPTER_PATH": "./checkpoints/cohere/best",
     },
     cache_config=definitions.CacheConfig(enabled=True),
-    # Without this, BT_CHECKPOINT_DIR is unset and the adapter dies with the
-    # container. Learned the hard way on job 3mrryzq.
     checkpointing_config=definitions.CheckpointingConfig(enabled=True),
 )
 
@@ -46,7 +44,6 @@ job = definitions.TrainingJob(
         node_count=1,
     ),
     runtime=runtime,
-    workspace=workspace,
 )
 
-training_project = definitions.TrainingProject(name="voicebridge-cohere-lora-torgo-t34", job=job)
+training_project = definitions.TrainingProject(name="voicebridge-cohere-eval-t34", job=job)

@@ -1,0 +1,83 @@
+{
+  "timestamp": "2026-09-19T22:11:34.687185+00:00",
+  "job": {
+    "id": "qkeeyeq",
+    "created_at": "2026-09-19T21:55:37.346Z",
+    "current_status": "TRAINING_JOB_COMPLETED",
+    "error_message": null,
+    "instance_type": {
+      "id": "H100",
+      "name": "H100 - 1 H100 GPU, 80 GiB VRAM",
+      "memory_limit_mib": 120832,
+      "millicpu_limit": 16000,
+      "gpu_count": 1,
+      "gpu_type": "H100",
+      "gpu_memory_limit_mib": 81920
+    },
+    "node_count": 1,
+    "updated_at": "2026-09-19T22:11:34.321Z",
+    "training_project_id": "q95jkjw",
+    "training_project": {
+      "id": "q95jkjw",
+      "name": "voicebridge-cohere-lora-torgo-t34"
+    },
+    "name": "job-3",
+    "checkpoint_sync_status": "COMPLETED",
+    "priority": 0,
+    "availability_model": "dedicated",
+    "user": {
+      "email": "afreed.hassan16@gmail.com"
+    }
+  },
+  "checkpoint_artifacts": [
+    {
+      "url": "https://bt-training-04wnmpb-610f9689-1e1b-441a-ac59-4dbafa3752fa.s3.amazonaws.com/training_projects/q95jkjw/jobs/qkeeyeq/rank-0/best/README.md?AWSAccessKeyId=AKIA4FWSEGGQU5RCDCKX&Signature=m2%2Fy3%2Bz8f4j5ZTGtcC%2BmGKu5zVs%3D&Expires=1790460696",
+      "relative_file_name": "best/README.md",
+      "node_rank": 0,
+      "size_bytes": 5196,
+      "last_modified": "2026-09-19T22:09:17+00:00"
+    },
+    {
+      "url": "https://bt-training-04wnmpb-610f9689-1e1b-441a-ac59-4dbafa3752fa.s3.amazonaws.com/training_projects/q95jkjw/jobs/qkeeyeq/rank-0/best/adapter_config.json?AWSAccessKeyId=AKIA4FWSEGGQU5RCDCKX&Signature=Ct%2BO%2FQtnhp6Aj1rLChp%2F5JhnWfQ%3D&Expires=1790460696",
+      "relative_file_name": "best/adapter_config.json",
+      "node_rank": 0,
+      "size_bytes": 2764,
+      "last_modified": "2026-09-19T22:09:17+00:00"
+    },
+    {
+      "url": "https://bt-training-04wnmpb-610f9689-1e1b-441a-ac59-4dbafa3752fa.s3.amazonaws.com/training_projects/q95jkjw/jobs/qkeeyeq/rank-0/best/adapter_model.safetensors?AWSAccessKeyId=AKIA4FWSEGGQU5RCDCKX&Signature=FwwPZBOE%2BxzCFKU%2BF2EQqqKsMaM%3D&Expires=1790460696",
+      "relative_file_name": "best/adapter_model.safetensors",
+      "node_rank": 0,
+      "size_bytes": 13735848,
+      "last_modified": "2026-09-19T22:09:17+00:00"
+    },
+    {
+      "url": "https://bt-training-04wnmpb-610f9689-1e1b-441a-ac59-4dbafa3752fa.s3.amazonaws.com/training_projects/q95jkjw/jobs/qkeeyeq/rank-0/history.json?AWSAccessKeyId=AKIA4FWSEGGQU5RCDCKX&Signature=PNa32elTWBeTmQEgW9nDvfUyneg%3D&Expires=1790460696",
+      "relative_file_name": "history.json",
+      "node_rank": 0,
+      "size_bytes": 994,
+      "last_modified": "2026-09-19T22:11:21+00:00"
+    },
+    {
+      "url": "https://bt-training-04wnmpb-610f9689-1e1b-441a-ac59-4dbafa3752fa.s3.amazonaws.com/training_projects/q95jkjw/jobs/qkeeyeq/rank-0/last/README.md?AWSAccessKeyId=AKIA4FWSEGGQU5RCDCKX&Signature=VwXKj5h9QHNrZ5am6IGS552A1GM%3D&Expires=1790460696",
+      "relative_file_name": "last/README.md",
+      "node_rank": 0,
+      "size_bytes": 5196,
+      "last_modified": "2026-09-19T22:11:21+00:00"
+    },
+    {
+      "url": "https://bt-training-04wnmpb-610f9689-1e1b-441a-ac59-4dbafa3752fa.s3.amazonaws.com/training_projects/q95jkjw/jobs/qkeeyeq/rank-0/last/adapter_config.json?AWSAccessKeyId=AKIA4FWSEGGQU5RCDCKX&Signature=aT0SALDQvxPHEGVnFhIgqRhHDfQ%3D&Expires=1790460696",
+      "relative_file_name": "last/adapter_config.json",
+      "node_rank": 0,
+      "size_bytes": 2764,
+      "last_modified": "2026-09-19T22:11:21+00:00"
+    },
+    {
+      "url": "https://bt-training-04wnmpb-610f9689-1e1b-441a-ac59-4dbafa3752fa.s3.amazonaws.com/training_projects/q95jkjw/jobs/qkeeyeq/rank-0/last/adapter_model.safetensors?AWSAccessKeyId=AKIA4FWSEGGQU5RCDCKX&Signature=k3RHorMc7Cp3W5Ea9U%2FSuQWx%2BDU%3D&Expires=1790460696",
+      "relative_file_name": "last/adapter_model.safetensors",
+      "node_rank": 0,
+      "size_bytes": 13735848,
+      "last_modified": "2026-09-19T22:11:21+00:00"
+    }
+  ]
+}
