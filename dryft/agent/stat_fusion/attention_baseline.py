@@ -59,8 +59,7 @@ def _partial_attention(
     logsum = tl.where(denominator > 0, maximum + tl.log2(denominator), float("-inf"))
     index = ((batch * KV_HEADS * GROUPS + head) * QUERIES + query) * SPLITS + split
     tl.store(PART + index[:, None] * D + dim[None, :], normalized, mask=row_valid[:, None])
-    if SPLITS > 1:
-        tl.store(LSE + index, logsum, mask=row_valid)
+    tl.store(LSE + index, logsum, mask=row_valid)
 
 
 @triton.jit
@@ -155,8 +154,7 @@ def _prologue_attention(
     head = kv_head * GROUPS + row
     index = (batch * KV_HEADS * GROUPS + head) * SPLITS + split
     tl.store(PART + index[:, None] * D + dim[None, :], normalized, mask=row_valid[:, None])
-    if SPLITS > 1:
-        tl.store(LSE + index, logsum, mask=row_valid)
+    tl.store(LSE + index, logsum, mask=row_valid)
 
 
 def prologue_attention(qkv, q_norm, k_norm, cos, sin, keys, values, positions,
@@ -174,14 +172,9 @@ def prologue_attention(qkv, q_norm, k_norm, cos, sin, keys, values, positions,
     target_splits = max(1, 128 // (batch * kv_heads))
     split_size = max(64, min(512, triton.next_power_of_2(triton.cdiv(capacity, target_splits))))
     splits = triton.cdiv(capacity, split_size)
+    partial = torch.empty((batch, heads, 1, splits, dim), dtype=torch.float32, device=qkv.device)
+    logsum = torch.empty((batch, heads, 1, splits), dtype=torch.float32, device=qkv.device)
     out = torch.empty((batch, heads, 1, dim), dtype=qkv.dtype, device=qkv.device)
-    # With one partition the merge's weight is exactly one. Store the final
-    # BF16 output directly, avoiding an FP32 round trip and a merge launch.
-    if splits == 1:
-        partial, logsum = out, out
-    else:
-        partial = torch.empty((batch, heads, 1, splits, dim), dtype=torch.float32, device=qkv.device)
-        logsum = torch.empty((batch, heads, 1, splits), dtype=torch.float32, device=qkv.device)
     _prologue_attention[(batch, kv_heads, splits)](
         qkv, q_norm.weight, k_norm.weight, cos, sin, keys, values, positions,
         partial, logsum, kv_heads, groups, width, k_offset, v_offset,
@@ -189,10 +182,9 @@ def prologue_attention(qkv, q_norm, k_norm, cos, sin, keys, values, positions,
         splits, split_size, max(16, triton.next_power_of_2(groups)), 64,
         num_warps=4, num_stages=2,
     )
-    if splits > 1:
-        _merge_attention[(batch * heads,)](
-            partial, logsum, out, splits, dim, triton.next_power_of_2(splits), num_warps=4,
-        )
+    _merge_attention[(batch * heads,)](
+        partial, logsum, out, splits, dim, triton.next_power_of_2(splits), num_warps=4,
+    )
     return out
 
 
@@ -217,12 +209,9 @@ def grouped_attention(q, k, v, positions):
     target_splits = max(1, 128 // (batch * kv_heads))
     split_size = max(64, min(512, triton.next_power_of_2(triton.cdiv(capacity, target_splits))))
     splits = triton.cdiv(capacity, split_size)
+    partial = torch.empty((batch, heads, queries, splits, dim), dtype=torch.float32, device=q.device)
+    logsum = torch.empty((batch, heads, queries, splits), dtype=torch.float32, device=q.device)
     out = torch.empty(q.shape, dtype=q.dtype, device=q.device)
-    if splits == 1:
-        partial, logsum = out, out
-    else:
-        partial = torch.empty((batch, heads, queries, splits, dim), dtype=torch.float32, device=q.device)
-        logsum = torch.empty((batch, heads, queries, splits), dtype=torch.float32, device=q.device)
     _partial_attention[(batch, kv_heads, splits)](
         q, k, v, positions, partial, logsum,
         q.stride(0), q.stride(1), q.stride(2),
@@ -230,8 +219,7 @@ def grouped_attention(q, k, v, positions):
         max(16, triton.next_power_of_2(groups * queries)), 64,
         num_warps=4, num_stages=2,
     )
-    if splits > 1:
-        _merge_attention[(batch * heads * queries,)](
-            partial, logsum, out, splits, dim, triton.next_power_of_2(splits), num_warps=4,
-        )
+    _merge_attention[(batch * heads * queries,)](
+        partial, logsum, out, splits, dim, triton.next_power_of_2(splits), num_warps=4,
+    )
     return out
