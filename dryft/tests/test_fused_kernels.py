@@ -13,6 +13,82 @@ except ImportError:
 
 @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA and Triton")
 class FusedKernelTests(unittest.TestCase):
+    def test_fused_attention_prologue_handles_split_edges_and_poisoned_tail(self):
+        from kernels.attention import grouped_attention, prologue_attention
+        from kernels.fused import norm_rope_cache
+        from transformers.models.qwen3.modeling_qwen3 import Qwen3RMSNorm
+
+        torch.manual_seed(2501)
+        with torch.inference_mode():
+            for b, capacity, positions in ((1, 257, (0, 63, 64, 256)),
+                                            (4, 2080, (0, 511, 512, 2049)),
+                                            (16, 640, (0, 511, 512, 639))):
+                packed = torch.randn(b, 1, 6144, device="cuda", dtype=torch.bfloat16)
+                q, k, v = packed.split((4096, 1024, 1024), -1)
+                q = q.view(b, 1, 32, 128)
+                k, v = k.view(b, 1, 8, 128), v.view(b, 1, 8, 128)
+                qn = Qwen3RMSNorm(128).cuda().bfloat16()
+                kn = Qwen3RMSNorm(128).cuda().bfloat16()
+                qn.weight.normal_()
+                kn.weight.normal_()
+                angle = torch.randn(1, 1, 128, device="cuda")
+                cos, sin = angle.cos().bfloat16(), angle.sin().bfloat16()
+                keys = torch.zeros(b, 8, capacity, 128, device="cuda", dtype=torch.bfloat16)
+                values = torch.zeros_like(keys)
+                pos = torch.zeros(1, device="cuda", dtype=torch.long)
+                def fused():
+                    return prologue_attention(packed, qn, kn, cos, sin, keys, values,
+                                              pos, 8, 4, 4096, 5120)
+                fused()
+                graph = torch.cuda.CUDAGraph()
+                with torch.cuda.graph(graph):
+                    actual = fused()
+                for position in positions:
+                    pos.fill_(position)
+                    packed.normal_()
+                    keys.normal_()
+                    values.normal_()
+                    keys[:, :, position:].fill_(float("nan"))
+                    values[:, :, position:].fill_(float("nan"))
+                    ek, ev = keys.clone(), values.clone()
+                    rq, rk, rv = norm_rope_cache(q, k, v, qn, kn, cos, sin, ek, ev, pos)
+                    expected = grouped_attention(rq, rk, rv, pos)
+                    graph.replay()
+                    torch.testing.assert_close(actual, expected, atol=0.03, rtol=0.03)
+                    torch.testing.assert_close(keys, ek, atol=0.02, rtol=0.02, equal_nan=True)
+                    torch.testing.assert_close(values, ev, atol=0, rtol=0, equal_nan=True)
+
+    def test_projection_fusions_preserve_rounding_with_changed_graph_inputs(self):
+        from kernels.dotgemv import dot_projection_residual, norm_dot_projection
+        from kernels.rmsnorm import rms_norm
+
+        torch.manual_seed(2502)
+        with torch.inference_mode():
+            for rows in (4, 16, 24):
+                x = torch.randn(rows, 2560, device="cuda", dtype=torch.bfloat16)
+                gain = torch.randn(2560, device="cuda", dtype=torch.bfloat16)
+                w = torch.randn(257, 2560, device="cuda", dtype=torch.bfloat16) * 0.02
+                residual = torch.randn(rows, 257, device="cuda", dtype=torch.bfloat16)
+                for column in (False, True):
+                    weight = w.T.contiguous() if column else w
+                    def run():
+                        return (dot_projection_residual(x, weight, residual, rows, 257, 2560,
+                                                       64, 128, 8, 4, column),
+                                norm_dot_projection(x, gain, 1e-6, weight, rows, 257, 2560,
+                                                    64, 128, 8, 4, column))
+                    run()
+                    graph = torch.cuda.CUDAGraph()
+                    with torch.cuda.graph(graph):
+                        actual = run()
+                    for scale in (0., 0.25, 4.):
+                        x.normal_(std=scale)
+                        residual.normal_()
+                        graph.replay()
+                        expected = (torch.nn.functional.linear(x, w) + residual,
+                                    torch.nn.functional.linear(rms_norm(x, gain, 1e-6), w))
+                        for a, e in zip(actual, expected):
+                            torch.testing.assert_close(a, e, atol=0.04, rtol=0.02)
+
     def test_tiled_norm_rope_matches_row_kernel_on_changed_packed_inputs(self):
         from kernels.fused import norm_rope
         from transformers.models.qwen3.modeling_qwen3 import Qwen3RMSNorm

@@ -6,12 +6,23 @@ from transformers import AutoModelForCausalLM
 from decode import DecodeState, stream_decode
 from attention import GroupedAttention
 from kernels.fused import swiglu
-from kernels.gateup import gate_up_swiglu
+from kernels.gateup import LEGACY_CONFIG, gate_up_swiglu
 from kernels.rmsnorm import rms_norm
 from speculate import DRAFT_TOKENS, PromptLookup
 from fused_layer import install as install_fused_projections
-from projections import Projection
+from kernels.dotgemv import dot_projection_residual
+from projections import Projection, probe_point, resolve
 from prefill import prefill
+
+# (row tile, column tile, K tile, warps, stages) candidates for the fused
+# gate/up SwiGLU GEMM; the frozen tile leads and calibration arbitrates
+# in-graph on the run GPU.
+GATEUP_CANDIDATES = (
+    LEGACY_CONFIG,
+    (16, 128, 64, 4, 4), (16, 256, 64, 4, 3), (16, 256, 64, 8, 4),
+    (16, 128, 128, 4, 4), (16, 64, 64, 4, 3), (16, 128, 64, 8, 3),
+    (16, 256, 128, 8, 3), (32, 128, 64, 4, 3),
+)
 
 
 class FusedRMSNorm(torch.nn.Module):
@@ -35,15 +46,78 @@ class FusedMLP(torch.nn.Module):
         self.down_proj = Projection(reference.down_proj.weight, "down")
         self.register_buffer("interleaved_weight", None, persistent=False)
 
+    def _candidates(self, rows):
+        return [config for config in GATEUP_CANDIDATES
+                if self.gate_up_weight.shape[1] % config[2] == 0]
+
+    def _run(self, choice, x, rows):
+        return gate_up_swiglu(x, self.interleaved_weight, choice)
+
+    def _reference(self, x):
+        # The kernel's documented rounding boundaries, composed natively.
+        gate, up = torch.nn.functional.linear(x, self.gate_up_weight).chunk(2, dim=-1)
+        value = gate.float()
+        activated = (value * torch.sigmoid(value)).to(torch.bfloat16).float()
+        return (activated * up.float()).to(torch.bfloat16)
+
+    def _intermediate(self, x, rows):
+        if self.interleaved_weight is None:
+            gate, up = self.gate_up_weight.detach().chunk(2, 0)
+            self.interleaved_weight = torch.stack((gate.T, up.T), -1).flatten(1).contiguous()
+        probe_point("gate_up_fused", self, x, rows)
+        config = resolve("gate_up_fused", rows) or LEGACY_CONFIG
+        return gate_up_swiglu(x, self.interleaved_weight, config)
+
     def forward(self, x):
         rows = x.numel() // x.shape[-1]
         if 2 <= rows <= 32:
-            if self.interleaved_weight is None:
-                gate, up = self.gate_up_weight.detach().chunk(2, 0)
-                self.interleaved_weight = torch.stack((gate.T, up.T), -1).flatten(1).contiguous()
-            return self.down_proj(gate_up_swiglu(x, self.interleaved_weight))
+            return self.down_proj(self._intermediate(x, rows))
         gate, up = self.gate_up(x).chunk(2, dim=-1)
         return self.down_proj(swiglu(gate, up))
+
+    def forward_residual(self, x, residual):
+        """MLP with the residual folded into the down projection's store."""
+        rows = x.numel() // x.shape[-1]
+        if not 2 <= rows <= 32:
+            return residual + self.forward(x)
+        intermediate = self._intermediate(x, rows)
+        probe_point("down_residual", _DownResidual(self.down_proj, residual),
+                    intermediate, rows)
+        choice = resolve("down_residual", rows) or ("legacy",)
+        if choice[0] == "dotres":
+            return _DownResidual(self.down_proj, residual)._run(choice, intermediate, rows)
+        return residual + self.down_proj(intermediate)
+
+
+class _DownResidual:
+    """Calibration adapter: down projection with a fused BF16 residual add."""
+
+    CONFIGS = ((64, 128, 8, 4), (128, 64, 8, 4))
+
+    def __init__(self, projection, residual):
+        self.projection = projection
+        self.residual = residual
+
+    def _candidates(self, rows):
+        options = [("legacy",)]
+        for config in self.CONFIGS:
+            options.append(("dotres", config, False))
+            options.append(("dotres", config, True))
+        return options
+
+    def _run(self, choice, x, rows):
+        if choice[0] == "legacy":
+            return self.residual + self.projection(x)
+        _, config, column = choice
+        n, k = self.projection.weight.shape
+        weight = self.projection._column().T if column else self.projection.weight
+        flat = dot_projection_residual(
+            x.reshape(rows, k), weight, self.residual.reshape(rows, n),
+            rows, n, k, *config, column)
+        return flat.reshape(self.residual.shape)
+
+    def _reference(self, x):
+        return self.residual + torch.nn.functional.linear(x, self.projection.weight)
 
 
 class Engine:

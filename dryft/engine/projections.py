@@ -73,7 +73,26 @@ def _measure(step, iters=8, warmup=2):
     return start.elapsed_time(end) / iters
 
 
-def calibrate(step, graph_factory=None, margin=0.02):
+def probe_point(kind, instance, x, rows):
+    """Register a calibration point for any module with the probe interface.
+
+    The instance must provide _candidates(rows) with the frozen choice
+    first, _run(choice, x, rows), and optionally _reference(x) for the
+    numeric check (native linear against .weight otherwise).
+    """
+    if _probing and kind not in _probes:
+        _probes[kind] = (instance, x.detach().clone(), rows)
+
+
+def resolve(kind, rows):
+    """Return the forced or calibrated choice for (kind, rows), or None."""
+    choice = _forced.get(kind)
+    if choice is None:
+        choice = _choices.get((kind, rows))
+    return choice
+
+
+def calibrate(step, graph_factory=None, margin=0.005):
     """Pick the fastest projection per kind by timing whole decode steps.
 
     `step` runs one eager step and leaves the state reusable; it identifies
@@ -93,11 +112,14 @@ def calibrate(step, graph_factory=None, margin=0.02):
     for kind, (instance, x, rows) in _probes.items():
         if (kind, rows) in _choices:
             continue
-        reference = torch.nn.functional.linear(x, instance.weight).float()
+        reference_fn = getattr(instance, "_reference", None)
+        reference = (reference_fn(x) if reference_fn is not None
+                     else torch.nn.functional.linear(x, instance.weight)).float()
         scale = max(reference.abs().max().item(), 1.0)
-        legacy = _legacy(kind, rows)
+        options = instance._candidates(rows)
+        legacy = options[0]
         timings = []
-        for choice in instance._candidates(rows):
+        for choice in options:
             try:
                 output = instance._run(choice, x, rows).float()
                 if (output - reference).abs().max().item() > 0.05 * scale:
@@ -105,7 +127,7 @@ def calibrate(step, graph_factory=None, margin=0.02):
                 _forced[kind] = choice
                 if graph_factory is not None:
                     replay = graph_factory()
-                    elapsed = _measure(replay, iters=12, warmup=3)
+                    elapsed = _measure(replay, iters=20, warmup=4)
                     del replay
                 else:
                     elapsed = _measure(step)

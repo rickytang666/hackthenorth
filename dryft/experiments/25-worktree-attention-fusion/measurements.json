@@ -1,0 +1,2283 @@
+{
+  "gpu_tests": "..Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.\n............................\n----------------------------------------------------------------------\nRan 30 tests in 34.384s\n\nOK\n",
+  "measurements": [
+    {
+      "kind": "environment",
+      "delivery": "json_lines_pipe_reader_process",
+      "gpu": "NVIDIA H100 80GB HBM3",
+      "torch": "2.5.1+cu124"
+    },
+    {
+      "kind": "corpus",
+      "name": "wiki",
+      "url": "https://raw.githubusercontent.com/pytorch/examples/main/word_language_model/data/wikitext-2/valid.txt",
+      "sha256": "f0737ed31fc1329026e95cb8b98e19c2a182c39c240ab909dc31abf2f8af58e8",
+      "tokens": 270674
+    },
+    {
+      "kind": "corpus",
+      "name": "python",
+      "url": "https://raw.githubusercontent.com/python/cpython/3.12/Lib/heapq.py",
+      "sha256": "6d43277e5c76fc0f073cd388fcff852d14d068f6bb6d4886c340f8b75a1229a9",
+      "tokens": 6143
+    },
+    {
+      "kind": "corpus",
+      "name": "literature",
+      "url": "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt",
+      "sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+      "tokens": 301829
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 1,
+      "choice": "('linear', False)",
+      "step_ms": [
+        [
+          3.7968,
+          "('linear', False)"
+        ],
+        [
+          6.6815,
+          "('linear', True)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 4,
+      "choice": "('tile', True, (64, 128, 4, 5))",
+      "step_ms": [
+        [
+          3.9018,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          3.915,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          3.9258,
+          "('tile', False, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 4,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          3.9063,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          3.935,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          3.941,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 4,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          3.9075,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          3.9621,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          3.9627,
+          "('linear', True)"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "baseline",
+      "shape": [
+        1,
+        512,
+        32
+      ],
+      "seconds": 28.545661968000005,
+      "allocated_gib": 22.110888481140137,
+      "reserved_gib": 23.333984375
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 1,
+      "choice": "('linear', False)",
+      "step_ms": [
+        [
+          3.7786,
+          "('linear', False)"
+        ],
+        [
+          6.6544,
+          "('linear', True)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "norm_qkv",
+      "rows": 4,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          3.906,
+          "('legacy',)"
+        ],
+        [
+          4.462,
+          "('normdot', (64, 128, 8, 4), False)"
+        ],
+        [
+          4.5203,
+          "('normdot', (64, 128, 8, 4), True)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 4,
+      "choice": "('tile', True, (64, 128, 4, 5))",
+      "step_ms": [
+        [
+          3.9049,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          3.9058,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          3.9129,
+          "('tile', False, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 4,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          3.9058,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          3.9254,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          3.936,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "gate_up_fused",
+      "rows": 4,
+      "choice": "(16, 128, 64, 4, 3)",
+      "step_ms": [
+        [
+          3.8999,
+          "(16, 256, 64, 8, 4)"
+        ],
+        [
+          3.905,
+          "(16, 128, 64, 4, 4)"
+        ],
+        [
+          3.905,
+          "(16, 128, 64, 4, 3)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down_residual",
+      "rows": 4,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          3.9032,
+          "('legacy',)"
+        ],
+        [
+          4.2606,
+          "('dotres', (64, 128, 8, 4), True)"
+        ],
+        [
+          4.3323,
+          "('dotres', (64, 128, 8, 4), False)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 4,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          3.9058,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          3.9537,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          3.959,
+          "('linear', True)"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "candidate",
+      "shape": [
+        1,
+        512,
+        32
+      ],
+      "seconds": 25.477758680000008,
+      "allocated_gib": 29.100135803222656,
+      "reserved_gib": 30.294921875
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        1,
+        512,
+        32
+      ],
+      "baseline_seconds": [
+        0.12676612100000284,
+        0.009532710000001998,
+        0.003785650258064361
+      ],
+      "candidate_seconds": [
+        0.1265445980000095,
+        0.009500758000001497,
+        0.0037778178709677304
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.11971849500000076,
+            0.009591432999997096,
+            0.00355248587096786
+          ],
+          [
+            0.12676612100000284,
+            0.009410963000007655,
+            0.003785650258064361
+          ],
+          [
+            0.12283935500001064,
+            0.009445325000001503,
+            0.003657871935484166
+          ],
+          [
+            0.13040276300000642,
+            0.009533279000009998,
+            0.0038990156129031102
+          ],
+          [
+            0.13079079500001,
+            0.009532710000001998,
+            0.0039115511290325165
+          ]
+        ],
+        "candidate": [
+          [
+            0.11949637099999677,
+            0.009500758000001497,
+            0.003548245580645009
+          ],
+          [
+            0.1265445980000095,
+            0.00943224400000986,
+            0.0037778178709677304
+          ],
+          [
+            0.1228171549999928,
+            0.009480256999992775,
+            0.003656028967741936
+          ],
+          [
+            0.1305255299999999,
+            0.009501717999995662,
+            0.0039039939354840072
+          ],
+          [
+            0.13070044000001246,
+            0.009568151999999941,
+            0.003907493161290726
+          ]
+        ]
+      },
+      "identical_tokens": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "speedup": 1.0017505527971515
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 4,
+      "choice": "('tile', True, (64, 128, 4, 5))",
+      "step_ms": [
+        [
+          4.3376,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.3384,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          4.3386,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 4,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.329,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.3461,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          4.3521,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 4,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.323,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.3691,
+          "('linear', True)"
+        ],
+        [
+          4.3768,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "baseline",
+      "shape": [
+        4,
+        2048,
+        32
+      ],
+      "seconds": 13.107292196999992,
+      "allocated_gib": 30.200275897979736,
+      "reserved_gib": 31.1875
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "norm_qkv",
+      "rows": 4,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          4.3215,
+          "('legacy',)"
+        ],
+        [
+          4.8624,
+          "('normdot', (64, 128, 8, 4), False)"
+        ],
+        [
+          4.909,
+          "('normdot', (64, 128, 8, 4), True)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 4,
+      "choice": "('tile', True, (64, 128, 4, 5))",
+      "step_ms": [
+        [
+          4.3098,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.33,
+          "('dot', (64, 128, 8, 4), True)"
+        ],
+        [
+          4.3308,
+          "('tile', True, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "rope_attention",
+      "rows": 4,
+      "choice": "('fused',)",
+      "step_ms": [
+        [
+          4.26,
+          "('fused',)"
+        ],
+        [
+          4.3091,
+          "('legacy',)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 4,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.2521,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.2665,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          4.2848,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "gate_up_fused",
+      "rows": 4,
+      "choice": "(16, 128, 64, 4, 3)",
+      "step_ms": [
+        [
+          4.2326,
+          "(16, 256, 64, 8, 4)"
+        ],
+        [
+          4.2446,
+          "(16, 128, 64, 4, 4)"
+        ],
+        [
+          4.2451,
+          "(16, 64, 64, 4, 3)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down_residual",
+      "rows": 4,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          4.2499,
+          "('legacy',)"
+        ],
+        [
+          4.5718,
+          "('dotres', (64, 128, 8, 4), True)"
+        ],
+        [
+          4.6703,
+          "('dotres', (64, 128, 8, 4), False)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 4,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.2407,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.2811,
+          "('linear', True)"
+        ],
+        [
+          4.296,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "candidate",
+      "shape": [
+        4,
+        2048,
+        32
+      ],
+      "seconds": 20.067880771999995,
+      "allocated_gib": 31.299692153930664,
+      "reserved_gib": 32.36328125
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        4,
+        2048,
+        32
+      ],
+      "baseline_seconds": [
+        0.25551608799997894,
+        0.11813701399998422,
+        0.004443265967741963
+      ],
+      "candidate_seconds": [
+        0.2525249189999954,
+        0.11708317299999749,
+        0.004371845451612994
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.25630790600001774,
+            0.118830384000006,
+            0.004434758774193926
+          ],
+          [
+            0.25523782399997685,
+            0.11729885699998022,
+            0.004449644096774085
+          ],
+          [
+            0.2527298650000205,
+            0.11457647700001417,
+            0.0044565609032260105
+          ],
+          [
+            0.25551608799997894,
+            0.11813701399998422,
+            0.0044315830322578945
+          ],
+          [
+            0.25674659899999597,
+            0.11900535399999512,
+            0.004443265967741963
+          ]
+        ],
+        "candidate": [
+          [
+            0.2529437929999858,
+            0.11739362299999812,
+            0.004372586129031861
+          ],
+          [
+            0.2525249189999954,
+            0.1169977099999926,
+            0.004371845451612994
+          ],
+          [
+            0.2521141400000033,
+            0.11708317299999749,
+            0.0043558376451614785
+          ],
+          [
+            0.25307883599998604,
+            0.11793840199999295,
+            0.004359368838709455
+          ],
+          [
+            0.2523009029999912,
+            0.11583373100000927,
+            0.004402166838709094
+          ]
+        ]
+      },
+      "identical_tokens": [
+        true,
+        true,
+        false,
+        true,
+        false
+      ],
+      "speedup": 1.0118450448843965
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 16,
+      "choice": "('tile', True, (64, 128, 4, 5))",
+      "step_ms": [
+        [
+          4.4202,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.4272,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.431,
+          "('tile', False, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 16,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.4229,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          4.4248,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.4438,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 16,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.4209,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.4539,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.4669,
+          "('linear', True)"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "baseline",
+      "shape": [
+        16,
+        512,
+        128
+      ],
+      "seconds": 19.308346445000012,
+      "allocated_gib": 31.593163013458252,
+      "reserved_gib": 33.732421875
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "norm_qkv",
+      "rows": 16,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          4.4223,
+          "('legacy',)"
+        ],
+        [
+          4.9965,
+          "('normdot', (64, 128, 8, 4), False)"
+        ],
+        [
+          5.0365,
+          "('normdot', (64, 128, 8, 4), True)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 16,
+      "choice": "('tile', True, (64, 128, 4, 5))",
+      "step_ms": [
+        [
+          4.4136,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.4151,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.42,
+          "('tile', False, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "rope_attention",
+      "rows": 16,
+      "choice": "('fused',)",
+      "step_ms": [
+        [
+          4.333,
+          "('fused',)"
+        ],
+        [
+          4.4214,
+          "('legacy',)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 16,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.3128,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.3357,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          4.3455,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "gate_up_fused",
+      "rows": 16,
+      "choice": "(16, 128, 64, 4, 3)",
+      "step_ms": [
+        [
+          4.3105,
+          "(16, 128, 64, 4, 3)"
+        ],
+        [
+          4.311,
+          "(16, 256, 64, 8, 4)"
+        ],
+        [
+          4.3147,
+          "(16, 128, 64, 4, 4)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down_residual",
+      "rows": 16,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          4.3187,
+          "('legacy',)"
+        ],
+        [
+          4.6283,
+          "('dotres', (64, 128, 8, 4), True)"
+        ],
+        [
+          4.7129,
+          "('dotres', (64, 128, 8, 4), False)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 16,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.3223,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.3558,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.3628,
+          "('linear', True)"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "candidate",
+      "shape": [
+        16,
+        512,
+        128
+      ],
+      "seconds": 25.699208806,
+      "allocated_gib": 31.88784122467041,
+      "reserved_gib": 34.005859375
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        16,
+        512,
+        128
+      ],
+      "baseline_seconds": [
+        0.6734237050000047,
+        0.10471244000001434,
+        0.004479212425196898
+      ],
+      "candidate_seconds": [
+        0.6633773069999904,
+        0.10478017299999465,
+        0.004398037464566894
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.6734237050000047,
+            0.10456372699999861,
+            0.004479212425196898
+          ],
+          [
+            0.6734992849999912,
+            0.10503600699999538,
+            0.004476088803149573
+          ],
+          [
+            0.6733492920000117,
+            0.10440965399999413,
+            0.004479839669291477
+          ],
+          [
+            0.672993842000011,
+            0.10471244000001434,
+            0.004474656708661391
+          ],
+          [
+            0.6741612700000132,
+            0.10496076399999765,
+            0.004481893748031619
+          ]
+        ],
+        "candidate": [
+          [
+            0.6626637399999993,
+            0.10411298200000374,
+            0.004398037464566894
+          ],
+          [
+            0.6633773069999904,
+            0.10478017299999465,
+            0.004398402629921226
+          ],
+          [
+            0.6637401140000065,
+            0.10536683000000835,
+            0.004396640031496049
+          ],
+          [
+            0.6640398790000006,
+            0.10531330999998545,
+            0.004399421803149725
+          ],
+          [
+            0.6629798459999847,
+            0.10451873899998532,
+            0.004397331551181097
+          ]
+        ]
+      },
+      "identical_tokens": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "speedup": 1.0151443196714813
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 2,
+      "choice": "('tile', True, (64, 128, 4, 5))",
+      "step_ms": [
+        [
+          3.8886,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          3.9046,
+          "('tile', False, (64, 128, 4, 5))"
+        ],
+        [
+          3.9046,
+          "('dot', (64, 128, 8, 4), True)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 2,
+      "choice": "('tile', True, (64, 128, 4, 5))",
+      "step_ms": [
+        [
+          3.8644,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          3.8717,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          3.8842,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 2,
+      "choice": "('linear', True)",
+      "step_ms": [
+        [
+          3.8853,
+          "('linear', True)"
+        ],
+        [
+          3.9021,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          3.9293,
+          "('tile', True, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "baseline",
+      "shape": [
+        2,
+        256,
+        32
+      ],
+      "seconds": 13.298470205000001,
+      "allocated_gib": 30.62550401687622,
+      "reserved_gib": 31.8828125
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "norm_qkv",
+      "rows": 2,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          3.8857,
+          "('legacy',)"
+        ],
+        [
+          4.3918,
+          "('normdot', (64, 128, 8, 4), False)"
+        ],
+        [
+          4.4441,
+          "('normdot', (64, 128, 8, 4), True)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 2,
+      "choice": "('tile', True, (64, 128, 4, 5))",
+      "step_ms": [
+        [
+          3.874,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          3.8897,
+          "('dot', (64, 128, 8, 4), True)"
+        ],
+        [
+          3.8906,
+          "('tile', False, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "rope_attention",
+      "rows": 2,
+      "choice": "('fused',)",
+      "step_ms": [
+        [
+          3.8157,
+          "('fused',)"
+        ],
+        [
+          3.8693,
+          "('legacy',)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 2,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          3.7908,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          3.8064,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          3.8147,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "gate_up_fused",
+      "rows": 2,
+      "choice": "(16, 128, 64, 4, 3)",
+      "step_ms": [
+        [
+          3.7764,
+          "(16, 256, 64, 8, 4)"
+        ],
+        [
+          3.7871,
+          "(16, 128, 64, 4, 3)"
+        ],
+        [
+          3.7955,
+          "(16, 128, 64, 4, 4)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down_residual",
+      "rows": 2,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          3.7905,
+          "('legacy',)"
+        ],
+        [
+          4.082,
+          "('dotres', (64, 128, 8, 4), True)"
+        ],
+        [
+          4.174,
+          "('dotres', (64, 128, 8, 4), False)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 2,
+      "choice": "('linear', True)",
+      "step_ms": [
+        [
+          3.7885,
+          "('linear', True)"
+        ],
+        [
+          3.8366,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          3.8561,
+          "('tile', True, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "candidate",
+      "shape": [
+        2,
+        256,
+        32
+      ],
+      "seconds": 22.160226981000022,
+      "allocated_gib": 29.360652923583984,
+      "reserved_gib": 31.205078125
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        2,
+        256,
+        32
+      ],
+      "baseline_seconds": [
+        0.13017484400000967,
+        0.009126562999995258,
+        0.0039039032258068756
+      ],
+      "candidate_seconds": [
+        0.12746678299998848,
+        0.009112962999978436,
+        0.003817265774193673
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.130372044000012,
+            0.009211278000009315,
+            0.0039084118064517
+          ],
+          [
+            0.13012134199999537,
+            0.009126562999995258,
+            0.0039030573870967775
+          ],
+          [
+            0.13018263500001126,
+            0.009121203000006517,
+            0.0039052074838711206
+          ],
+          [
+            0.1300735300000042,
+            0.009114553000017622,
+            0.0039019024838705353
+          ],
+          [
+            0.13017484400000967,
+            0.009153843999996525,
+            0.0039039032258068756
+          ]
+        ],
+        "candidate": [
+          [
+            0.12743340199997988,
+            0.009091471999994383,
+            0.003817481612902758
+          ],
+          [
+            0.12746678299998848,
+            0.009087950999997929,
+            0.003818671999999695
+          ],
+          [
+            0.127675733000018,
+            0.009351094000010107,
+            0.003816923838709932
+          ],
+          [
+            0.1274185209999814,
+            0.009112962999978436,
+            0.0038163083225807412
+          ],
+          [
+            0.12748784300001148,
+            0.009152604000007614,
+            0.003817265774193673
+          ]
+        ]
+      },
+      "identical_tokens": [
+        true,
+        false,
+        false,
+        false,
+        true
+      ],
+      "speedup": 1.0212452290415255
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 8,
+      "choice": "('tile', True, (64, 128, 4, 5))",
+      "step_ms": [
+        [
+          3.9866,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          3.9968,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.0003,
+          "('tile', False, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 8,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          3.994,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.0077,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          4.0186,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 8,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          3.991,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          4.0381,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.056,
+          "('linear', True)"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "baseline",
+      "shape": [
+        8,
+        256,
+        32
+      ],
+      "seconds": 13.47976224499999,
+      "allocated_gib": 29.658599853515625,
+      "reserved_gib": 30.763671875
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "norm_qkv",
+      "rows": 8,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          4.0002,
+          "('legacy',)"
+        ],
+        [
+          4.5359,
+          "('normdot', (64, 128, 8, 4), False)"
+        ],
+        [
+          4.5727,
+          "('normdot', (64, 128, 8, 4), True)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 8,
+      "choice": "('tile', True, (64, 128, 4, 5))",
+      "step_ms": [
+        [
+          3.9876,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          3.9955,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          3.9997,
+          "('tile', False, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "rope_attention",
+      "rows": 8,
+      "choice": "('fused',)",
+      "step_ms": [
+        [
+          3.94,
+          "('fused',)"
+        ],
+        [
+          3.9894,
+          "('legacy',)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 8,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          3.9337,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          3.9504,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          3.9635,
+          "('tile', True, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "gate_up_fused",
+      "rows": 8,
+      "choice": "(16, 128, 64, 4, 3)",
+      "step_ms": [
+        [
+          3.9261,
+          "(16, 128, 64, 4, 3)"
+        ],
+        [
+          3.9273,
+          "(16, 256, 64, 8, 4)"
+        ],
+        [
+          3.9321,
+          "(16, 128, 64, 4, 4)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down_residual",
+      "rows": 8,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          3.9386,
+          "('legacy',)"
+        ],
+        [
+          4.248,
+          "('dotres', (64, 128, 8, 4), True)"
+        ],
+        [
+          4.3349,
+          "('dotres', (64, 128, 8, 4), False)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 8,
+      "choice": "('tile', True, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          3.9348,
+          "('tile', True, (32, 128, 2, 5))"
+        ],
+        [
+          3.9694,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          3.9918,
+          "('linear', True)"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "candidate",
+      "shape": [
+        8,
+        256,
+        32
+      ],
+      "seconds": 22.485184775999983,
+      "allocated_gib": 29.958831787109375,
+      "reserved_gib": 30.986328125
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        8,
+        256,
+        32
+      ],
+      "baseline_seconds": [
+        0.1522885880000331,
+        0.026708516999974563,
+        0.004049551903225649
+      ],
+      "candidate_seconds": [
+        0.15137413500002594,
+        0.02707653600003823,
+        0.004006807580646138
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.15188688000000639,
+            0.026787861999991947,
+            0.004035452193548853
+          ],
+          [
+            0.15235746199999767,
+            0.0266820159999952,
+            0.00405404664516137
+          ],
+          [
+            0.15220648500002198,
+            0.026670376000026863,
+            0.004049551903225649
+          ],
+          [
+            0.1522885880000331,
+            0.026813722000042617,
+            0.004047576322580338
+          ],
+          [
+            0.15293481899999506,
+            0.026708516999974563,
+            0.004071816193549048
+          ]
+        ],
+        "candidate": [
+          [
+            0.15147268000004033,
+            0.02707653600003823,
+            0.004012778838709745
+          ],
+          [
+            0.15137413500002594,
+            0.027154900000027737,
+            0.004007072096774136
+          ],
+          [
+            0.1507214920000024,
+            0.026799831999994694,
+            0.003997472903226055
+          ],
+          [
+            0.15142770700003894,
+            0.027216672000008657,
+            0.004006807580646138
+          ],
+          [
+            0.1507372120000241,
+            0.026729018000025917,
+            0.004000264322580586
+          ]
+        ]
+      },
+      "identical_tokens": [
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "speedup": 1.0060410122244925
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 24,
+      "choice": "('tile', False, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.5001,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          4.5058,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.52,
+          "('tile', False, (64, 128, 4, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 24,
+      "choice": "('tile', False, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.4915,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          4.4998,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.5063,
+          "('tile', True, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 24,
+      "choice": "('linear', True)",
+      "step_ms": [
+        [
+          4.4894,
+          "('linear', True)"
+        ],
+        [
+          4.4908,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.5303,
+          "('tile', False, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "baseline",
+      "shape": [
+        24,
+        256,
+        32
+      ],
+      "seconds": 16.97697188500001,
+      "allocated_gib": 30.630340576171875,
+      "reserved_gib": 31.67578125
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "norm_qkv",
+      "rows": 24,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          4.5001,
+          "('legacy',)"
+        ],
+        [
+          5.073,
+          "('normdot', (64, 128, 8, 4), False)"
+        ],
+        [
+          5.2091,
+          "('normdot', (64, 128, 8, 4), True)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 24,
+      "choice": "('tile', False, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.4922,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.4944,
+          "('dot', (64, 128, 8, 4), True)"
+        ],
+        [
+          4.504,
+          "('tile', False, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "rope_attention",
+      "rows": 24,
+      "choice": "('fused',)",
+      "step_ms": [
+        [
+          4.4315,
+          "('fused',)"
+        ],
+        [
+          4.4835,
+          "('legacy',)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 24,
+      "choice": "('tile', False, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.4158,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.4206,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          4.4327,
+          "('tile', True, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "gate_up_fused",
+      "rows": 24,
+      "choice": "(16, 128, 64, 4, 3)",
+      "step_ms": [
+        [
+          4.4204,
+          "(16, 64, 64, 4, 3)"
+        ],
+        [
+          4.4228,
+          "(16, 128, 64, 4, 3)"
+        ],
+        [
+          4.4451,
+          "(32, 128, 64, 4, 3)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down_residual",
+      "rows": 24,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          4.4253,
+          "('legacy',)"
+        ],
+        [
+          4.7093,
+          "('dotres', (64, 128, 8, 4), True)"
+        ],
+        [
+          4.821,
+          "('dotres', (64, 128, 8, 4), False)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 24,
+      "choice": "('linear', True)",
+      "step_ms": [
+        [
+          4.4181,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.4207,
+          "('linear', True)"
+        ],
+        [
+          4.4637,
+          "('linear', False)"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "candidate",
+      "shape": [
+        24,
+        256,
+        32
+      ],
+      "seconds": 26.158810288999973,
+      "allocated_gib": 31.308837890625,
+      "reserved_gib": 32.505859375
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        24,
+        256,
+        32
+      ],
+      "baseline_seconds": [
+        0.21977295899995397,
+        0.07598087899998518,
+        0.004632393580645692
+      ],
+      "candidate_seconds": [
+        0.22001418999997213,
+        0.07789875899999288,
+        0.004571537806450652
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.21981887900000174,
+            0.0764590010000461,
+            0.004624512193546956
+          ],
+          [
+            0.21763229700002285,
+            0.07442237500004012,
+            0.00461967490322525
+          ],
+          [
+            0.22060087799997063,
+            0.07699667699995416,
+            0.004632393580645692
+          ],
+          [
+            0.21977295899995397,
+            0.07598087899998518,
+            0.004638454193547381
+          ],
+          [
+            0.21930277600000636,
+            0.07553376700002445,
+            0.004637709967741352
+          ]
+        ],
+        "candidate": [
+          [
+            0.21947411299998976,
+            0.07789875899999288,
+            0.004566946903225706
+          ],
+          [
+            0.22001418999997213,
+            0.07781033499998102,
+            0.004587221129031972
+          ],
+          [
+            0.21567640399996435,
+            0.07451747899995098,
+            0.004553513709677851
+          ],
+          [
+            0.22042545899995503,
+            0.07800114399998392,
+            0.004594332741934552
+          ],
+          [
+            0.22089693199995963,
+            0.07917925999998943,
+            0.004571537806450652
+          ]
+        ]
+      },
+      "identical_tokens": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "speedup": 0.9989035661744445
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 32,
+      "choice": "('tile', False, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.6021,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          4.6084,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.6153,
+          "('dot', (64, 128, 8, 4), True)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 32,
+      "choice": "('tile', False, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.591,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          4.5987,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.6078,
+          "('tile', True, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 32,
+      "choice": "('linear', True)",
+      "step_ms": [
+        [
+          4.5926,
+          "('linear', True)"
+        ],
+        [
+          4.5929,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.6271,
+          "('tile', False, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "baseline",
+      "shape": [
+        32,
+        256,
+        32
+      ],
+      "seconds": 15.893508740000016,
+      "allocated_gib": 31.649765014648438,
+      "reserved_gib": 32.53125
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "norm_qkv",
+      "rows": 32,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          4.5962,
+          "('legacy',)"
+        ],
+        [
+          5.1804,
+          "('normdot', (64, 128, 8, 4), False)"
+        ],
+        [
+          5.3036,
+          "('normdot', (64, 128, 8, 4), True)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "qkv",
+      "rows": 32,
+      "choice": "('tile', False, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.6027,
+          "('dot', (64, 128, 8, 4), True)"
+        ],
+        [
+          4.6066,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.607,
+          "('tile', False, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "rope_attention",
+      "rows": 32,
+      "choice": "('fused',)",
+      "step_ms": [
+        [
+          4.5141,
+          "('fused',)"
+        ],
+        [
+          4.5808,
+          "('legacy',)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "o",
+      "rows": 32,
+      "choice": "('tile', False, (32, 128, 2, 5))",
+      "step_ms": [
+        [
+          4.5173,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.5252,
+          "('tile', False, (32, 128, 2, 5))"
+        ],
+        [
+          4.5287,
+          "('tile', True, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "gate_up_fused",
+      "rows": 32,
+      "choice": "(16, 128, 64, 4, 3)",
+      "step_ms": [
+        [
+          4.5195,
+          "(16, 128, 64, 4, 3)"
+        ],
+        [
+          4.5289,
+          "(16, 64, 64, 4, 3)"
+        ],
+        [
+          4.5552,
+          "(32, 128, 64, 4, 3)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down_residual",
+      "rows": 32,
+      "choice": "('legacy',)",
+      "step_ms": [
+        [
+          4.523,
+          "('legacy',)"
+        ],
+        [
+          4.7943,
+          "('dotres', (64, 128, 8, 4), True)"
+        ],
+        [
+          4.92,
+          "('dotres', (64, 128, 8, 4), False)"
+        ]
+      ]
+    },
+    {
+      "kind": "projection_calibration",
+      "projection": "down",
+      "rows": 32,
+      "choice": "('linear', True)",
+      "step_ms": [
+        [
+          4.52,
+          "('tile', True, (64, 128, 4, 5))"
+        ],
+        [
+          4.5253,
+          "('linear', True)"
+        ],
+        [
+          4.5463,
+          "('tile', False, (32, 128, 2, 5))"
+        ]
+      ]
+    },
+    {
+      "kind": "warmup",
+      "name": "candidate",
+      "shape": [
+        32,
+        256,
+        32
+      ],
+      "seconds": 25.66107482900003,
+      "allocated_gib": 31.982254028320312,
+      "reserved_gib": 32.87890625
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        32,
+        256,
+        32
+      ],
+      "baseline_seconds": [
+        0.25211147800001754,
+        0.10498620700002448,
+        0.004741405612902884
+      ],
+      "candidate_seconds": [
+        0.2499689819999844,
+        0.10463413899998386,
+        0.004685510612903859
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.2496040239999502,
+            0.10198702799999637,
+            0.004761838580643671
+          ],
+          [
+            0.25274268999999094,
+            0.10575911600000154,
+            0.004741405612902884
+          ],
+          [
+            0.25211147800001754,
+            0.1043077530000005,
+            0.004767862096774743
+          ],
+          [
+            0.25165257600002633,
+            0.10498620700002448,
+            0.004731173193548447
+          ],
+          [
+            0.2525923910000074,
+            0.10597576600002867,
+            0.004729568548386411
+          ]
+        ],
+        "candidate": [
+          [
+            0.2504591150000124,
+            0.10586392000004707,
+            0.00466436112903114
+          ],
+          [
+            0.24955241999998634,
+            0.10463413899998386,
+            0.004674783258064596
+          ],
+          [
+            0.24794998200002283,
+            0.1018896240000231,
+            0.004711624451612894
+          ],
+          [
+            0.2499689819999844,
+            0.10471815299996479,
+            0.004685510612903859
+          ],
+          [
+            0.25031806899994535,
+            0.10454159499994375,
+            0.0047024669032258585
+          ]
+        ]
+      },
+      "identical_tokens": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "speedup": 1.0085710474271294
+    },
+    {
+      "kind": "warmup",
+      "name": "baseline",
+      "shape": [
+        1,
+        128,
+        1
+      ],
+      "seconds": 0.6145702700000015,
+      "allocated_gib": 30.765501499176025,
+      "reserved_gib": 32.109375
+    },
+    {
+      "kind": "warmup",
+      "name": "candidate",
+      "shape": [
+        1,
+        128,
+        1
+      ],
+      "seconds": 0.2222960269999703,
+      "allocated_gib": 30.814252376556396,
+      "reserved_gib": 32.181640625
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        1,
+        128,
+        1
+      ],
+      "baseline_seconds": [
+        0.005550315999983013,
+        0.005550315999983013,
+        0.0
+      ],
+      "candidate_seconds": [
+        0.005531654999970215,
+        0.005531654999970215,
+        0.0
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.00557925699996531,
+            0.00557925699996531,
+            0.0
+          ],
+          [
+            0.005595108000022719,
+            0.005595108000022719,
+            0.0
+          ],
+          [
+            0.005545455000003585,
+            0.005545455000003585,
+            0.0
+          ],
+          [
+            0.005550315999983013,
+            0.005550315999983013,
+            0.0
+          ],
+          [
+            0.005523933999995734,
+            0.005523933999995734,
+            0.0
+          ]
+        ],
+        "candidate": [
+          [
+            0.00557159700002785,
+            0.00557159700002785,
+            0.0
+          ],
+          [
+            0.005529585000033421,
+            0.005529585000033421,
+            0.0
+          ],
+          [
+            0.0055521660000295014,
+            0.0055521660000295014,
+            0.0
+          ],
+          [
+            0.005531254999993962,
+            0.005531254999993962,
+            0.0
+          ],
+          [
+            0.005531654999970215,
+            0.005531654999970215,
+            0.0
+          ]
+        ]
+      },
+      "identical_tokens": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "speedup": 1.0033734931070175
+    },
+    {
+      "kind": "teacher_forced",
+      "failed_positions": {
+        "baseline": 0,
+        "candidate": 0
+      },
+      "checked_tokens": {
+        "baseline": 21605,
+        "candidate": 21605
+      },
+      "worst_logit_deficit": {
+        "baseline": 0.75,
+        "candidate": 0.75
+      }
+    }
+  ]
+}

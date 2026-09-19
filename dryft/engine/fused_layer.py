@@ -53,9 +53,10 @@ class FusedProjectionLayer(torch.nn.Module):
             a = a.transpose(1,2).reshape(*hidden_states.shape[:-1], -1)
             a = ref.o_proj(a)
         else:
-            a = attention(layer.input_layernorm(hidden_states), position_embeddings,
+            a = attention(hidden_states, position_embeddings,
                           attention_mask, past_key_value=past_key_value,
-                          cache_position=cache_position)[0]
+                          cache_position=cache_position,
+                          norm=layer.input_layernorm)[0]
         if "mlp" in selected:
             residual = hidden_states + a
             intermediate = self.project(residual, layer.post_attention_layernorm,
@@ -69,7 +70,10 @@ class FusedProjectionLayer(torch.nn.Module):
             else:
                 residual = hidden_states + a
                 normalized = layer.post_attention_layernorm(residual)
-            result = residual + layer.mlp(normalized)
+            if hasattr(layer.mlp, "forward_residual"):
+                result = layer.mlp.forward_residual(normalized, residual)
+            else:
+                result = residual + layer.mlp(normalized)
         return (result,None) if output_attentions else (result,)
 
 

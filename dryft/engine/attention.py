@@ -2,10 +2,46 @@
 
 import torch
 from torch.nn.attention import SDPBackend, sdpa_kernel
-from kernels.attention import grouped_attention
+from kernels.attention import grouped_attention, prologue_attention
+from kernels.dotgemv import norm_dot_projection
 from kernels.fused import norm_rope, norm_rope_cache
-from projections import Projection
+from kernels.rmsnorm import rms_norm
+from projections import Projection, probe_point, resolve
 
+
+class _NormQkv:
+    """Calibration adapter: input RMSNorm fused into the QKV projection."""
+
+    CONFIGS = ((64, 128, 8, 4), (128, 64, 8, 4))
+
+    def __init__(self, attention, norm):
+        self.attention = attention
+        self.norm = norm
+
+    def _candidates(self, rows):
+        return [("legacy",)] + [("normdot", config, column)
+                                for config in self.CONFIGS for column in (False, True)]
+
+    def _run(self, choice, x, rows):
+        if choice[0] == "legacy":
+            return self.attention.qkv(
+                rms_norm(x, self.norm.weight, self.norm.variance_epsilon))
+        _, config, column = choice
+        weight = self.attention.qkv_weight
+        n, k = weight.shape
+        packed = self.attention.qkv._column().T if column else weight
+        flat = norm_dot_projection(x.reshape(rows, k), self.norm.weight,
+                                   self.norm.variance_epsilon, packed,
+                                   rows, n, k, *config, column)
+        return flat.reshape(*x.shape[:-1], n)
+
+    def _reference(self, x):
+        value = x.float()
+        inverse = torch.rsqrt(value.pow(2).mean(-1, keepdim=True)
+                              + self.norm.variance_epsilon)
+        normalized = (value * inverse).to(torch.bfloat16)
+        return torch.nn.functional.linear(normalized * self.norm.weight,
+                                          self.attention.qkv_weight)
 
 class GroupedAttention(torch.nn.Module):
     # Decode and verification use absolute positions inside grouped_attention.
@@ -26,7 +62,7 @@ class GroupedAttention(torch.nn.Module):
         reference.o_proj = Projection(reference.o_proj.weight, "o")
 
     def forward(self, hidden_states, position_embeddings, attention_mask=None,
-                past_key_value=None, cache_position=None, **kwargs):
+                past_key_value=None, cache_position=None, norm=None, **kwargs):
         ref = self.reference
         prefill = past_key_value.prefill
         if prefill and attention_mask is not None:
@@ -35,8 +71,18 @@ class GroupedAttention(torch.nn.Module):
                 past_key_value=past_key_value, cache_position=cache_position, **kwargs,
             )
         shape = (*hidden_states.shape[:-1], -1, ref.head_dim)
-        qkv = (torch.nn.functional.linear(hidden_states, self.qkv_weight)
-               if prefill else self.qkv(hidden_states))
+        if norm is not None and not prefill:
+            rows = hidden_states.numel() // hidden_states.shape[-1]
+            adapter = _NormQkv(self, norm)
+            probe_point("norm_qkv", adapter, hidden_states, rows)
+            qkv = adapter._run(resolve("norm_qkv", rows) or ("legacy",),
+                               hidden_states, rows)
+        else:
+            if norm is not None:
+                hidden_states = rms_norm(hidden_states, norm.weight,
+                                         norm.variance_epsilon)
+            qkv = (torch.nn.functional.linear(hidden_states, self.qkv_weight)
+                   if prefill else self.qkv(hidden_states))
         q, k, v = qkv.split(self.widths, dim=-1)
         q, k, v = q.view(shape), k.view(shape), v.view(shape)
         if prefill:
@@ -45,13 +91,51 @@ class GroupedAttention(torch.nn.Module):
             k, v = past_key_value.update(k, v, ref.layer_idx, {"cache_position": cache_position})
             with sdpa_kernel(SDPBackend.FLASH_ATTENTION):
                 result = torch.nn.functional.scaled_dot_product_attention(
-                    q, k, v, is_causal=True, dropout_p=0.0, enable_gqa=True,
-                )
+                    q, k, v, is_causal=True, dropout_p=0.0, enable_gqa=True)
         else:
-            q, k, v = norm_rope_cache(
-                q, k, v, ref.q_norm, ref.k_norm, *position_embeddings,
-                past_key_value.keys[ref.layer_idx], past_key_value.values[ref.layer_idx], cache_position,
-            )
-            result = grouped_attention(q, k, v, cache_position)
+            adapter = _RopeAttention(ref, self.widths, qkv, past_key_value,
+                                     position_embeddings, cache_position)
+            if hidden_states.shape[1] == 1:
+                rows = hidden_states.shape[0]
+                probe_point("rope_attention", adapter, qkv, rows)
+                choice = resolve("rope_attention", rows) or ("legacy",)
+            else:
+                choice = ("legacy",)
+            result = adapter._run(choice, qkv, hidden_states.shape[0])
         result = result.transpose(1, 2).reshape(*hidden_states.shape[:-1], -1)
         return ref.o_proj(result), None
+
+
+class _RopeAttention:
+    """Calibration adapter: newest-token norm/rope/cache fused into attention."""
+
+    def __init__(self, ref, widths, qkv, past_key_value, embeddings, positions):
+        self.ref = ref
+        self.widths = widths
+        self.rows = qkv.shape[0]
+        self.cache = past_key_value
+        self.embeddings = embeddings
+        self.positions = positions
+
+    def _candidates(self, rows):
+        return [("legacy",), ("fused",)]
+
+    def _run(self, choice, x, rows):
+        ref = self.ref
+        keys = self.cache.keys[ref.layer_idx]
+        values = self.cache.values[ref.layer_idx]
+        if choice[0] == "fused":
+            dim = ref.head_dim
+            return prologue_attention(
+                x, ref.q_norm, ref.k_norm, *self.embeddings, keys, values,
+                self.positions, self.widths[1] // dim, self.widths[0] // self.widths[1],
+                self.widths[0], self.widths[0] + self.widths[1])
+        shape = (*x.shape[:-1], -1, ref.head_dim)
+        q, k, v = x.split(self.widths, dim=-1)
+        q, k, v = norm_rope_cache(
+            q.view(shape), k.view(shape), v.view(shape), ref.q_norm, ref.k_norm,
+            *self.embeddings, keys, values, self.positions)
+        return grouped_attention(q, k, v, self.positions)
+
+    def _reference(self, x):
+        return self._run(("legacy",), x, self.rows)

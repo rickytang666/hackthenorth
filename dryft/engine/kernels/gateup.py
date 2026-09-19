@@ -34,16 +34,25 @@ def _gateup(X, W, Y, M: tl.constexpr, K: tl.constexpr, I: tl.constexpr,
              (row[:, None] < M) & (out_col[None, :] < I))
 
 
-def gate_up_swiglu(x, interleaved_weight):
+LEGACY_CONFIG = (16, 128, 64, 4, 3)
+
+
+def gate_up_swiglu(x, interleaved_weight, config=LEGACY_CONFIG):
     """BF16 contiguous x[...,K] and interleaved weight[K,2*I] -> x[...,I].
 
-    Decode-only: 2–32 rows, K divisible by 64. The caller packs weights
-    once during warmup; inputs and weights are never mutated.
+    Decode-only: 2–32 rows, K divisible by the K tile. The caller packs
+    weights once during warmup; inputs and weights are never mutated.
+    `config` is (row tile, column tile, K tile, warps, stages); the default
+    is the originally measured tile, and load-time calibration may select
+    another on the run GPU.
     """
+    bm, bn, bk, warps, stages = config
     rows = x.numel() // x.shape[-1]
     width = interleaved_weight.shape[1] // 2
+    if x.shape[-1] % bk:
+        raise ValueError("K must divide the K tile")
     out = torch.empty((*x.shape[:-1], width), device=x.device, dtype=x.dtype)
-    _gateup[(triton.cdiv(rows, 16) * triton.cdiv(2 * width, 128),)](
-        x, interleaved_weight, out, rows, x.shape[-1], width, 16, 128, 64,
-        num_warps=4, num_stages=3, enable_fp_fusion=False)
+    _gateup[(triton.cdiv(rows, bm) * triton.cdiv(2 * width, bn),)](
+        x, interleaved_weight, out, rows, x.shape[-1], width, bm, bn, bk,
+        num_warps=warps, num_stages=stages, enable_fp_fusion=False)
     return out
