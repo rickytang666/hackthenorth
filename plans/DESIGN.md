@@ -338,6 +338,18 @@ Both lanes fine-tune from a strong pretrained English checkpoint on the identica
 
 The cost is backpropagation. Today the encoder runs forward with no gradient; adapting a block means backprop through it and everything above it, and backward costs roughly twice a forward. Full-encoder LoRA is about **2.3x** the step time of decoder-only. Top 6 blocks is about **1.3 to 1.5x**, which is why the step budget drops from 600 to 400 and stays inside the same 3 hours. Selective layer adaptation also has precedent: Shor et al., cited in the plan, found adapting selected layers outperformed full fine-tuning. Confirm the real multiplier and the activation-memory headroom in the 50-to-100-step smoke test before committing the paid job.
 
+**Cohere pre-flight, before spending a paid H100 minute.** The LoRA target names
+in the source plan are guesses against a pinned revision, and a run that adapts
+nothing looks exactly like a run that is learning slowly.
+
+1. Print `model.named_modules()` and write down the real suffixes.
+2. Attach LoRA r=8 to the top 6 encoder blocks plus the decoder.
+3. Freeze every lower encoder parameter. Then assert both that no lower encoder
+   parameter is trainable and that the trainable count is non-zero and plausible.
+4. One batch through the collator, one `loss.backward()`, loss finite.
+5. Record examples per second and peak memory, then set `max_steps` from that.
+   400 is an estimate, not a fact.
+
 The NeMo `run.sh` and the PEFT config are transcribed from [voicebridge-plan.md](voicebridge-plan.md). Treat the numbers as starting values: run 50 to 100 steps, record examples per second and peak memory, then cap steps at roughly three to five effective passes over the small split and stop early when dev WER flattens. Cap audio at 30 seconds and bucket by length.
 
 ## The 200-step kill rule, before the gate
