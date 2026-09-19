@@ -17,7 +17,9 @@ class FusedProjectionLayer(torch.nn.Module):
         super().__init__()
         self.original = layer
         self.selections = selections
-        self.fuse_residual_norm = False  # Opt-in until full-generation GPU A/B passes.
+        # Full-generation H100 A/B (2026-09-19, experiments/fp8-draft-research.md):
+        # +0.73-0.85% at batches 1/4/8/16, teacher-forced clean.
+        self.fuse_residual_norm = True
 
     def project(self, x, norm, weight, config, swiglu=False):
         return norm_projection(x, norm.weight, weight, norm.variance_epsilon,

@@ -1,17 +1,42 @@
-"""H100 decode projections using the matmul shipped with pinned Triton 3.1.
+"""H100 decode projections calibrated on the run GPU with whole decode steps.
 
-Tiles and weight layouts were measured with rotating weights beyond L2.
-Prefill and larger batches retain native cuBLAS. Original BF16 weights remain
-available for native prefill and the batch-one normalization fusion.
+Kernel rankings for these shapes flip between H100 instances, and isolated
+microbenchmarks misrank kernels that run interleaved inside the decode
+step (measured 2026-09-19: isolated winners lost 4-6% end to end). So the
+engine calibrates in context: before production CUDA graphs are captured,
+it times throwaway CUDA-graph replays while switching one projection kind's
+implementation at a time - the frozen upstream-matmul tile, native cuBLAS,
+and pipelined tensor-core tiles in both layouts - and keeps the fastest
+per (kind, rows). Candidates must first match native linear on the real
+activations. Calibration runs inside the untimed load budget;
+uncalibrated paths keep the frozen configuration. Every
+candidate accumulates FP32 and rounds once to BF16, the native boundary.
 """
+import json
+
 import torch
 import triton
 import triton.language as tl
 from triton.ops.matmul import _kernel as _upstream_matmul
 
+from kernels.dotgemv import dot_projection
+
 # Bypass the upstream autotuner/heuristics with the measured configurations.
 # https://github.com/triton-lang/triton/blob/v3.1.0/python/triton/ops/matmul.py
 _matmul = _upstream_matmul.fn.fn
+
+DOT_CONFIGS = ((128, 64, 8, 4), (64, 128, 8, 4))
+# Upstream-matmul (N tile, K tile, warps, stages) grid for calibration. The
+# frozen per-kind picks sit inside this grid; EVEN_K masking in the upstream
+# kernel handles any K remainder, so no divisibility filter is needed.
+TILE_CANDIDATES = (
+    (32, 128, 2, 5), (64, 128, 4, 5), (128, 64, 4, 3), (64, 64, 4, 4),
+    (128, 64, 8, 4), (64, 128, 8, 4), (256, 64, 8, 3), (32, 64, 4, 5),
+)
+_choices = {}
+_forced = {}
+_probes = {}
+_probing = False
 
 
 def configuration(kind, rows):
@@ -31,6 +56,78 @@ def configuration(kind, rows):
     return False, None
 
 
+def _legacy(kind, rows):
+    column, tile = configuration(kind, rows)
+    return ("tile", column, tile) if tile is not None else ("linear", column)
+
+
+def _measure(step, iters=8, warmup=2):
+    for _ in range(warmup):
+        step()
+    start, end = torch.cuda.Event(True), torch.cuda.Event(True)
+    start.record()
+    for _ in range(iters):
+        step()
+    end.record()
+    end.synchronize()
+    return start.elapsed_time(end) / iters
+
+
+def calibrate(step, graph_factory=None, margin=0.02):
+    """Pick the fastest projection per kind by timing whole decode steps.
+
+    `step` runs one eager step and leaves the state reusable; it identifies
+    which kinds and row counts this state exercises. When `graph_factory`
+    is given it must capture the step into a fresh CUDA graph and return a
+    replay callable: graphed replays are the only timing that matches the
+    production regime (eager steps are launch-bound and misrank kernels).
+    The frozen configuration wins any comparison within `margin` to reduce
+    sensitivity to timing noise. Call before capturing the production graph.
+    """
+    global _probing
+    _probes.clear()
+    _probing = True
+    step()
+    _probing = False
+    torch.cuda.synchronize()
+    for kind, (instance, x, rows) in _probes.items():
+        if (kind, rows) in _choices:
+            continue
+        reference = torch.nn.functional.linear(x, instance.weight).float()
+        scale = max(reference.abs().max().item(), 1.0)
+        legacy = _legacy(kind, rows)
+        timings = []
+        for choice in instance._candidates(rows):
+            try:
+                output = instance._run(choice, x, rows).float()
+                if (output - reference).abs().max().item() > 0.05 * scale:
+                    continue
+                _forced[kind] = choice
+                if graph_factory is not None:
+                    replay = graph_factory()
+                    elapsed = _measure(replay, iters=12, warmup=3)
+                    del replay
+                else:
+                    elapsed = _measure(step)
+                timings.append((elapsed, choice))
+            except Exception:
+                continue
+            finally:
+                _forced.pop(kind, None)
+        if not timings:
+            continue
+        timings.sort(key=lambda pair: pair[0])
+        elapsed, best = timings[0]
+        legacy_elapsed = [t for t, c in timings if c == legacy]
+        if legacy_elapsed and legacy_elapsed[0] <= elapsed * (1 + margin):
+            elapsed, best = legacy_elapsed[0], legacy
+        _choices[(kind, rows)] = best
+        print(json.dumps(dict(kind="projection_calibration", projection=kind,
+                              rows=rows, choice=str(best),
+                              step_ms=[[round(t, 4), str(c)] for t, c in timings[:3]])),
+              flush=True)
+
+
 class Projection(torch.nn.Module):
     def __init__(self, weight, kind):
         super().__init__()
@@ -38,16 +135,13 @@ class Projection(torch.nn.Module):
         self.kind = kind
         self.register_buffer("column_weight", None, persistent=False)
 
-    def forward(self, x):
-        rows = x.numel() // x.shape[-1]
-        column, tile = configuration(self.kind, rows)
-        weight = self.weight
-        if column:
-            if self.column_weight is None:
-                self.column_weight = weight.detach().T.contiguous().T
-            weight = self.column_weight
-        if tile is None:
-            return torch.nn.functional.linear(x, weight)
+    def _column(self):
+        if self.column_weight is None:
+            self.column_weight = self.weight.detach().T.contiguous().T
+        return self.column_weight
+
+    def _tile(self, x, rows, column, tile):
+        weight = self._column() if column else self.weight
         n, k = weight.shape
         flat = x.reshape(rows, k)
         out = torch.empty((rows, n), device=x.device, dtype=x.dtype)
@@ -62,3 +156,51 @@ class Projection(torch.nn.Module):
             num_warps=warps, num_stages=stages,
         )
         return out.reshape(*x.shape[:-1], n)
+
+    def _dot(self, x, rows, config, column):
+        n, k = self.weight.shape
+        bn, bk, warps, stages = config
+        weight = self._column().T if column else self.weight
+        flat = x.reshape(rows, k)
+        out = dot_projection(flat, weight, rows, n, k, bn, bk, warps, stages, column)
+        return out.reshape(*x.shape[:-1], n)
+
+    def _run(self, choice, x, rows):
+        if choice[0] == "tile":
+            return self._tile(x, rows, choice[1], choice[2])
+        if choice[0] == "dot":
+            return self._dot(x, rows, choice[1], choice[2])
+        weight = self._column() if choice[1] else self.weight
+        return torch.nn.functional.linear(x, weight)
+
+    def _candidates(self, rows):
+        options = [_legacy(self.kind, rows)]
+        for column in (False, True):
+            choice = ("linear", column)
+            if choice not in options:
+                options.append(choice)
+        for tile in TILE_CANDIDATES:
+            for column in (False, True):
+                choice = ("tile", column, tile)
+                if choice not in options:
+                    options.append(choice)
+        _, k = self.weight.shape
+        for config in DOT_CONFIGS:
+            if k % config[1]:
+                continue
+            options.append(("dot", config, False))
+            options.append(("dot", config, True))
+        return options
+
+    def forward(self, x):
+        rows = x.numel() // x.shape[-1]
+        if rows > 32:
+            return torch.nn.functional.linear(x, self.weight)
+        if _probing and self.kind not in _probes:
+            _probes[self.kind] = (self, x.detach().clone(), rows)
+        choice = _forced.get(self.kind)
+        if choice is None:
+            choice = _choices.get((self.kind, rows))
+        if choice is None:
+            choice = _legacy(self.kind, rows)
+        return self._run(choice, x, rows)

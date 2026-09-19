@@ -13,6 +13,33 @@ except ImportError:
 
 @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA and Triton")
 class FusedKernelTests(unittest.TestCase):
+    def test_dot_projection_layouts_tail_rows_and_graph_replay(self):
+        from kernels.dotgemv import dot_projection
+
+        torch.manual_seed(1731)
+        with torch.inference_mode():
+            for rows, k in ((1, 2560), (3, 4096), (17, 9728), (32, 2560)):
+                # An odd output width checks masked channels as well as the
+                # padded tensor-core rows in the calibration candidate.
+                n = 257
+                weight = torch.randn(n, k, device="cuda", dtype=torch.bfloat16) * 0.02
+                x = torch.randn(rows, k, device="cuda", dtype=torch.bfloat16)
+                for column in (False, True):
+                    packed = weight.T.contiguous() if column else weight
+                    for bn, bk in ((128, 64), (64, 128)):
+                        def project():
+                            return dot_projection(x, packed, rows, n, k, bn, bk, 8, 4, column)
+                        project()
+                        torch.cuda.synchronize()
+                        graph = torch.cuda.CUDAGraph()
+                        with torch.cuda.graph(graph):
+                            actual = project()
+                        for scale in (0.25, 4.):
+                            x.normal_(std=scale)
+                            graph.replay()
+                            expected = torch.nn.functional.linear(x, weight)
+                            torch.testing.assert_close(actual, expected, atol=0.04, rtol=0.02)
+
     def test_greedy_head_rounding_ties_and_graph_replay(self):
         from kernels.greedy import greedy_token
 
