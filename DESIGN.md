@@ -45,6 +45,23 @@ voice service (OpenVoice V2, cached speaker embedding)
 Opus/PCM frames -> browser playback
 ```
 
+## The phases
+
+| Phase | Wall clock | Name | Ends when |
+|---|---|---|---|
+| **0** | 14:30 to 15:45 | Foundation, joint, one keyboard | All six exit gates pass. **Branch here** |
+| **1** | 15:45 to 18:45 | Parallel lanes: train and build | Two tuned candidates plus a working mock-driven product shell |
+| **2** | 18:45 to 19:45 | Dev decode | Promotion table filled |
+| **3** | 19:45 to 20:45 | Promotion and integration | **Product gate:** speech, text, confirmation, personal voice |
+| **4** | 20:45 to 22:45 | Optimize and seal | Test-speaker number locked, one approved serving config |
+| **5** | 22:45 to 01:45 | Verify and harden | Scorecard populated, failures documented, demo stable |
+| **6** | 01:45 to 04:00 | Rehearse and buffer | Everything frozen at 04:00 |
+| **7** | 04:00 to 08:00 | Submit | Video, Devpost, submitted before 08:00 |
+
+Phase 1 is the only phase where the two people work independently. Everything before it is joint, and everything after it has at least one sync point. The 200-step kill-rule check sits inside Phase 1 at ~17:00.
+
+Phases 0, 3, 5 and 6 are phase boundaries in the handbook sense: regenerate `README.md`, compact agent context back toward 40-60%, and re-read the demo script.
+
 ## Phase 0: the foundation, built jointly before anyone branches
 
 Two lanes can only run independently if the seams between them already exist as running code. Prose seams drift silently; a committed evaluator and a running mock server do not. Phase 0 builds those seams with **one person at the keyboard**, because three agents on an empty repo invent three answers to the same dozen questions and git merges all three cleanly.
@@ -60,20 +77,20 @@ The other person is not idle and is not coding. Provisioning is genuinely parall
 5. `contract/protocol.md` plus `contract/mock_asr.py`, a protocol-correct fake that replays a fixture JSONL on a timer
 6. `serve/_template/`, one Truss that already speaks Protocol 1 against a stub model, copied by both serving directories
 7. `bench/latency.py`, driving Protocol 1 and writing the scorecard row
-8. Time one 7-word OpenVoice synthesis and record it, which decides whether streaming TTS is built at all
-9. Finish `.gitignore`
+8. Finish `.gitignore`, the last moment it is free to edit
 
-**Provisioning lane, same hour:** Baseten account, CLI, and H100 quota confirmed; `HF_TOKEN` working and the gated `CohereLabs/cohere-transcribe-03-2026` conditions accepted; TORGO downloaded (1.56 GB); OpenVoice V2 weights downloaded; one consented enrollment recording captured; verifier Model API key working; TORGO license checked for third-party cloud processing.
+**Provisioning lane, same hour:** Baseten account, CLI, and H100 quota confirmed; `HF_TOKEN` working and the gated `CohereLabs/cohere-transcribe-03-2026` conditions accepted; TORGO downloaded (1.56 GB); OpenVoice V2 weights downloaded; one consented enrollment recording captured; verifier Model API key working; TORGO license checked for third-party cloud processing. Then, holding the weights already, **time one 7-word OpenVoice synthesis and write the number down**, which decides whether streaming TTS is built at all.
 
-**Phase 0 exits when all four are true, and not on a clock:**
+**Phase 0 exits when all six are true, and not on a clock:**
 
 - `contract/evaluate.py` runs on synthetic prediction files and prints the full scorecard table
 - `contract/mock_asr.py` streams protocol-correct partials to a stub page and `bench/latency.py` reports a number from it
 - Both people have independently reproduced the five manifest hashes
 - Both people have a trainable checkpoint loaded and one backward pass completed locally
-- `contract/confidence.py` returns a score on a real decode, and the 7-word synthesis time is written down
+- `contract/confidence.py` returns a score on a real decode
+- One 7-word OpenVoice synthesis is timed and the number written down
 
-Only then do the two lanes branch. Skipping any of the four moves the cost to the hour-5 gate, where it is unrecoverable.
+Only then do the two lanes branch. Skipping any of the six moves the cost to the promotion gate, where it is unrecoverable.
 
 ## Service boundaries: why the lanes stay independent after Phase 0
 
@@ -83,7 +100,7 @@ Three rules, all enabled by Phase 0:
 2. **Both model lanes serve the identical protocol from the moment they branch**, each wrapping their own model in a copy of `serve/_template/`. The hour-5 gate then picks a URL, not an integration task.
 3. **The mock exists before either model does**, so product work never waits on a training job.
 
-The dependency graph after Phase 0 has exactly three sync points: the promotion gate, the sealed test decode, and the freeze. Everything else is lane-local.
+The dependency graph after Phase 0 has exactly four sync points: the 200-step kill-rule check, the promotion gate, the sealed test decode, and the freeze. Everything else is lane-local.
 
 ## The data contract
 
@@ -237,6 +254,10 @@ hackthenorth/
 |-- bench/                     latency harness, scorecard writer
 |-- results/                   gitignored, prediction JSONL
 |
+|-- pyproject.toml             one person installs all dependencies
+|-- package.json               same
+|-- .gitignore
+|-- README.md                  orientation, regenerated at phase boundaries
 |-- DESIGN.md                  this file
 |-- OWNERSHIP.md               who owns what, when
 `-- voicebridge-plan.md        motivation, citations, Devpost source
@@ -270,7 +291,7 @@ Both jobs already evaluate every 100 to 200 steps and Phase 0 already produced e
 
 This works because a flat early curve is almost never slow learning. It is a wiring bug: LoRA pointed at module names that do not exist on the pinned revision, labels masked wrong, the encoder accidentally frozen, a learning rate off by 10x. None of those improve with more steps. At batch 4 with 4x accumulation, 200 steps is about 3,200 samples, a real fraction of an epoch on a split this small, so the signal is trustworthy.
 
-Dropping a lane costs one tuned model. You still report both frozen baselines plus one tuned model, which is a valid comparison, and you recover roughly 3 hours of a person and 3 H100-hours while they are still worth something.
+Dropping a lane costs one tuned model. You still report both frozen baselines plus one tuned model, which is a valid comparison, and you recover roughly 3 hours of a person plus 1.5 to 2 H100-hours, since the killed job is already part-way through its 3-hour budget.
 
 ## Promotion gate
 
@@ -329,8 +350,8 @@ Everything reduces to one question asked four ways: **did the model type what th
 We hold out one speaker the model never trained on, play their recordings through it, and compare the typed output to the known correct sentence. Four numbers come out:
 
 1. **How many words it got wrong.** Standard word error rate. 10% means one word in ten is wrong. Reported separately for single words and full sentences, because TORGO repeats a small word list and a model can look good by memorizing it.
-2. **How many words that matter it got wrong.** Turning "do not give her the insulin" into "do give her the insulin" is one word wrong out of seven, but it is the only error that could hurt someone. We keep a frozen list of those terms (no, yes, numbers, names, medications) and count errors on them separately. A model that improves overall but adds one of these is rejected.
-3. **Whether it got worse at ordinary speech.** Fine-tuning hard on eight dysarthric speakers can make a model forget everyone else. We keep a set of control recordings the model never trained on and check the score did not fall off a cliff.
+2. **How many words that matter it got wrong.** Turning "do not give her the insulin" into "do give her the insulin" is one word wrong out of six, but it is the only error that could hurt someone. We keep a frozen list of those terms (no, yes, numbers, names, medications) and count errors on them separately. A model that improves overall but adds one of these is rejected.
+3. **Whether it got worse at ordinary speech.** Fine-tuning hard on six dysarthric speakers can make a model forget everyone else. We keep a set of control recordings the model never trained on and check the score did not fall off a cliff.
 4. **How fast.** How long until the first words appear, how long until the person hears their own voice, and the slow cases (p95) rather than the average, because the slow cases are what a judge notices.
 
 ### Why it is built before branching, not after

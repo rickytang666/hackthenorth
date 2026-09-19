@@ -7,7 +7,7 @@ Two builders. This file binds both of you regardless of whether you write code b
 | Person A, Parakeet lane and serving optimization, **demo owner** | | |
 | Person B, Cohere lane and product path | | |
 
-Person A is the demo owner because A's post-gate work (FP8, serving micro-optimization) is the most droppable thing on the board, and B's post-gate work (the product path) is not. The demo owner flips to full-time submission work at roughly 22:00.
+Person A is the demo owner because A's post-gate work (FP8, serving micro-optimization) is the most droppable thing on the board, and B's post-gate work (the product path) is not. The demo owner flips to full-time submission work at 22:45, which the clock below reflects.
 
 ## Phase 0 is joint. Do not branch before it exits.
 
@@ -48,10 +48,12 @@ hackthenorth/
 |-- serve/asr_cohere/ .......... B
 |-- serve/voice/ ............... B
 |-- app/ ....................... B
-|-- .gitignore ................. B
+|-- .gitignore ................. PHASE 0 (A), then B
 |-- package.json / lock files .. B  (B installs ALL dependencies)
 |-- pyproject.toml / lock ...... B
 |
+|-- README.md .................. either, regenerated at phase boundaries
+|-- voicebridge-plan.md ........ either, append only. Devpost source
 |-- OWNERSHIP.md ............... either, append only
 |-- .workspace/hackathon-status.md  either, append only
 `-- results/ ................... gitignored, no owner needed
@@ -82,14 +84,14 @@ Freeze 04:00 Sunday. Final code and Devpost edits close 08:00. Judging 09:30 at 
 
 | Wall clock | Person A | Person B | Exit condition |
 |---|---|---|---|
-| 14:30 to 15:45 | Keyboard: `contract/`, manifests, mock, template, bench | Provisioning list, then verify hashes and run a local backward pass | **The four Phase 0 gates. Branch only now.** |
+| 14:30 to 15:45 | Keyboard: `contract/`, manifests, confidence scorer, mock, template, bench | Provisioning list, then verify hashes, run a local backward pass, and time one 7-word OpenVoice synthesis | **All six Phase 0 gates. Branch only now.** |
 | 15:45 to 18:45 | Launch Parakeet NeMo job on H100-A, checkpoint every 200 to 250 steps. While it runs: `serve/asr_parakeet/` against the frozen base, latency harness | Launch Cohere LoRA job on H100-B (top 6 encoder blocks plus decoder, ~400 steps). While it runs: `app/` UI, verifier, OpenVoice enrollment and render, all against `mock_asr.py` | Two tuned candidates plus an audio-in, audio-out shell already working on the mock |
 | ~17:00, at 200 steps | **Kill-rule check.** Tuned not beating its own frozen baseline on the dev speaker? Stop the job, join the other lane | Same check, same rule | Both lanes still alive, or one dropped and two people on the survivor |
 | 18:45 to 19:45 | Decode tuned Parakeet on the full dev set, fill its columns | Decode tuned Cohere on the same dev set, fill its columns | Gate table complete |
-| 19:45 to 20:45 | Apply the gate. Deploy your model if it won, otherwise hand A's endpoint config to B and start profiling | Point `ASR_WS_URL` at the winner, finish streamed audio playback | **Product gate: speech, recovered text, confirmation, audible personal voice** |
+| 19:45 to 20:45 | Apply the gate. Deploy your model if it won, otherwise help B wire the Cohere adapter and start profiling the common endpoint | Point `ASR_WS_URL` at the winner, finish streamed audio playback | **Product gate: speech, recovered text, confirmation, audible personal voice** |
 | 20:45 to 22:45 | Build and benchmark FP8 against BF16 on the frozen winner | Sealed test decode once, then rolling-window session state, WebSocket partials, latency traces | Final held-out number plus one accuracy-approved serving config. BF16 stays the fallback |
-| 22:45 to 23:45 | Noise robustness and clean-speech regression. Do not reopen model selection | Critical terms, voice identity, end-to-end p50 and p95 | Frozen deployment, populated scorecard, documented failures |
-| 23:45 to 01:45 | Stratified failure analysis. Fix only reproducible serving defects | Blinded intelligibility and identity checks, harden clarification UX, capture before and after evidence | Final quality tables and a stable demo path |
+| 22:45 to 23:45 | **Flip to demo owner.** Noise robustness and clean-speech regression, then hand serving work to B | Critical terms, voice identity, end-to-end p50 and p95 | Frozen deployment, populated scorecard, documented failures |
+| 23:45 to 01:45 | Demo script, video plan, Devpost draft, screenshot plan. Stratified failure analysis only if time allows | Blinded intelligibility and identity checks, harden clarification UX, capture before and after evidence | Final quality tables and a stable demo path |
 | 01:45 to 02:45 | Freeze model and checkpoint IDs, capture evidence, rehearse | Freeze URLs, prepare recorded fallback inputs | Reliable demo and evidence bundle |
 | 02:45 to 04:00 | Buffer for the one thing that breaks | Buffer | Nothing new starts |
 | **04:00** | **FREEZE** | **FREEZE** | Demo-path bugfixes only |
@@ -99,7 +101,13 @@ The 12 aggregate H100-hour budget is unchanged: 3 Parakeet training, 3 Cohere tr
 
 ## One-H100 fallback
 
-Keep both models and the full training split, shorten both step budgets, and run the two jobs sequentially: Parakeet 15:45 to 17:45, Cohere 17:45 to 19:45. The kill rule matters more here, not less: a dead first job burns the second job's window. The 20:45 product gate may use the better **frozen** model if neither adapter has cleared evaluation. Phase 0 does not shrink.
+Keep both models and the full training split, shorten both step budgets, and run the two jobs sequentially: Parakeet 15:45 to 17:45, Cohere 17:45 to 19:45. Three things shift and must shift together:
+
+- Each lane's kill-rule check happens 200 steps into **its own** window, not at a shared 17:00. Cohere has not started at 17:00.
+- The dev decode cannot start before 19:45, so the promotion gate slips to **~20:45** and every row after it slides one hour.
+- The product gate therefore uses the better **frozen** model if neither adapter has cleared evaluation. This is expected, not a failure.
+
+The kill rule matters more here, not less: a dead first job burns the second job's window. Phase 0 does not shrink.
 
 ## Changing the contract after Phase 0
 
