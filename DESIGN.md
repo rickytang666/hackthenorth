@@ -56,10 +56,12 @@ The other person is not idle and is not coding. Provisioning is genuinely parall
 1. `contract/normalize.py`, `contract/predictions.py`, `contract/evaluate.py`, `contract/critical_terms.txt`
 2. `data/prepare_torgo.py`, run once. Publish the five manifest SHA-256 hashes in `contract/MANIFEST_HASHES`
 3. `contract/decode.py`, one decode loop taking a `transcribe(paths) -> list[str]` callable, so both lanes emit byte-comparable prediction files without sharing model code
-4. `contract/protocol.md` plus `contract/mock_asr.py`, a protocol-correct fake that replays a fixture JSONL on a timer
-5. `serve/_template/`, one Truss that already speaks Protocol 1 against a stub model, copied by both serving directories
-6. `bench/latency.py`, driving Protocol 1 and writing the scorecard row
-7. Finish `.gitignore`
+4. `contract/confidence.py`, the shared token-log-probability scorer, since NVIDIA's TDT confidence utility is broken (see "Where `confidence` comes from")
+5. `contract/protocol.md` plus `contract/mock_asr.py`, a protocol-correct fake that replays a fixture JSONL on a timer
+6. `serve/_template/`, one Truss that already speaks Protocol 1 against a stub model, copied by both serving directories
+7. `bench/latency.py`, driving Protocol 1 and writing the scorecard row
+8. Time one 7-word OpenVoice synthesis and record it, which decides whether streaming TTS is built at all
+9. Finish `.gitignore`
 
 **Provisioning lane, same hour:** Baseten account, CLI, and H100 quota confirmed; `HF_TOKEN` working and the gated `CohereLabs/cohere-transcribe-03-2026` conditions accepted; TORGO downloaded (1.56 GB); OpenVoice V2 weights downloaded; one consented enrollment recording captured; verifier Model API key working; TORGO license checked for third-party cloud processing.
 
@@ -69,6 +71,7 @@ The other person is not idle and is not coding. Provisioning is genuinely parall
 - `contract/mock_asr.py` streams protocol-correct partials to a stub page and `bench/latency.py` reports a number from it
 - Both people have independently reproduced the five manifest hashes
 - Both people have a trainable checkpoint loaded and one backward pass completed locally
+- `contract/confidence.py` returns a score on a real decode, and the 7-word synthesis time is written down
 
 Only then do the two lanes branch. Skipping any of the four moves the cost to the hour-5 gate, where it is unrecoverable.
 
@@ -92,6 +95,7 @@ contract/
   predictions.py      # prediction row schema + writer
   evaluate.py         # WER, per-speaker WER, critical-error rate, RTF
   decode.py           # shared decode loop, pluggable transcribe callable
+  confidence.py       # shared token-log-prob scorer + calibrated threshold
   critical_terms.txt  # frozen safety slice: negation, yes/no, numbers, names, meds
   protocol.md         # the three wire protocols below, normative
   mock_asr.py         # protocol-correct fake ASR server, fixture-driven
@@ -154,6 +158,20 @@ Server sends:
 
 `stable_prefix_len` is the character count the server promises not to revise. The app sends a clause to the renderer only once it is inside the stable prefix or the user has confirmed it, otherwise the system speaks a word and immediately contradicts itself.
 
+### Where `confidence` comes from
+
+The `confidence` field above is load-bearing: it is the sole trigger for asking instead of guessing, which is the product's central claim. Without it you either ask every time, which kills the demo rhythm, or never ask, which is the hallucination failure being pitched against.
+
+**NVIDIA's packaged confidence utility is broken on TDT models.** It raises `IndexError` on Parakeet-TDT while working on the RNNT and CTC variants, because TDT predicts a token and a duration and skips blank frames, violating the per-frame indexing that utility assumes. The bug has been open and stale since 2024, so do not plan around it being fixed.
+
+What is broken is the wrapper, not the model: the raw token probabilities are still available. Both lanes compute their own score, identically, in `contract/confidence.py`:
+
+- sequence confidence = mean token log-probability, exponentiated
+- word-level flag = minimum token log-probability within the word
+- calibrate the accept/clarify threshold on the dev speaker, since raw probabilities run overconfident and 0.6 must actually mean about 60% correct
+
+This is roughly twenty lines and it is a Phase 0 exit gate, not lane work, because both lanes must threshold identically or the clarification rates in the promotion table are not comparable.
+
 ### Protocol 2: Voice renderer
 
 ```text
@@ -163,7 +181,15 @@ WS   /v1/synthesize  {"text": "...", "voice_id": "...",
                      -> binary PCM/Opus frames, then {"type": "done"}
 ```
 
-Enrollment runs once per consented session and the embedding is cached. Generated health-related content is never cached. Segment at punctuation or a 300 to 500 ms pause and cross-fade adjacent chunks.
+Enrollment runs once per consented session and the embedding is cached. Generated health-related content is never cached.
+
+**Two different things are called streaming here, and only one is demo-critical.**
+
+*Streaming ASR*, meaning text appearing word by word as the person speaks, is what a judge actually watches. It is already in Protocol 1 and it ships.
+
+*Streaming TTS*, meaning audio starting before synthesis finishes, is not shipped by default. OpenVoice V2 has no native streaming path; the sub-second figures people report come from wrapping it in a pipeline such as Pipecat or LiveKit. Building chunked synthesis buys maybe 200 to 400 ms and costs chunk-boundary artifacts, cross-fade logic, and buffer management, which is the single most likely thing to stutter live.
+
+A confirmed clause is 5 to 8 words. **Time one 7-word synthesis in Phase 0.** Under about 800 ms, synthesize whole confirmed clauses and delete streaming TTS from the plan. Only if that measurement misses the 1.5 s first-audio budget do you segment at punctuation or a 300 to 500 ms pause and cross-fade adjacent chunks.
 
 ### Protocol 3: Verifier
 
@@ -188,6 +214,7 @@ hackthenorth/
 |   |-- predictions.py           prediction row schema + writer
 |   |-- evaluate.py              scoring: WER, critical errors, RTF
 |   |-- decode.py                shared decode loop, pluggable transcribe()
+|   |-- confidence.py            shared scorer, NVIDIA's TDT utility is broken
 |   |-- critical_terms.txt       frozen safety slice
 |   |-- protocol.md              the three wire protocols, normative
 |   |-- mock_asr.py              fake ASR server, lets app/ start immediately
@@ -224,10 +251,26 @@ Both lanes fine-tune from a strong pretrained English checkpoint on the identica
 | Lane | Base | Method | Owner |
 |---|---|---|---|
 | Parakeet | `nvidia/parakeet-tdt-0.6b-v2` | NeMo fine-tuning, BF16, ~800 steps | A |
-| Cohere | `CohereLabs/cohere-transcribe-03-2026` | PEFT LoRA r=8 on decoder, encoder frozen, ~600 steps | B |
+| Cohere | `CohereLabs/cohere-transcribe-03-2026` | PEFT LoRA r=8 on the **top 6 encoder blocks plus the decoder**, ~400 steps | B |
 | Reference | `nvidia/parakeet-tdt-1.1b` | frozen, decode only | A |
 
+**Why the Cohere LoRA reaches into the encoder.** [voicebridge-plan.md](voicebridge-plan.md) froze the encoder and adapted the decoder only. Cohere Transcribe puts over 90% of its 2B parameters in the encoder and keeps a deliberately lightweight decoder, and dysarthria is an acoustic problem, so decoder-only adaptation would likely move very little and Lane B would lose the bake-off for a reason unrelated to the model.
+
+The cost is backpropagation. Today the encoder runs forward with no gradient; adapting a block means backprop through it and everything above it, and backward costs roughly twice a forward. Full-encoder LoRA is about **2.3x** the step time of decoder-only. Top 6 blocks is about **1.3 to 1.5x**, which is why the step budget drops from 600 to 400 and stays inside the same 3 hours. Selective layer adaptation also has precedent: Shor et al., cited in the plan, found adapting selected layers outperformed full fine-tuning. Confirm the real multiplier and the activation-memory headroom in the 50-to-100-step smoke test before committing the paid job.
+
 The NeMo `run.sh` and the PEFT config are transcribed from [voicebridge-plan.md](voicebridge-plan.md). Treat the numbers as starting values: run 50 to 100 steps, record examples per second and peak memory, then cap steps at roughly three to five effective passes over the small split and stop early when dev WER flattens. Cap audio at 30 seconds and bucket by length.
+
+## The 200-step kill rule, before the gate
+
+The promotion gate is at hour 5. Without an earlier checkpoint, a lane that is visibly failing at hour 2 still gets babysat for three more hours before anyone is permitted to say so.
+
+Both jobs already evaluate every 100 to 200 steps and Phase 0 already produced each model's frozen baseline WER, so the comparison costs nothing extra.
+
+**At 200 steps, if the tuned model is not beating its own untuned baseline on the dev speaker, stop the job and move that person onto the surviving lane.**
+
+This works because a flat early curve is almost never slow learning. It is a wiring bug: LoRA pointed at module names that do not exist on the pinned revision, labels masked wrong, the encoder accidentally frozen, a learning rate off by 10x. None of those improve with more steps. At batch 4 with 4x accumulation, 200 steps is about 3,200 samples, a real fraction of an epoch on a split this small, so the signal is trustworthy.
+
+Dropping a lane costs one tuned model. You still report both frozen baselines plus one tuned model, which is a valid comparison, and you recover roughly 3 hours of a person and 3 H100-hours while they are still worth something.
 
 ## Promotion gate
 
@@ -273,7 +316,7 @@ Each rung is reachable in under ten minutes and each is demoable.
 | FP8 misses its accuracy gate | BF16 winner |
 | Streaming state reuse drifts | Fixed overlapping windows |
 | First-partial latency gate unreachable | `nvidia/nemotron-speech-streaming-en-0.6b`, cache-aware by design |
-| OpenVoice chunked streaming not ready | Synthesize the whole confirmed sentence, then play |
+| First-audio budget missed with whole-clause synthesis | Add chunked streaming TTS, measured in Phase 0 before it is built |
 | OpenVoice enrollment fails | Generic pretrained voice, stated honestly on stage |
 | Any live service down at the booth | Fixture replay through `contract/mock_asr.py`, local file on the presenting laptop |
 
@@ -314,6 +357,7 @@ Targets: first recovered audio under 1.5 s, RTF under 0.5, at most 250 ms betwee
 
 - TORGO has eight dysarthric speakers. One dev and one test speaker cannot establish generalization. Say this in the pitch rather than being caught on it.
 - Cohere's documented production path is offline or vLLM, not a demonstrated cache-aware streaming encoder. If Cohere wins on WER it may still lose on latency.
-- The Cohere collator and LoRA target-module suffixes are revision-specific. Print `model.named_modules()` and unit-test one batch and one backward pass before launching the paid job.
+- The Cohere collator and LoRA target-module suffixes are revision-specific. Print `model.named_modules()` and unit-test one batch and one backward pass before launching the paid job. Assert that the intended top encoder blocks are trainable and the lower ones are not.
+- Cohere Transcribe is Apache 2.0 but the repo is gated behind a contact-information click-through, so it costs two minutes rather than an approval queue. Pull from `CohereLabs/cohere-transcribe-03-2026` directly: the third-party ONNX, CoreML and GGUF mirrors are CC-BY-NC and non-commercial.
 - Confirm TORGO's academic non-profit license permits third-party cloud processing before mounting audio on Baseten.
 - Voice enrollment audio is sensitive personal data. Explicit consent, explicit deletion, no secrets or keys in logs. The repo goes public at submission.

@@ -13,14 +13,16 @@ Person A is the demo owner because A's post-gate work (FP8, serving micro-optimi
 
 One person at the keyboard, the other provisioning. Parallelizing code before the seams exist is the most expensive mistake available here: two lanes independently invent two normalizers, two prediction schemas, and two ideas of what a partial hypothesis is, and then the hour-5 comparison is meaningless.
 
-**Exit gate, all four, not a clock:**
+**Exit gate, all six, not a clock:**
 
 1. `contract/evaluate.py` prints the full scorecard table from synthetic prediction files
 2. `contract/mock_asr.py` streams protocol-correct partials and `bench/latency.py` reports a number from it
 3. Both people independently reproduce the five manifest SHA-256 hashes
 4. Both people have a trainable checkpoint loaded and one local backward pass completed
+5. `contract/confidence.py` returns a score on a real decode, because NVIDIA's TDT confidence utility is broken and both lanes must threshold identically
+6. One 7-word OpenVoice synthesis is timed and written down, which decides whether streaming TTS is built at all
 
-The provisioning lane is real work and is fatal if deferred: Baseten account, CLI, and H100 quota; `HF_TOKEN` plus the gated Cohere repo conditions accepted; TORGO downloaded; OpenVoice V2 weights downloaded; one consented enrollment recording; verifier Model API key; TORGO license checked for third-party cloud processing.
+The provisioning lane is real work and is fatal if deferred: Baseten account, CLI, and H100 quota; `HF_TOKEN` plus the Cohere contact-information click-through accepted (Apache 2.0, two minutes, not an approval queue, and pull from `CohereLabs/cohere-transcribe-03-2026` rather than a CC-BY-NC mirror); TORGO downloaded; OpenVoice V2 weights downloaded; one consented enrollment recording; verifier Model API key; TORGO license checked for third-party cloud processing.
 
 ## File ownership
 
@@ -65,10 +67,11 @@ Standing rules:
 - Branches are `type/short-description`, never prefixed with a tool or model name.
 - A human presses merge, always. No CI auto-merge.
 
-## The only three sync points after Phase 0
+## The only four sync points after Phase 0
 
-Everything else is lane-local. If you find yourself waiting on the other person outside these three, say so in `.workspace/hackathon-status.md` immediately, because it means a seam leaked.
+Everything else is lane-local. If you find yourself waiting on the other person outside these four, say so in `.workspace/hackathon-status.md` immediately, because it means a seam leaked.
 
+0. **The 200-step kill-rule check (~17:00).** Thirty seconds, not a meeting: each person states whether their tuned model beat its own frozen baseline. A "no" means that lane stops now rather than at 19:45. See DESIGN.md for why an early flat curve is a wiring bug and not slow learning.
 1. **The promotion gate (~19:45).** Both dev scorecards filled, winner chosen by the predeclared rule in DESIGN.md, `ASR_WS_URL` flipped. This is a config change, not an integration.
 2. **The sealed test decode (~20:45).** One person runs it once, with the winner and its own frozen baseline. Never reopened.
 3. **The freeze (04:00).** Demo-path bugfixes only after this.
@@ -80,7 +83,8 @@ Freeze 04:00 Sunday. Final code and Devpost edits close 08:00. Judging 09:30 at 
 | Wall clock | Person A | Person B | Exit condition |
 |---|---|---|---|
 | 14:30 to 15:45 | Keyboard: `contract/`, manifests, mock, template, bench | Provisioning list, then verify hashes and run a local backward pass | **The four Phase 0 gates. Branch only now.** |
-| 15:45 to 18:45 | Launch Parakeet NeMo job on H100-A, checkpoint every 200 to 250 steps. While it runs: `serve/asr_parakeet/` against the frozen base, latency harness | Launch Cohere LoRA job on H100-B. While it runs: `app/` UI, verifier, OpenVoice enrollment and render, all against `mock_asr.py` | Two tuned candidates plus an audio-in, audio-out shell already working on the mock |
+| 15:45 to 18:45 | Launch Parakeet NeMo job on H100-A, checkpoint every 200 to 250 steps. While it runs: `serve/asr_parakeet/` against the frozen base, latency harness | Launch Cohere LoRA job on H100-B (top 6 encoder blocks plus decoder, ~400 steps). While it runs: `app/` UI, verifier, OpenVoice enrollment and render, all against `mock_asr.py` | Two tuned candidates plus an audio-in, audio-out shell already working on the mock |
+| ~17:00, at 200 steps | **Kill-rule check.** Tuned not beating its own frozen baseline on the dev speaker? Stop the job, join the other lane | Same check, same rule | Both lanes still alive, or one dropped and two people on the survivor |
 | 18:45 to 19:45 | Decode tuned Parakeet on the full dev set, fill its columns | Decode tuned Cohere on the same dev set, fill its columns | Gate table complete |
 | 19:45 to 20:45 | Apply the gate. Deploy your model if it won, otherwise hand A's endpoint config to B and start profiling | Point `ASR_WS_URL` at the winner, finish streamed audio playback | **Product gate: speech, recovered text, confirmation, audible personal voice** |
 | 20:45 to 22:45 | Build and benchmark FP8 against BF16 on the frozen winner | Sealed test decode once, then rolling-window session state, WebSocket partials, latency traces | Final held-out number plus one accuracy-approved serving config. BF16 stays the fallback |
@@ -95,7 +99,7 @@ The 12 aggregate H100-hour budget is unchanged: 3 Parakeet training, 3 Cohere tr
 
 ## One-H100 fallback
 
-Keep both models and the full training split, shorten both step budgets, and run the two jobs sequentially: Parakeet 15:45 to 17:45, Cohere 17:45 to 19:45. The 20:45 product gate may use the better **frozen** model if neither adapter has cleared evaluation. Phase 0 does not shrink.
+Keep both models and the full training split, shorten both step budgets, and run the two jobs sequentially: Parakeet 15:45 to 17:45, Cohere 17:45 to 19:45. The kill rule matters more here, not less: a dead first job burns the second job's window. The 20:45 product gate may use the better **frozen** model if neither adapter has cleared evaluation. Phase 0 does not shrink.
 
 ## Changing the contract after Phase 0
 
