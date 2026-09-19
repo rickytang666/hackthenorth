@@ -4,7 +4,7 @@
   "torch": "2.5.1+cu124",
   "gpu_kernel_tests": {
     "exit_code": 0,
-    "output": "...........\n----------------------------------------------------------------------\nRan 11 tests in 42.520s\n\nOK\n"
+    "output": "..........\n----------------------------------------------------------------------\nRan 10 tests in 19.917s\n\nOK\n"
   },
   "records": [
     {
@@ -42,72 +42,72 @@
         32
       ],
       "baseline_seconds": [
-        0.13446464799999092,
-        0.016139504000008742,
-        0.0038208790322581507
+        0.13330127799999758,
+        0.015933542000006184,
+        0.0038355220000000608
       ],
       "candidate_seconds": [
-        0.12962794400000632,
-        0.015270086000001015,
-        0.00371337829032275
+        0.12940361199999728,
+        0.014171339000000671,
+        0.0037386180967741763
       ],
       "samples_seconds": {
         "baseline": [
           [
-            0.12681313599999555,
-            0.01638823199999706,
-            0.003562093677419306
+            0.12440677800000088,
+            0.014050278999995669,
+            0.003559887064516297
           ],
           [
-            0.13446464799999092,
-            0.016017397999988248,
-            0.0038208790322581507
+            0.13330127799999758,
+            0.014400095999995699,
+            0.0038355220000000608
           ],
           [
-            0.13072711499999912,
-            0.016116336999999703,
-            0.003697121870967723
+            0.13057088200000067,
+            0.015933542000006184,
+            0.0036979787096772412
           ],
           [
-            0.13852668699999526,
-            0.016139504000008742,
-            0.003947973645160856
+            0.13861538399999773,
+            0.01621432700000014,
+            0.003948421193548309
           ],
           [
-            0.13931819399999767,
-            0.016841505000002144,
-            0.0039508609354837266
+            0.13843182000000098,
+            0.015978961000001846,
+            0.003950092225806424
           ]
         ],
         "candidate": [
           [
-            0.1226057139999881,
-            0.015270086000001015,
-            0.003462439612902809
+            0.12191501099999869,
+            0.013921983000003024,
+            0.003483646064515989
           ],
           [
-            0.12962794400000632,
-            0.014513217000001077,
-            0.00371337829032275
+            0.12940361199999728,
+            0.01350645099999781,
+            0.0037386180967741763
           ],
           [
-            0.12611454800000388,
-            0.015029835000007097,
-            0.0035833778387095736
+            0.12605979299999603,
+            0.014171339000000671,
+            0.003609304967741786
           ],
           [
-            0.1347198189999972,
-            0.01620917399999655,
-            0.003822924032258085
+            0.13425667799999985,
+            0.015028221999997982,
+            0.003846079225806512
           ],
           [
-            0.13511821900000598,
-            0.01662790599999653,
-            0.0038222681612906273
+            0.13553831600000166,
+            0.016207354000002283,
+            0.003849385870967722
           ]
         ]
       },
-      "speedup": 1.0373122017578582
+      "speedup": 1.0301202257012763
     },
     {
       "kind": "engine_ab",
@@ -117,72 +117,72 @@
         32
       ],
       "baseline_seconds": [
-        0.26346151599999246,
-        0.12357845699999359,
-        0.004533229677419619
+        0.2646819530000002,
+        0.1242375930000037,
+        0.004523735129032319
       ],
       "candidate_seconds": [
-        0.25969392500000765,
-        0.12101761200000283,
-        0.004473634935484297
+        0.26377645699999874,
+        0.12446594899999752,
+        0.004491587161290285
       ],
       "samples_seconds": {
         "baseline": [
           [
-            0.2658090179999988,
-            0.1251502149999908,
-            0.004537380741935742
+            0.26439760699999937,
+            0.12392925500000018,
+            0.004531237161290297
           ],
           [
-            0.26368980099999817,
-            0.12377559899999824,
-            0.0045133613548387075
+            0.2646819530000002,
+            0.12422621700000036,
+            0.004530830193548382
           ],
           [
-            0.2618689039999964,
-            0.12133878399998821,
-            0.004533229677419619
+            0.2656879270000019,
+            0.12552751999999856,
+            0.00452130345161301
           ],
           [
-            0.2623175049999986,
-            0.12160370899999862,
-            0.004539154709677419
+            0.2642724159999972,
+            0.1242375930000037,
+            0.004517252354838499
           ],
           [
-            0.26346151599999246,
-            0.12357845699999359,
-            0.0045123567419354475
+            0.2670247300000028,
+            0.12678894100000093,
+            0.004523735129032319
           ]
         ],
         "candidate": [
           [
-            0.2600422769999966,
-            0.12101761200000283,
-            0.004484666612903025
+            0.26275980599999826,
+            0.12364197200000149,
+            0.004487672064516025
           ],
           [
-            0.2581697620000085,
-            0.11948707899999533,
-            0.004473634935484297
+            0.2641044269999995,
+            0.12474663199999725,
+            0.004495412741935555
           ],
           [
-            0.25955574300000706,
-            0.12112897400000122,
-            0.004465379645161478
+            0.265776718000005,
+            0.12653751600000618,
+            0.004491587161290285
           ],
           [
-            0.26128586500000495,
-            0.12274349700000187,
-            0.00446910864516139
+            0.26362216900000135,
+            0.12446594899999752,
+            0.004488910322580769
           ],
           [
-            0.25969392500000765,
-            0.1205239119999959,
-            0.004489355258064895
+            0.26377645699999874,
+            0.12350209600000284,
+            0.004524979387096642
           ]
         ]
       },
-      "speedup": 1.0145078133806353
+      "speedup": 1.0034328158407309
     },
     {
       "kind": "engine_ab",
@@ -192,72 +192,72 @@
         128
       ],
       "baseline_seconds": [
-        0.6921013529999982,
-        0.11208572900000036,
-        0.004570536165354365
+        0.6933919350000011,
+        0.11331764099999475,
+        0.004570556984251991
       ],
       "candidate_seconds": [
-        0.6833916209999984,
-        0.11028014900000471,
-        0.004518408976377874
+        0.688125633999995,
+        0.11243223299999983,
+        0.004535641236220496
       ],
       "samples_seconds": {
         "baseline": [
           [
-            0.6921013529999982,
-            0.11208572900000036,
-            0.004567052157480298
+            0.6937783779999975,
+            0.11331764099999475,
+            0.004570556984251991
           ],
           [
-            0.6891541810000064,
-            0.10951741600000275,
-            0.0045640690157480596
+            0.6925457480000006,
+            0.11124612100000064,
+            0.004577162417322834
           ],
           [
-            0.6880846429999963,
-            0.10760581200000274,
-            0.0045706994566928625
+            0.6916861089999955,
+            0.11034184599999719,
+            0.0045775138818897505
           ],
           [
-            0.6935324159999965,
-            0.11285019800000384,
-            0.004572300929133801
+            0.6933919350000011,
+            0.1136630120000035,
+            0.004564794669291319
           ],
           [
-            0.6942899809999972,
-            0.11383188799999289,
-            0.004570536165354365
+            0.6938229289999995,
+            0.11388184700000181,
+            0.004566465212598407
           ]
         ],
         "candidate": [
           [
-            0.6841180889999947,
-            0.11028014900000471,
-            0.004518408976377874
+            0.6892701570000028,
+            0.11324371999999983,
+            0.004535641236220496
           ],
           [
-            0.6832899129999959,
-            0.10944123800000227,
-            0.004518493503936957
+            0.6880927770000014,
+            0.11202068400000087,
+            0.004536000732283468
           ],
           [
-            0.6833916209999984,
-            0.11040027199999258,
-            0.0045117429055118565
+            0.6875274260000026,
+            0.11111169899999851,
+            0.004538706511811056
           ],
           [
-            0.6831113269999918,
-            0.10999599199999466,
-            0.004512719173228324
+            0.688125633999995,
+            0.11243223299999983,
+            0.004533018905511773
           ],
           [
-            0.6884591430000029,
-            0.11373333400000263,
-            0.004525400070866143
+            0.688835774999994,
+            0.11365017699999669,
+            0.004529020456692893
           ]
         ]
       },
-      "speedup": 1.0127448621439856
+      "speedup": 1.0076531097517667
     },
     {
       "kind": "engine_ab",
@@ -267,72 +267,72 @@
         32
       ],
       "baseline_seconds": [
-        0.13978950400000656,
-        0.015609079000000747,
-        0.004006756548386831
+        0.13822354799999914,
+        0.014242836000001091,
+        0.00399937780645155
       ],
       "candidate_seconds": [
-        0.13771395300000222,
-        0.015210453000008783,
-        0.003949120000000096
+        0.13704140500000506,
+        0.013758910999996488,
+        0.003983650161290503
       ],
       "samples_seconds": {
         "baseline": [
           [
-            0.14020623199999704,
-            0.016064275000005068,
-            0.004004579258064257
+            0.13822354799999914,
+            0.014242836000001091,
+            0.00399937780645155
           ],
           [
-            0.1394228120000065,
-            0.015609079000000747,
-            0.00399399138709696
+            0.138519052999996,
+            0.014271489000002191,
+            0.004007985935483672
           ],
           [
-            0.13978205499999774,
-            0.015572602000005986,
-            0.004006756548386831
+            0.1384178050000031,
+            0.014591719999998531,
+            0.003994389838709826
           ],
           [
-            0.14005746700000543,
-            0.015716706999995722,
-            0.00401099225806483
+            0.1369969169999976,
+            0.013187973000000852,
+            0.0039938369032257014
           ],
           [
-            0.13978950400000656,
-            0.01550479899999857,
-            0.004009184032258323
+            0.13766947900000304,
+            0.013457241000004672,
+            0.0040068463870967215
           ]
         ],
         "candidate": [
           [
-            0.13734202400000584,
-            0.015210453000008783,
-            0.003939728096774098
+            0.13776666100000057,
+            0.014246435000003999,
+            0.003984523419354728
           ],
           [
-            0.13745621999999003,
-            0.0148029949999966,
-            0.003956555645161079
+            0.1367406310000021,
+            0.01350624100000175,
+            0.003975302903225818
           ],
           [
-            0.13771395300000222,
-            0.015157942000001867,
-            0.003953419709677431
+            0.13683575700000006,
+            0.013768613999999957,
+            0.003969907838709681
           ],
           [
-            0.1381368320000007,
-            0.015901107999994224,
-            0.003943087870967951
+            0.13736169499999562,
+            0.013758910999996488,
+            0.003987186580645134
           ],
           [
-            0.13896696400000508,
-            0.016544244000002095,
-            0.003949120000000096
+            0.13704140500000506,
+            0.013548249999999484,
+            0.003983650161290503
           ]
         ]
       },
-      "speedup": 1.0150714648355517
+      "speedup": 1.0086261739654088
     },
     {
       "kind": "engine_ab",
@@ -342,72 +342,72 @@
         32
       ],
       "baseline_seconds": [
-        0.15760178700000438,
-        0.029113804999994386,
-        0.004145282387097019
+        0.15740769099999596,
+        0.02893409600000041,
+        0.004147637322580797
       ],
       "candidate_seconds": [
-        0.15593996300000867,
-        0.028622550999997998,
-        0.004111052419354854
+        0.1568421260000008,
+        0.029087049999994008,
+        0.004125085354838766
       ],
       "samples_seconds": {
         "baseline": [
           [
-            0.15739881899999375,
-            0.0288188899999966,
-            0.004147739645161198
+            0.15739233500000438,
+            0.02893409600000041,
+            0.004143814161290451
           ],
           [
-            0.15760178700000438,
-            0.029113804999994386,
-            0.004144773612903548
+            0.15805994800000178,
+            0.029190126000003147,
+            0.004157091032258021
           ],
           [
-            0.15672719600000562,
-            0.028622648000009576,
-            0.00413240477419342
+            0.15740769099999596,
+            0.02871772700000008,
+            0.004151289161290189
           ],
           [
-            0.15788894700000355,
-            0.02938519299999598,
-            0.004145282387097019
+            0.15685764300000216,
+            0.028818047999997987,
+            0.004130309516129167
           ],
           [
-            0.1584004649999997,
-            0.029489835000006792,
-            0.00415840741935461
+            0.15793161900000285,
+            0.02935486199999815,
+            0.004147637322580797
           ]
         ],
         "candidate": [
           [
-            0.15651293100000885,
-            0.028738106000005814,
-            0.004121768548387195
+            0.1571464700000007,
+            0.029247474999998246,
+            0.004125774032258144
           ],
           [
-            0.15550498300000015,
-            0.028307439000002432,
-            0.004103146580645088
+            0.15674656800000264,
+            0.028573870999998974,
+            0.0041346031290323765
           ],
           [
-            0.15665142599999626,
-            0.02879457299999899,
-            0.004124414612903138
+            0.15696469599999574,
+            0.029087049999994008,
+            0.004125085354838766
           ],
           [
-            0.15593996300000867,
-            0.028622550999997998,
-            0.004107013290322925
+            0.1568421260000008,
+            0.029186476999996103,
+            0.004117924161290474
           ],
           [
-            0.15584423900000388,
-            0.028401614000003406,
-            0.004111052419354854
+            0.15642713700000854,
+            0.028838057000001527,
+            0.004115776774193775
           ]
         ]
       },
-      "speedup": 1.0106568192529044
+      "speedup": 1.003605950865491
     },
     {
       "kind": "engine_ab",
@@ -417,72 +417,72 @@
         32
       ],
       "baseline_seconds": [
-        0.22635928299999364,
-        0.07935394300000098,
-        0.004725742677419567
+        0.22755103800000143,
+        0.08097977700001024,
+        0.00471695158064504
       ],
       "candidate_seconds": [
-        0.22676542899999674,
-        0.08136653499998658,
-        0.004686747516129322
+        0.2273926299999971,
+        0.08202328200000863,
+        0.004682366999999992
       ],
       "samples_seconds": {
         "baseline": [
           [
-            0.22558648400000436,
-            0.07935394300000098,
-            0.004717178741935593
+            0.22679541600000164,
+            0.08056991700000538,
+            0.00471695158064504
           ],
           [
-            0.22646744799999396,
-            0.07996942499998738,
-            0.004725742677419567
+            0.22615304100000344,
+            0.08041186100000175,
+            0.004701328387096829
           ],
           [
-            0.22635928299999364,
-            0.07932859800000358,
-            0.004742925322580325
+            0.22824220900000114,
+            0.08235572900001387,
+            0.004706015483870557
           ],
           [
-            0.22505979299999979,
-            0.07923894099999984,
-            0.004703898451612901
+            0.22755103800000143,
+            0.08097977700001024,
+            0.004728105193548103
           ],
           [
-            0.2271262239999885,
-            0.07965141500000072,
-            0.004757251903225412
+            0.22974460100000726,
+            0.08333852500000205,
+            0.004722776645161459
           ]
         ],
         "candidate": [
           [
-            0.22676542899999674,
-            0.08141627199999846,
-            0.0046886824838709125
+            0.22896457699999928,
+            0.08325211500000762,
+            0.004700401999999731
           ],
           [
-            0.22305086699999777,
-            0.07901628199999777,
-            0.0046462769354838705
+            0.22603987399999426,
+            0.08093709199999921,
+            0.004680734903225647
           ],
           [
-            0.22728124500000035,
-            0.08199207199999137,
-            0.004686747516129322
+            0.2282506359999985,
+            0.08309725899999876,
+            0.004682366999999992
           ],
           [
-            0.22536982500000136,
-            0.08037841699999149,
-            0.004677142193548705
+            0.22585532699999078,
+            0.08074712500000203,
+            0.004680909741935121
           ],
           [
-            0.2267656049999971,
-            0.08136653499998658,
-            0.0046902925806455
+            0.2273926299999971,
+            0.08202328200000863,
+            0.00468933380645124
           ]
         ]
       },
-      "speedup": 0.9982089597969401
+      "speedup": 1.0006966276787612
     },
     {
       "kind": "engine_ab",
@@ -492,72 +492,72 @@
         32
       ],
       "baseline_seconds": [
-        0.25813426999999933,
-        0.10923736799999517,
-        0.004803125870967876
+        0.2607696950000076,
+        0.11165641099999846,
+        0.004811234483871237
       ],
       "candidate_seconds": [
-        0.2570922839999952,
-        0.10931861699999956,
-        0.004768305870967534
+        0.25739336499999865,
+        0.10966941499999905,
+        0.004774580451612932
       ],
       "samples_seconds": {
         "baseline": [
           [
-            0.25878958799999907,
-            0.10993364499999814,
-            0.004801804612903256
+            0.2613385820000076,
+            0.1126007350000009,
+            0.004797995064516345
           ],
           [
-            0.2591475889999941,
-            0.11010686499999167,
-            0.0048077652903226594
+            0.2602369510000102,
+            0.11108868200000188,
+            0.004811234483871237
           ],
           [
-            0.2569072290000065,
-            0.1082241630000027,
-            0.004796227935483993
+            0.2579870159999871,
+            0.10872211699999923,
+            0.004814996741935092
           ],
           [
-            0.25813426999999933,
-            0.10923736799999517,
-            0.004803125870967876
+            0.2607696950000076,
+            0.11165641099999846,
+            0.004810105935484165
           ],
           [
-            0.2579696279999979,
-            0.10761696400000176,
-            0.0048500859354837465
+            0.2616790799999933,
+            0.11248137799999824,
+            0.0048128290967740335
           ]
         ],
         "candidate": [
           [
-            0.2557527139999962,
-            0.108301376,
-            0.004756494774193426
+            0.25947699300000693,
+            0.11157409900000914,
+            0.004771061096774122
           ],
           [
-            0.2571360989999931,
-            0.10931861699999956,
-            0.004768305870967534
+            0.25739336499999865,
+            0.10966941499999905,
+            0.004765288709677407
           ],
           [
-            0.25758020499999645,
-            0.10959515400000441,
-            0.0047737113225803885
+            0.2603293709999974,
+            0.11231737699999655,
+            0.004774580451612932
           ],
           [
-            0.2559803330000108,
-            0.10778471500000819,
-            0.004780503806451696
+            0.25695046900000307,
+            0.10857303400000262,
+            0.004786368870967756
           ],
           [
-            0.2570922839999952,
-            0.10951217399998825,
-            0.004760648709677643
+            0.25641887700000154,
+            0.10839492899999925,
+            0.0047749660645162026
           ]
         ]
       },
-      "speedup": 1.0040529648879084
+      "speedup": 1.013117393294147
     },
     {
       "kind": "teacher_forced",
@@ -1385,14 +1385,13 @@
       "passed": true
     }
   ],
-  "merged_remote_commit": "227b31eb7293451abec17ebcbfbc87826a61d82e",
   "final_source_checks": {
     "gpu": "NVIDIA H100 80GB HBM3",
     "torch": "2.5.1+cu124",
     "phases": {
       "check_explore.py": {
         "exit_code": 0,
-        "output": "test_first_log_request_includes_sequence_zero (test_client.ClientTests.test_first_log_request_includes_sequence_zero) ... ok\ntest_submission_to_terminal_run_uses_api_envelopes (test_client.ClientTests.test_submission_to_terminal_run_uses_api_envelopes) ... ok\ntest_cached_rotary_preserves_logits_and_native_mask_fallback (test_decode.DecodeTests.test_cached_rotary_preserves_logits_and_native_mask_fallback) ... Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.\nok\ntest_fixed_cache_matches_full_prefix_and_excludes_stale_slots (test_decode.DecodeTests.test_fixed_cache_matches_full_prefix_and_excludes_stale_slots) ... ok\ntest_graph_replay_resets_positions_and_prompt_state (test_decode.DecodeTests.test_graph_replay_resets_positions_and_prompt_state) ... ok\ntest_multi_token_verification_and_rollback_match_native (test_decode.DecodeTests.test_multi_token_verification_and_rollback_match_native) ... ok\ntest_rotary_table_matches_native_and_reuses_changed_positions (test_decode.DecodeTests.test_rotary_table_matches_native_and_reuses_changed_positions) ... ok\ntest_speculative_generator_stream_and_capacity_boundaries (test_decode.DecodeTests.test_speculative_generator_stream_and_capacity_boundaries) ... ok\ntest_add_rms_norm_preserves_residual_rounding_and_inputs (test_fused_kernels.FusedKernelTests.test_add_rms_norm_preserves_residual_rounding_and_inputs) ... ok\ntest_flash_prefill_matches_reference_and_preserves_causality (test_fused_kernels.FusedKernelTests.test_flash_prefill_matches_reference_and_preserves_causality) ... ok\ntest_gateup_epilogue_matches_native_under_graph_replay (test_fused_kernels.FusedKernelTests.test_gateup_epilogue_matches_native_under_graph_replay) ... ok\ntest_greedy_head_rounding_ties_and_graph_replay (test_fused_kernels.FusedKernelTests.test_greedy_head_rounding_ties_and_graph_replay) ... ok\ntest_grouped_attention_and_offset_causality (test_fused_kernels.FusedKernelTests.test_grouped_attention_and_offset_causality) ... ok\ntest_norm_rope_cache_matches_separate_updates_under_graph_replay (test_fused_kernels.FusedKernelTests.test_norm_rope_cache_matches_separate_updates_under_graph_replay) ... ok\ntest_norm_rope_preserves_reference_rounding (test_fused_kernels.FusedKernelTests.test_norm_rope_preserves_reference_rounding) ... ok\ntest_normalized_projections_and_swiglu (test_fused_kernels.FusedKernelTests.test_normalized_projections_and_swiglu) ... ok\ntest_projection_dispatch_boundaries (test_fused_kernels.FusedKernelTests.test_projection_dispatch_boundaries) ... ok\ntest_swiglu_preserves_intermediate_bf16_cast (test_fused_kernels.FusedKernelTests.test_swiglu_preserves_intermediate_bf16_cast) ... ok\ntest_vector_down_residual_native_bf16_rounding (test_fused_kernels.FusedKernelTests.test_vector_down_residual_native_bf16_rounding) ... ok\ntest_acceptance_emits_only_correct_prefix_and_one_target_token (test_speculate.SpeculationTests.test_acceptance_emits_only_correct_prefix_and_one_target_token) ... ok\ntest_lookup_learns_verified_output_without_self_matching (test_speculate.SpeculationTests.test_lookup_learns_verified_output_without_self_matching) ... ok\ntest_lookup_only_proposes_previously_seen_continuations (test_speculate.SpeculationTests.test_lookup_only_proposes_previously_seen_continuations) ... ok\ntest_verification_requires_bonus_prediction (test_speculate.SpeculationTests.test_verification_requires_bonus_prediction) ... ok\n\n----------------------------------------------------------------------\nRan 23 tests in 9.170s\n\nOK\n"
+        "output": "test_first_log_request_includes_sequence_zero (test_client.ClientTests.test_first_log_request_includes_sequence_zero) ... ok\ntest_submission_to_terminal_run_uses_api_envelopes (test_client.ClientTests.test_submission_to_terminal_run_uses_api_envelopes) ... ok\ntest_fixed_cache_matches_full_prefix_and_excludes_stale_slots (test_decode.DecodeTests.test_fixed_cache_matches_full_prefix_and_excludes_stale_slots) ... Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.\nok\ntest_graph_replay_resets_positions_and_prompt_state (test_decode.DecodeTests.test_graph_replay_resets_positions_and_prompt_state) ... ok\ntest_multi_token_verification_and_rollback_match_native (test_decode.DecodeTests.test_multi_token_verification_and_rollback_match_native) ... ok\ntest_speculative_generator_stream_and_capacity_boundaries (test_decode.DecodeTests.test_speculative_generator_stream_and_capacity_boundaries) ... ok\ntest_flash_prefill_matches_reference_and_preserves_causality (test_fused_kernels.FusedKernelTests.test_flash_prefill_matches_reference_and_preserves_causality) ... ok\ntest_gateup_epilogue_matches_native_under_graph_replay (test_fused_kernels.FusedKernelTests.test_gateup_epilogue_matches_native_under_graph_replay) ... ok\ntest_greedy_head_rounding_ties_and_graph_replay (test_fused_kernels.FusedKernelTests.test_greedy_head_rounding_ties_and_graph_replay) ... ok\ntest_grouped_attention_and_offset_causality (test_fused_kernels.FusedKernelTests.test_grouped_attention_and_offset_causality) ... ok\ntest_norm_rope_cache_matches_separate_updates_under_graph_replay (test_fused_kernels.FusedKernelTests.test_norm_rope_cache_matches_separate_updates_under_graph_replay) ... ok\ntest_norm_rope_preserves_reference_rounding (test_fused_kernels.FusedKernelTests.test_norm_rope_preserves_reference_rounding) ... ok\ntest_normalized_projections_and_swiglu (test_fused_kernels.FusedKernelTests.test_normalized_projections_and_swiglu) ... ok\ntest_projection_dispatch_boundaries (test_fused_kernels.FusedKernelTests.test_projection_dispatch_boundaries) ... ok\ntest_swiglu_preserves_intermediate_bf16_cast (test_fused_kernels.FusedKernelTests.test_swiglu_preserves_intermediate_bf16_cast) ... ok\ntest_vector_down_residual_native_bf16_rounding (test_fused_kernels.FusedKernelTests.test_vector_down_residual_native_bf16_rounding) ... ok\ntest_acceptance_emits_only_correct_prefix_and_one_target_token (test_speculate.SpeculationTests.test_acceptance_emits_only_correct_prefix_and_one_target_token) ... ok\ntest_lookup_learns_verified_output_without_self_matching (test_speculate.SpeculationTests.test_lookup_learns_verified_output_without_self_matching) ... ok\ntest_lookup_only_proposes_previously_seen_continuations (test_speculate.SpeculationTests.test_lookup_only_proposes_previously_seen_continuations) ... ok\ntest_verification_requires_bonus_prediction (test_speculate.SpeculationTests.test_verification_requires_bonus_prediction) ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 4.123s\n\nOK\n"
       }
     }
   }

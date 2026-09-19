@@ -1,7 +1,9 @@
 # Fused greedy vocabulary projection and batch-one down/residual
 
-Baseline: SwiGLU fusion commit `eea1b37`; its official run was still measuring
-when this experiment finished.
+Baseline: SwiGLU fusion commit `eea1b37`, which passed officially at
+924.1850 tokens/s. The final candidate includes remote commit `227b31e`: cached
+RoPE tables and removal of redundant decode masks. Its optional residual/RMSNorm
+fusion remains disabled. The final combined source was remeasured after merging.
 
 Two changes:
 
@@ -33,21 +35,24 @@ Full-generation timings, five alternating matched A/B samples per shape:
 
 | Batch | Prompt/output | Baseline TPOT ms | Candidate TPOT ms | Total throughput gain |
 | --- | --- | ---: | ---: | ---: |
-| 1 | 512/32 | 3.836 | 3.739 | 3.01% |
-| 4 | 2048/32 | 4.524 | 4.492 | 0.34% |
-| 16 | 512/128 | 4.571 | 4.536 | 0.77% |
-| 2 | 256/32 | 3.999 | 3.984 | 0.86% |
-| 8 | 256/32 | 4.148 | 4.125 | 0.36% |
-| 24 | 256/32 | 4.717 | 4.682 | 0.07% |
-| 32 | 256/32 | 4.811 | 4.775 | 1.31% |
+| 1 | 512/32 | 3.821 | 3.713 | 3.73% |
+| 4 | 2048/32 | 4.533 | 4.474 | 1.45% |
+| 16 | 512/128 | 4.571 | 4.518 | 1.27% |
+| 2 | 256/32 | 4.007 | 3.949 | 1.51% |
+| 8 | 256/32 | 4.145 | 4.111 | 1.07% |
+| 24 | 256/32 | 4.726 | 4.687 | -0.18% |
+| 32 | 256/32 | 4.803 | 4.768 | 0.41% |
 
 Teacher-forced verification checked 21,600 tokens per engine with zero
-failures; worst logit deficit was 1.375 for both. Ten GPU kernel tests passed
+failures; worst logit deficit was 1.375 for both. Eleven GPU kernel tests passed
 in that run. A final integration adjustment preserves the original forward
 path for CPU/FP32/toy-model reference tests; it leaves the measured Qwen BF16
-CUDA path unchanged. All 20 tests passed on the final source on H100, including cache reset,
-speculative rollback, stream lengths, graph replay, native rounding, and
-greedy ties. Local tests: eight passed, twelve CUDA-only skips.
+CUDA path unchanged. Local merged-source tests: ten passed, thirteen CUDA-only skips.
+All 23 tests passed on the final merged source on H100, including the new
+RoPE-table checks, cache reset, speculative rollback, graph replay, rounding,
+and greedy tie handling.
 
 This is a modest measured improvement, not a demonstrated 10% overall gain
 or a new official leaderboard score. Raw samples are in `measurements.json`.
+
+Pre-merge measurements are preserved in `premerge-measurements.json`.

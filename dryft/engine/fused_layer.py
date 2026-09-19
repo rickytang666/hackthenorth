@@ -5,13 +5,19 @@ from kernels.attention import grouped_attention
 from kernels.fused import norm_rope_cache
 from kernels.projection import norm_projection
 from kernels.down import down_residual
+from kernels.rmsnorm import add_rms_norm
 
 
 class FusedProjectionLayer(torch.nn.Module):
+    @property
+    def uses_position_causality(self):
+        return getattr(self.original.self_attn, "uses_position_causality", False)
+
     def __init__(self, layer, selections):
         super().__init__()
         self.original = layer
         self.selections = selections
+        self.fuse_residual_norm = False  # Opt-in until full-generation GPU A/B passes.
 
     def project(self, x, norm, weight, config, swiglu=False):
         return norm_projection(x, norm.weight, weight, norm.variance_epsilon,
@@ -23,7 +29,7 @@ class FusedProjectionLayer(torch.nn.Module):
         layer = self.original
         rows = hidden_states.numel() // hidden_states.shape[-1]
         selected = self.selections.get(str(rows), {})
-        if past_key_value.prefill or not selected:
+        if past_key_value.prefill or (not selected and not self.fuse_residual_norm):
             return layer(hidden_states, attention_mask=attention_mask,
                          position_ids=position_ids, past_key_value=past_key_value,
                          output_attentions=output_attentions, use_cache=use_cache,
@@ -48,13 +54,20 @@ class FusedProjectionLayer(torch.nn.Module):
             a = attention(layer.input_layernorm(hidden_states), position_embeddings,
                           attention_mask, past_key_value=past_key_value,
                           cache_position=cache_position)[0]
-        residual = hidden_states + a
         if "mlp" in selected:
+            residual = hidden_states + a
             intermediate = self.project(residual, layer.post_attention_layernorm,
                                         layer.mlp.gate_up_weight, selected["mlp"], swiglu=True)
             result = down_residual(intermediate, layer.mlp.down_proj.weight, residual)
         else:
-            result = residual + layer.mlp(layer.post_attention_layernorm(residual))
+            if self.fuse_residual_norm:
+                norm = layer.post_attention_layernorm
+                residual, normalized = add_rms_norm(
+                    a, hidden_states, norm.weight, norm.variance_epsilon)
+            else:
+                residual = hidden_states + a
+                normalized = layer.post_attention_layernorm(residual)
+            result = residual + layer.mlp(normalized)
         return (result,None) if output_attentions else (result,)
 
 

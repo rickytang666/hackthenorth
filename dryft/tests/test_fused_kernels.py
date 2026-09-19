@@ -79,6 +79,22 @@ class FusedKernelTests(unittest.TestCase):
                     expected = torch.nn.functional.silu(g)*u
                     torch.testing.assert_close(actual,expected,atol=0.04,rtol=0.02)
 
+    def test_add_rms_norm_preserves_residual_rounding_and_inputs(self):
+        from kernels.rmsnorm import add_rms_norm, rms_norm
+
+        torch.manual_seed(19)
+        for batch in (1, 2, 4, 8, 16, 24, 33):
+            x = torch.randn(batch, 1, 2560, device='cuda', dtype=torch.bfloat16)
+            residual = torch.randn_like(x)
+            gain = torch.randn(2560, device='cuda', dtype=torch.bfloat16)
+            original_x, original_residual = x.clone(), residual.clone()
+            summed, actual = add_rms_norm(x, residual, gain, 1e-6)
+            torch.testing.assert_close(summed, x + residual, atol=0, rtol=0)
+            torch.testing.assert_close(actual, rms_norm(x + residual, gain, 1e-6),
+                                       atol=0.02, rtol=0.02)
+            torch.testing.assert_close(x, original_x, atol=0, rtol=0)
+            torch.testing.assert_close(residual, original_residual, atol=0, rtol=0)
+
     def test_norm_rope_cache_matches_separate_updates_under_graph_replay(self):
         from kernels.fused import norm_rope, norm_rope_cache
         from transformers.models.qwen3.modeling_qwen3 import Qwen3RMSNorm

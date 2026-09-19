@@ -28,11 +28,42 @@ class KVCache:
         return key_cache, value_cache
 
 
-def forward(model, token_ids, cache, positions, attention_mask=None, last_only=True):
+class RotaryTable:
+    """Prompt-independent default RoPE, computed with the reference module.
+
+    Dynamic/scaled rotary variants retain the native per-call calculation.
+    Table rows remain on device; index_select supports graph replay positions.
+    """
+    def __init__(self, model, capacity, enabled=True):
+        rotary = model.model.rotary_emb
+        self.tables = None
+        if enabled and getattr(rotary, "rope_type", None) == "default":
+            positions = torch.arange(capacity, device=model.device).unsqueeze(0)
+            with torch.inference_mode():
+                exemplar = model.model.embed_tokens.weight[:1].unsqueeze(0)
+                self.tables = rotary(exemplar, positions)
+
+    def select(self, positions):
+        if self.tables is None:
+            return None
+        return tuple(table.index_select(1, positions) for table in self.tables)
+
+
+def uses_position_causality(model):
+    return all(
+        getattr(layer, "uses_position_causality", False)
+        or getattr(getattr(layer, "self_attn", None), "uses_position_causality", False)
+        for layer in model.model.layers
+    )
+
+
+def forward(model, token_ids, cache, positions, attention_mask=None, last_only=True,
+            position_embeddings=None):
     base = model.model
     x = base.embed_tokens(token_ids)
     position_ids = positions.unsqueeze(0)
-    embeddings = base.rotary_emb(x, position_ids)
+    embeddings = (base.rotary_emb(x, position_ids)
+                  if position_embeddings is None else position_embeddings)
     for layer in base.layers:
         x = layer(
             x,
@@ -51,7 +82,8 @@ def forward(model, token_ids, cache, positions, attention_mask=None, last_only=T
 
 
 class DecodeState:
-    def __init__(self, model, batch_size, prompt_length, output_length, speculative=False):
+    def __init__(self, model, batch_size, prompt_length, output_length, speculative=False,
+                 cache_rotary=True, omit_unused_masks=True):
         self.shape = (batch_size, prompt_length, output_length)
         capacity = prompt_length + output_length - 1
         device = model.device
@@ -60,6 +92,8 @@ class DecodeState:
         self.token = torch.zeros((batch_size, 1), dtype=torch.int64, device=device)
         self.position = torch.full((1,), prompt_length, dtype=torch.int64, device=device)
         self.slots = torch.arange(capacity, device=device)
+        self.rotary = RotaryTable(model, capacity, enabled=cache_rotary)
+        self.position_causality = omit_unused_masks and uses_position_causality(model)
         self.graph = None
         self.verify_graph = None
         if output_length > 1:
@@ -68,11 +102,15 @@ class DecodeState:
             self.capture_verifier(model)
 
     def step(self, model):
-        visible = self.slots <= self.position
-        mask = torch.zeros_like(self.slots, dtype=model.dtype)
-        mask.masked_fill_(~visible, torch.finfo(model.dtype).min)
+        mask = None
+        if not self.position_causality:
+            visible = self.slots <= self.position
+            mask = torch.zeros_like(self.slots, dtype=model.dtype)
+            mask.masked_fill_(~visible, torch.finfo(model.dtype).min)
+            mask = mask.view(1, 1, 1, -1)
         next_token = forward(
-            model, self.token, self.cache, self.position, mask.view(1, 1, 1, -1)
+            model, self.token, self.cache, self.position, mask,
+            position_embeddings=self.rotary.select(self.position),
         )
         self.token.copy_(next_token)
         self.position.add_(1)
@@ -95,7 +133,10 @@ class DecodeState:
 
     def prefill(self, model, input_ids):
         self.cache.prefill = True
-        token = forward(model, input_ids, self.cache, self.prompt_positions)
+        embeddings = (None if self.rotary.tables is None else
+                      tuple(table[:, :self.shape[1]] for table in self.rotary.tables))
+        token = forward(model, input_ids, self.cache, self.prompt_positions,
+                        position_embeddings=embeddings)
         self.cache.prefill = False
         self.token.copy_(token)
         self.position.fill_(self.shape[1])
@@ -103,12 +144,15 @@ class DecodeState:
 
     def verify_step(self, model):
         positions = self.position + self.verify_offsets
-        visible = self.slots[None, :] <= positions[:, None]
-        mask = torch.zeros(visible.shape, dtype=model.dtype, device=model.device)
-        mask.masked_fill_(~visible, torch.finfo(model.dtype).min)
+        mask = None
+        if not self.position_causality:
+            visible = self.slots[None, :] <= positions[:, None]
+            mask = torch.zeros(visible.shape, dtype=model.dtype, device=model.device)
+            mask.masked_fill_(~visible, torch.finfo(model.dtype).min)
+            mask = mask[None, None, :, :]
         return forward(
             model, self.verify_input, self.cache, positions,
-            mask[None, None, :, :], last_only=False,
+            mask, last_only=False, position_embeddings=self.rotary.select(positions),
         )
 
     def capture_verifier(self, model):

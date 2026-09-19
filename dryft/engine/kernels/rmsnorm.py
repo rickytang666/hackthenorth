@@ -14,6 +14,47 @@ MAX_BLOCK = 8192
 
 
 @triton.jit
+def _add_rms_norm_kernel(X, R, W, SUM, OUT, N: tl.constexpr,
+                         EPS: tl.constexpr, BLOCK: tl.constexpr):
+    row = tl.program_id(0)
+    col = tl.arange(0, BLOCK)
+    valid = col < N
+    offset = row * N + col
+    x = tl.load(X + offset, valid, 0).to(tl.float32)
+    r = tl.load(R + offset, valid, 0).to(tl.float32)
+    # Preserve the separate BF16 residual-add rounding before normalization.
+    summed = (x + r).to(OUT.dtype.element_ty)
+    tl.store(SUM + offset, summed, valid)
+    value = summed.to(tl.float32)
+    inverse = tl.rsqrt(tl.sum(value * value, 0) / N + EPS)
+    normalized = (value * inverse).to(OUT.dtype.element_ty)
+    weight = tl.load(W + col, valid, 0)
+    tl.store(OUT + offset, normalized * weight, valid)
+
+
+def add_rms_norm(x, residual, weight, eps):
+    """Return (rounded residual sum, normalized sum), without input mutation.
+
+    Experimental decode fusion; benchmark before enabling in the engine.
+    Inputs must have identical contiguous shape, dtype and device.
+    """
+    if (x.shape != residual.shape or x.dtype != residual.dtype
+            or x.device != residual.device or not x.is_contiguous()
+            or not residual.is_contiguous() or weight.numel() != x.shape[-1]):
+        raise ValueError('expected matching contiguous residual tensors and norm gain')
+    cols = x.shape[-1]
+    block = triton.next_power_of_2(cols)
+    if block > MAX_BLOCK:
+        raise ValueError('normalization row exceeds supported width')
+    summed, normalized = torch.empty_like(x), torch.empty_like(x)
+    _add_rms_norm_kernel[(x.numel() // cols,)](
+        x, residual, weight, summed, normalized, cols, eps, block,
+        num_warps=max(4, min(16, block // 256)), enable_fp_fusion=False,
+    )
+    return summed, normalized
+
+
+@triton.jit
 def _rms_norm_kernel(x_ptr, w_ptr, y_ptr, row_stride, n_cols, eps, BLOCK: tl.constexpr):
     row = tl.program_id(0)
     cols = tl.arange(0, BLOCK)

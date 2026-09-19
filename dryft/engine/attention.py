@@ -8,6 +8,9 @@ from projections import Projection
 
 
 class GroupedAttention(torch.nn.Module):
+    # Decode and verification use absolute positions inside grouped_attention.
+    uses_position_causality = True
+
     def __init__(self, reference):
         super().__init__()
         self.reference = reference

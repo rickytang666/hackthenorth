@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "engine"))
 try:
     import torch
     from transformers import Qwen3Config, Qwen3ForCausalLM
-    from decode import DecodeState, KVCache, forward
+    from decode import DecodeState, KVCache, RotaryTable, forward, uses_position_causality
     from speculate import verified_tokens
 except ImportError:
     torch = None
@@ -31,6 +31,43 @@ class DecodeTests(unittest.TestCase):
         )
         config._attn_implementation = "sdpa"
         self.model = Qwen3ForCausalLM(config).eval()
+
+    def test_rotary_table_matches_native_and_reuses_changed_positions(self):
+        for dtype in (torch.float32, torch.bfloat16):
+            model = self.model.to(dtype)
+            table = RotaryTable(model, 32)
+            for positions in (torch.arange(7), torch.tensor([7]),
+                              torch.tensor([8, 9, 10, 11]), torch.tensor([31]),
+                              torch.tensor([2, 3])):
+                expected = model.model.rotary_emb(
+                    model.model.embed_tokens.weight[:1].unsqueeze(0), positions[None])
+                for actual, reference in zip(table.select(positions), expected):
+                    torch.testing.assert_close(actual, reference, atol=0, rtol=0)
+        # Unknown or position-dependent rotary schemes must not be cached.
+        self.model.model.rotary_emb.rope_type = "dynamic"
+        self.assertIsNone(RotaryTable(self.model, 32).select(torch.tensor([2])))
+
+    def test_cached_rotary_preserves_logits_and_native_mask_fallback(self):
+        self.assertFalse(uses_position_causality(self.model))
+        with torch.inference_mode():
+            table = RotaryTable(self.model, 12)
+            prompt = torch.randint(0, 97, (2, 7))
+            positions = torch.arange(7)
+            captured = []
+            handle = self.model.lm_head.register_forward_hook(
+                lambda module, inputs, output: captured.append(output.clone()))
+            self.addCleanup(handle.remove)
+            for cached in (False, True):
+                cache = KVCache(self.model, 2, 12)
+                current = forward(self.model, prompt, cache, positions,
+                                  position_embeddings=table.select(positions) if cached else None)
+                cache.prefill = False
+                position = torch.tensor([7])
+                mask = torch.arange(12)[None, None, None, :] <= position
+                forward(self.model, current, cache, position, mask,
+                        position_embeddings=table.select(position) if cached else None)
+            torch.testing.assert_close(captured[0], captured[2], atol=0, rtol=0)
+            torch.testing.assert_close(captured[1], captured[3], atol=0, rtol=0)
 
     def test_fixed_cache_matches_full_prefix_and_excludes_stale_slots(self):
         with torch.inference_mode():
