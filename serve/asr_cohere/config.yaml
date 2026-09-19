@@ -1,0 +1,21 @@
+# Cohere lane. Copied from serve/_template, Recognizer replaced, protocol
+# untouched: promoting a winner must stay a change to ASR_WS_URL and nothing else.
+model_name: voicebridge-asr-cohere
+python_version: py311
+requirements:
+  - numpy
+  - torch
+  - transformers
+  - peft
+  - librosa
+  - sentencepiece
+  - soundfile
+resources:
+  accelerator: H100
+  use_gpu: true
+runtime:
+  predict_concurrency: 4
+  is_websocket_endpoint: true
+environment_variables:
+  HF_TOKEN: null  # set from the workspace secret at deploy time
+secrets: {}
