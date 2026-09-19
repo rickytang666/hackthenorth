@@ -17,6 +17,7 @@ A person speaks, the app shows recovered text, asks a two-choice question when e
 - No clinical validation. TORGO is read prompts, not open conversation.
 - No new datasets. SAP is a post-hackathon scale-up.
 - No FP8 training or quantization-aware fine-tuning. Post-training quantization only, behind an accuracy gate.
+- **No LLM anywhere on the demo path.** Baseten is the only track being targeted; Rox is not. The verifier is deterministic and offline.
 
 ## Architecture
 
@@ -266,16 +267,24 @@ A confirmed clause is 5 to 8 words. **Time one 7-word synthesis in Phase 0.** Un
 
 ### Protocol 3: Verifier
 
-Hosted Model API, stateless, strict JSON in and out. It receives only the candidate set, confidence, an approved vocabulary and topic, and cannot emit free text.
+Deterministic, offline, no model call. In, the candidate set and its confidence. Out, one of three actions.
 
 ```json
-in:  {"candidates": [...], "confidence": 0.41,
-      "topic": "medication", "vocabulary": [...]}
+in:  {"candidates": [...], "confidence": 0.41}
 out: {"action": "accept" | "clarify" | "abstain",
       "text": "...", "choices": ["...", "..."]}
 ```
 
-Enforced in code, not in the prompt: a returned `text` must be one of the supplied candidates. Negation, names, numbers, and medication terms are never substituted.
+The rules, in order:
+
+1. Confidence below the abstain floor: abstain.
+2. Candidates disagree about a critical term (negation, yes/no, number, name, medication): clarify, always, whatever the scores say.
+3. Confidence at or above the accept threshold: accept the top candidate.
+4. Otherwise: clarify.
+
+A returned `text` is byte-identical to a supplied candidate, enforced in code.
+
+**Why there is no LLM here.** An earlier design had a hosted model break ties in the middle-confidence band. It was dropped: that band is exactly where candidates differ harmlessly, so showing two buttons is as good an answer, and a network call on the demo path is a liability at a booth. Add a model back only if it demonstrably improves the demo path without costing latency.
 
 ## Repo layout
 
