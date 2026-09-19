@@ -15,6 +15,7 @@ improve this measured result.
 | `06-packed-no-speculation` | Same packed projections, with prompt lookup disabled | Failed a hidden output check; public cases passed; rejected |
 | `07-confirm-packed` | Exact engine source from the passing 748.07 tok/s candidate | Passed again; 745.32 tok/s (−0.37%); identical engine source |
 | `08-fused-projections` | Hidden RMSNorm fused into QKV; hidden RMSNorm + gate/up + SwiGLU fused in decode | Experimental submission requested before H100 validation; pending |
+| `09-measured-vector-fusion` | Keep H100-tested B1 vector fusion; remove slow tensor-core path | 1.048x B1 full-generation A/B on Modal, no failed teacher-forced positions; official pending |
 
 First passing public results (five samples each):
 
@@ -116,3 +117,14 @@ gain multiplication, projections, SiLU and activation multiplication. It has
 not yet been GPU validated or timed; the user explicitly requested submission
 while remote H100 profiling was still starting. The previous passing source
 is retained at commit `4414291` and snapshot `07-confirm-packed`.
+
+The first completed Modal experiment found the tensor-core prototypes 2–4.5x
+slower than cuBLAS for these projections. Candidate 09 removes that path.
+It uses the measured B1 winners (QKV: 2 outputs/CTA, 4 warps; MLP: 1 output/CTA,
+4 warps). The research adapter using these choices passed full-model
+teacher-forced checks across five prompts for all public shapes: maximum
+deficit 0.375 logits for both baseline and candidate. End-to-end improvements
+were 4.82%, 0.04%, and 0.06% for B1/B4/B16; only B1 changes execution.
+These diagnostic prompts are synthetic and differ from official workloads.
+The baseline decode GPU profile attributes about 68–79% to matrix kernels,
+with attention at about 6–16%. Raw records are in `modal-initial-records.json`.

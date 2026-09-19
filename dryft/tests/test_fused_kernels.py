@@ -14,16 +14,16 @@ except ImportError:
 @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA and Triton")
 class FusedKernelTests(unittest.TestCase):
     def test_normalized_projections_and_swiglu(self):
-        from kernels.projection import norm_projection, norm_tensor_projection
+        from kernels.projection import norm_projection
         from transformers.models.qwen3.modeling_qwen3 import Qwen3RMSNorm
 
         torch.manual_seed(42)
         with torch.inference_mode():
             norm = Qwen3RMSNorm(2560).cuda().bfloat16()
             norm.weight.normal_()
-            for batch in (1, 4, 16):
+            for batch in (1,):
                 x = torch.randn(batch, 1, 2560, device="cuda", dtype=torch.bfloat16)
-                fn = norm_projection if batch == 1 else norm_tensor_projection
+                fn = norm_projection
                 for width, activation in ((6144, False), (19456, True)):
                     weight = torch.randn(width, 2560, device="cuda", dtype=torch.bfloat16) * 0.02
                     expected = torch.nn.functional.linear(norm(x), weight)
@@ -31,7 +31,7 @@ class FusedKernelTests(unittest.TestCase):
                         gate, up = expected.chunk(2, -1)
                         expected = torch.nn.functional.silu(gate) * up
                     actual = fn(x, norm.weight, weight, norm.variance_epsilon,
-                                swiglu=activation, block_n=4 if batch == 1 else 64, warps=8)
+                                swiglu=activation, block_n=1 if activation else 2, warps=4)
                     torch.testing.assert_close(actual, expected, atol=0.04, rtol=0.02)
 
     def test_grouped_attention_and_offset_causality(self):

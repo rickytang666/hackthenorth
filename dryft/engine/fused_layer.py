@@ -3,7 +3,7 @@ import torch
 
 from kernels.attention import grouped_attention
 from kernels.fused import norm_rope
-from kernels.projection import norm_projection, norm_tensor_projection
+from kernels.projection import norm_projection
 
 
 class FusedProjectionLayer(torch.nn.Module):
@@ -13,8 +13,7 @@ class FusedProjectionLayer(torch.nn.Module):
         self.selections = selections
 
     def project(self, x, norm, weight, config, swiglu=False):
-        fn = norm_projection if config["mode"] == "vector" else norm_tensor_projection
-        return fn(x, norm.weight, weight, norm.variance_epsilon,
+        return norm_projection(x, norm.weight, weight, norm.variance_epsilon,
                   swiglu=swiglu, block_n=config["block_n"], warps=config["warps"])
 
     def forward(self, hidden_states, attention_mask=None, position_ids=None,
@@ -60,12 +59,10 @@ class FusedProjectionLayer(torch.nn.Module):
 
 def install(model):
     selections = {
-        str(rows): {
-            kind: {"mode": "vector" if rows == 1 else "tensor",
-                   "block_n": 4 if rows == 1 else 64, "warps": 8}
-            for kind in ("qkv", "mlp")
-        }
-        for rows in range(1, 17)
+        "1": {
+            "qkv": {"block_n": 2, "warps": 4},
+            "mlp": {"block_n": 1, "warps": 4},
+        },
     }
     for i, layer in enumerate(model.model.layers):
         model.model.layers[i] = FusedProjectionLayer(layer, selections)
