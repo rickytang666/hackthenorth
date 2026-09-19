@@ -1,15 +1,17 @@
 # Optimization experiments
 
-The first official candidate passed and ranked at **354.37 tok/s**. Subsequent
-candidates must pass the same gates and improve this measured result.
+The best completed official candidate passed and ranked at **706.61 tok/s**,
+up from **354.37 tok/s**. Subsequent candidates must pass the same gates and
+improve this measured result.
 
 | Snapshot | Change | Status |
 | --- | --- | --- |
 | `00-baseline` | Unchanged upstream engine | Archived locally; API upload rejected (HTTP 405) |
 | `01-fused-norm` | Replace all hidden and Q/K RMSNorms with the bundled Triton kernel | Archived locally; GPU evaluation pending |
 | `02-cuda-graph` | Fused norms, fixed KV buffers, CUDA graph decode, direct decoder-layer dispatch | Passed; 354.37 tok/s; commit `11d5c55` |
-| `03-fused-gqa` | Direct grouped KV attention, fused Q/K norm + RoPE, fused SwiGLU | Official run queued; commit `3996403` |
-| `04-exact-speculation` | Prompt-lookup drafts, captured multi-token verification, exact acceptance and cache rollback | Local checks passed; awaiting comparison with 03 |
+| `03-fused-gqa` | Direct grouped KV attention, fused Q/K norm + RoPE, fused SwiGLU | Passed; 706.61 tok/s; commit `3996403` |
+| `04-exact-speculation` | Prompt-lookup drafts, captured multi-token verification, exact acceptance and cache rollback | Official run measuring; commit `cc98be4` |
+| `05-packed-projections` | One decode QKV projection and one MLP gate/up projection; stride-aware fused kernels | Validated for official submission |
 
 First passing public results (five samples each):
 
@@ -22,6 +24,10 @@ First passing public results (five samples each):
 These public workloads do not set the 354.37 tok/s ranking; the hidden six do.
 The user reports the current whole-run limit is 15 minutes after pickup,
 excluding queue time. Per-engine load/warmup and sample budgets remain 300 s.
+
+Candidate 03 public throughput is 177.08 / 371.85 / 2240.75 tok/s, with decode
+steps at 5.19 / 5.92 / 6.02 ms. All gates passed; peak memory across the complete
+run was 13.94 GiB. The official score improved by 1.994× over candidate 02.
 
 Each local snapshot holds `engine.tar.gz`; archives are ignored by git. The
 upstream baseline is also available from the original git history.
@@ -83,3 +89,9 @@ discarded. Cache position advances by the number of emitted tokens, masking
 the speculative tail. No draft model, approximate output or extra weights are
 used. Prompt-dependent acceptance may affect the 25% timing-spread gate, so
 this candidate requires a complete official evaluation before promotion.
+
+Candidate 05 retains candidate 04 and packs projection weights during loading.
+Q/K/V prefill modules share slices of the packed decode weight, avoiding weight
+duplication. Fused norm/RoPE and SwiGLU consume the resulting strided views
+directly. It removes two QKV matrix launches per decode layer and one gate/up
+launch per layer for both prefill and decode; weights remain BF16.

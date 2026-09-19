@@ -59,6 +59,11 @@ class DecodeTests(unittest.TestCase):
 
     def test_multi_token_verification_and_rollback_match_native(self):
         with torch.inference_mode():
+            logits = []
+            handle = self.model.lm_head.register_forward_hook(
+                lambda module, inputs, output: logits.append(output.clone())
+            )
+            self.addCleanup(handle.remove)
             capacity = 20
             cache = KVCache(self.model, 1, capacity)
             for accept_count in range(4):
@@ -82,6 +87,10 @@ class DecodeTests(unittest.TestCase):
                 predictions = forward(
                     self.model, inputs, cache, positions, mask[None, None], last_only=False,
                 )[0].tolist()
+                actual_logits = logits[-1]
+                teacher_input = torch.cat((prompt, inputs), dim=1)
+                expected_logits = self.model(teacher_input, use_cache=False).logits[:, 7:]
+                torch.testing.assert_close(actual_logits, expected_logits, atol=1e-5, rtol=1e-5)
                 emitted = verified_tokens(proposal, predictions)
                 self.assertEqual(len(emitted), accept_count + 1)
                 for token in emitted:
@@ -94,7 +103,10 @@ class DecodeTests(unittest.TestCase):
                 next_token = forward(
                     self.model, torch.tensor([[emitted[-1]]]), cache, position, mask[None, None, None],
                 )
-                expected = self.model(prefix, use_cache=False).logits[:, -1].argmax(-1).item()
+                actual_logits = logits[-1]
+                expected_logits = self.model(prefix, use_cache=False).logits[:, -1:]
+                torch.testing.assert_close(actual_logits, expected_logits, atol=1e-5, rtol=1e-5)
+                expected = expected_logits[:, -1].argmax(-1).item()
                 self.assertEqual(next_token.item(), expected)
 
     @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA")

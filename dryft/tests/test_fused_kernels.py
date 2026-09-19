@@ -54,11 +54,26 @@ class FusedKernelTests(unittest.TestCase):
             actual_q, actual_k = norm_rope(q, k, q_norm, k_norm, cos, sin)
             torch.testing.assert_close(actual_q.transpose(1, 2), expected_q, atol=0.02, rtol=0.02)
             torch.testing.assert_close(actual_k.transpose(1, 2), expected_k, atol=0.02, rtol=0.02)
+            for batch, tokens in ((1, 1), (4, 1), (2, 4)):
+                packed = torch.randn(batch, tokens, 6144, device="cuda", dtype=torch.bfloat16)
+                q, k, _ = packed.split((4096, 1024, 1024), dim=-1)
+                q, k = q.view(batch, tokens, 32, 128), k.view(batch, tokens, 8, 128)
+                c, s = cos[:, :tokens].contiguous(), sin[:, :tokens].contiguous()
+                expected_q, expected_k = apply_rotary_pos_emb(
+                    q_norm(q).transpose(1, 2), k_norm(k).transpose(1, 2), c, s,
+                )
+                actual_q, actual_k = norm_rope(q, k, q_norm, k_norm, c, s)
+                torch.testing.assert_close(actual_q.transpose(1, 2), expected_q, atol=0.02, rtol=0.02)
+                torch.testing.assert_close(actual_k.transpose(1, 2), expected_k, atol=0.02, rtol=0.02)
 
     def test_swiglu_preserves_intermediate_bf16_cast(self):
         from kernels.fused import swiglu
 
         gate = torch.randn(4, 9728, device="cuda", dtype=torch.bfloat16)
         up = torch.randn_like(gate)
+        expected = torch.nn.functional.silu(gate) * up
+        torch.testing.assert_close(swiglu(gate, up), expected, atol=0.02, rtol=0.02)
+        packed = torch.randn(2, 4, 19456, device="cuda", dtype=torch.bfloat16)
+        gate, up = packed.chunk(2, dim=-1)
         expected = torch.nn.functional.silu(gate) * up
         torch.testing.assert_close(swiglu(gate, up), expected, atol=0.02, rtol=0.02)

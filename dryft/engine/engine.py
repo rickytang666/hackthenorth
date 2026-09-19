@@ -23,12 +23,15 @@ class FusedRMSNorm(torch.nn.Module):
 class FusedMLP(torch.nn.Module):
     def __init__(self, reference):
         super().__init__()
-        self.gate_proj = reference.gate_proj
-        self.up_proj = reference.up_proj
+        self.gate_up_weight = torch.nn.Parameter(
+            torch.cat((reference.gate_proj.weight.detach(), reference.up_proj.weight.detach())),
+            requires_grad=False,
+        )
         self.down_proj = reference.down_proj
 
     def forward(self, x):
-        return self.down_proj(swiglu(self.gate_proj(x), self.up_proj(x)))
+        gate, up = torch.nn.functional.linear(x, self.gate_up_weight).chunk(2, dim=-1)
+        return self.down_proj(swiglu(gate, up))
 
 
 class Engine:

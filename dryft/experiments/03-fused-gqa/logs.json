@@ -1,6 +1,37 @@
 {
-  "items": [],
-  "nextAfter": -1,
+  "items": [
+    {
+      "seq": 0,
+      "stream": "harness",
+      "line": "staged artifact 0bcc63759c58",
+      "receivedAt": "2026-09-19T14:59:35.262577+00:00"
+    },
+    {
+      "seq": 1,
+      "stream": "harness",
+      "line": "[harness] staging the engine and loading the native reference",
+      "receivedAt": "2026-09-19T14:59:35.262577+00:00"
+    },
+    {
+      "seq": 2,
+      "stream": "harness",
+      "line": "[harness] measuring on the device",
+      "receivedAt": "2026-09-19T14:59:35.262577+00:00"
+    },
+    {
+      "seq": 3,
+      "stream": "harness",
+      "line": "[harness] this run touched hidden cases, so output written by the submission is not shown here. It is kept for operators and is not published, because a hidden case's dimensions and data can be encoded into arbitrary text and no filter can undo that.",
+      "receivedAt": "2026-09-19T14:59:35.262577+00:00"
+    },
+    {
+      "seq": 4,
+      "stream": "harness",
+      "line": "[harness] this run's isolation evidence was recorded",
+      "receivedAt": "2026-09-19T14:59:35.262577+00:00"
+    }
+  ],
+  "nextAfter": 4,
   "hasMore": false,
-  "complete": false
+  "complete": true
 }
