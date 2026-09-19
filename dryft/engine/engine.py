@@ -11,6 +11,7 @@ from kernels.rmsnorm import rms_norm
 from speculate import DRAFT_TOKENS, PromptLookup
 from fused_layer import install as install_fused_projections
 from projections import Projection
+from prefill import prefill
 
 
 class FusedRMSNorm(torch.nn.Module):
@@ -88,7 +89,7 @@ class Engine:
                 self.state = DecodeState(self.model, *shape, speculative=True)
             state = self.state
             prompt = torch.tensor(input_ids, dtype=torch.int64, device="cuda:0")
-            current = state.prefill(self.model, prompt)
+            current = prefill(self.model, state, prompt)
             tokens = current[:, 0].tolist()
             yield tokens
             lookup = PromptLookup(input_ids[0]) if state.verify_graph is not None else None
