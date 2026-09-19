@@ -3,6 +3,7 @@
 import torch
 from kernels.attention import grouped_attention
 from kernels.fused import norm_rope
+from projections import Projection
 
 
 class GroupedAttention(torch.nn.Module):
@@ -17,6 +18,8 @@ class GroupedAttention(torch.nn.Module):
         # Native prefill and packed decode share the same weight storage.
         for proj, weight in zip(projections, self.qkv_weight.split(self.widths)):
             proj.weight = torch.nn.Parameter(weight, requires_grad=False)
+        self.qkv = Projection(self.qkv_weight, "qkv")
+        reference.o_proj = Projection(reference.o_proj.weight, "o")
 
     def forward(self, hidden_states, position_embeddings, attention_mask=None,
                 past_key_value=None, cache_position=None, **kwargs):
@@ -27,7 +30,7 @@ class GroupedAttention(torch.nn.Module):
                 past_key_value=past_key_value, cache_position=cache_position, **kwargs,
             )
         shape = (*hidden_states.shape[:-1], -1, ref.head_dim)
-        qkv = torch.nn.functional.linear(hidden_states, self.qkv_weight)
+        qkv = self.qkv(hidden_states)
         q, k, v = qkv.split(self.widths, dim=-1)
         q, k = q.view(shape), k.view(shape)
         v = v.view(shape).transpose(1, 2)

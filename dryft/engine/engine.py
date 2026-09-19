@@ -9,6 +9,7 @@ from kernels.fused import swiglu
 from kernels.rmsnorm import rms_norm
 from speculate import DRAFT_TOKENS, PromptLookup
 from fused_layer import install as install_fused_projections
+from projections import Projection
 
 
 class FusedRMSNorm(torch.nn.Module):
@@ -28,10 +29,11 @@ class FusedMLP(torch.nn.Module):
             torch.cat((reference.gate_proj.weight.detach(), reference.up_proj.weight.detach())),
             requires_grad=False,
         )
-        self.down_proj = reference.down_proj
+        self.gate_up = Projection(self.gate_up_weight, "gate_up")
+        self.down_proj = Projection(reference.down_proj.weight, "down")
 
     def forward(self, x):
-        gate, up = torch.nn.functional.linear(x, self.gate_up_weight).chunk(2, dim=-1)
+        gate, up = self.gate_up(x).chunk(2, dim=-1)
         return self.down_proj(swiglu(gate, up))
 
 

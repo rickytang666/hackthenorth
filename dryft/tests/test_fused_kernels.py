@@ -13,6 +13,21 @@ except ImportError:
 
 @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA and Triton")
 class FusedKernelTests(unittest.TestCase):
+    def test_projection_dispatch_boundaries(self):
+        from projections import Projection
+
+        torch.manual_seed(2026)
+        with torch.inference_mode():
+            for kind, n, k in (("qkv",6144,2560), ("gate_up",19456,2560),
+                               ("o",2560,4096), ("down",2560,9728)):
+                weight = torch.nn.Parameter(torch.randn(n,k,device="cuda",dtype=torch.bfloat16)*0.02,
+                                            requires_grad=False)
+                projection = Projection(weight, kind)
+                for rows in (1,2,3,4,5,8,12,15,16,17,24,31,32,33,64):
+                    x = torch.randn(rows,1,k,device="cuda",dtype=torch.bfloat16)
+                    torch.testing.assert_close(projection(x), torch.nn.functional.linear(x,weight),
+                                               atol=0.04,rtol=0.02)
+
     def test_normalized_projections_and_swiglu(self):
         from kernels.projection import norm_projection
         from transformers.models.qwen3.modeling_qwen3 import Qwen3RMSNorm
