@@ -8,18 +8,18 @@ what and when.
 ## Run it
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+uv sync
 source env.sh                                    # sets VOICEBRIDGE_DATA, PYTHONPATH
-.venv/bin/hf download abnerh/TORGO-database --repo-type dataset --local-dir ./data/torgo-dataset
-.venv/bin/python -m data.prepare_torgo           # builds the five manifests
-.venv/bin/python -m contract.manifest            # must match contract/MANIFEST_HASHES
+uv run hf download abnerh/TORGO-database --repo-type dataset --local-dir ./data/torgo-dataset
+uv run python -m data.prepare_torgo           # builds the five manifests
+uv run python -m contract.manifest            # must match contract/MANIFEST_HASHES
 ```
 
 Then, in two shells:
 
 ```bash
-.venv/bin/python -m contract.mock_asr --port 8765
-.venv/bin/python -m bench.latency --url ws://127.0.0.1:8765 --runs 5
+uv run python -m contract.mock_asr --port 8765
+uv run python -m bench.latency --url ws://127.0.0.1:8765 --runs 5
 ```
 
 ## Map
