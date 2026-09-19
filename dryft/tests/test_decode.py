@@ -10,6 +10,7 @@ try:
     import torch
     from transformers import Qwen3Config, Qwen3ForCausalLM
     from decode import DecodeState, KVCache, forward
+    from speculate import verified_tokens
 except ImportError:
     torch = None
 
@@ -56,6 +57,46 @@ class DecodeTests(unittest.TestCase):
                                 self.model, current, cache, position, mask.view(1, 1, 1, -1)
                             )
 
+    def test_multi_token_verification_and_rollback_match_native(self):
+        with torch.inference_mode():
+            capacity = 20
+            cache = KVCache(self.model, 1, capacity)
+            for accept_count in range(4):
+                prompt = torch.randint(0, 97, (1, 7))
+                cache.prefill = True
+                current = forward(self.model, prompt, cache, torch.arange(7))
+                cache.prefill = False
+                prefix = torch.cat((prompt, current), dim=1)
+                draft_prefix = prefix.clone()
+                proposal = []
+                for _ in range(3):
+                    draft = self.model(draft_prefix, use_cache=False).logits[:, -1].argmax(-1)
+                    proposal.append(draft.item())
+                    draft_prefix = torch.cat((draft_prefix, draft[:, None]), dim=1)
+                if accept_count < 3:
+                    proposal[accept_count] = (proposal[accept_count] + 1) % 97
+                inputs = torch.tensor([[current.item(), *proposal]])
+                positions = torch.arange(7, 11)
+                mask = torch.zeros(4, capacity)
+                mask.masked_fill_(torch.arange(capacity)[None, :] > positions[:, None], float("-inf"))
+                predictions = forward(
+                    self.model, inputs, cache, positions, mask[None, None], last_only=False,
+                )[0].tolist()
+                emitted = verified_tokens(proposal, predictions)
+                self.assertEqual(len(emitted), accept_count + 1)
+                for token in emitted:
+                    expected = self.model(prefix, use_cache=False).logits[:, -1].argmax(-1).item()
+                    self.assertEqual(token, expected)
+                    prefix = torch.cat((prefix, torch.tensor([[token]])), dim=1)
+                position = torch.tensor([7 + len(emitted)])
+                mask = torch.zeros(capacity)
+                mask.masked_fill_(torch.arange(capacity) > position, float("-inf"))
+                next_token = forward(
+                    self.model, torch.tensor([[emitted[-1]]]), cache, position, mask[None, None, None],
+                )
+                expected = self.model(prefix, use_cache=False).logits[:, -1].argmax(-1).item()
+                self.assertEqual(next_token.item(), expected)
+
     @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA")
     def test_graph_replay_resets_positions_and_prompt_state(self):
         self.model.cuda()
@@ -71,6 +112,26 @@ class DecodeTests(unittest.TestCase):
                     if step < 5:
                         state.graph.replay()
                         current = state.token
+
+    @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA and Triton")
+    def test_speculative_generator_stream_and_capacity_boundaries(self):
+        from engine import Engine
+
+        engine = Engine.__new__(Engine)
+        engine.model = self.model.cuda()
+        engine.state = None
+        with torch.inference_mode():
+            for length in (1, 4, 5, 9):
+                for token in (7, 11):
+                    prompt = [[token] * 12]
+                    outputs = list(engine.generate(prompt, length))
+                    self.assertEqual(len(outputs), length)
+                    prefix = torch.tensor(prompt, device="cuda")
+                    for step in outputs:
+                        self.assertEqual(len(step), 1)
+                        expected = self.model(prefix, use_cache=False).logits[:, -1].argmax(-1).item()
+                        self.assertEqual(step[0], expected)
+                        prefix = torch.cat((prefix, torch.tensor([step], device="cuda")), dim=1)
 
 
 if __name__ == "__main__":

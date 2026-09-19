@@ -1,13 +1,27 @@
 # Optimization experiments
 
-No H100 measurements have been collected yet. The current engine is a candidate,
-not a demonstrated speedup.
+The first official candidate passed and ranked at **354.37 tok/s**. Subsequent
+candidates must pass the same gates and improve this measured result.
 
 | Snapshot | Change | Status |
 | --- | --- | --- |
 | `00-baseline` | Unchanged upstream engine | Archived locally; API upload rejected (HTTP 405) |
 | `01-fused-norm` | Replace all hidden and Q/K RMSNorms with the bundled Triton kernel | Archived locally; GPU evaluation pending |
-| `02-cuda-graph` | Fused norms, fixed KV buffers, CUDA graph decode, direct decoder-layer dispatch | Current candidate; GPU evaluation pending |
+| `02-cuda-graph` | Fused norms, fixed KV buffers, CUDA graph decode, direct decoder-layer dispatch | Passed; 354.37 tok/s; commit `11d5c55` |
+| `03-fused-gqa` | Direct grouped KV attention, fused Q/K norm + RoPE, fused SwiGLU | Official run queued; commit `3996403` |
+| `04-exact-speculation` | Prompt-lookup drafts, captured multi-token verification, exact acceptance and cache rollback | Local checks passed; awaiting comparison with 03 |
+
+First passing public results (five samples each):
+
+| Workload | tok/s | TTFT | TPOT | Speedup over paired native |
+| --- | ---: | ---: | ---: | ---: |
+| B1, 512 → 32 | 125.87 | 20.39 ms | 7.53 ms | 2.43× |
+| B4, 2048 → 32 | 201.81 | 163.87 ms | 15.18 ms | 1.38× |
+| B16, 512 → 128 | 953.04 | 153.56 ms | 15.71 ms | 1.42× |
+
+These public workloads do not set the 354.37 tok/s ranking; the hidden six do.
+The user reports the current whole-run limit is 15 minutes after pickup,
+excluding queue time. Per-engine load/warmup and sample budgets remain 300 s.
 
 Each local snapshot holds `engine.tar.gz`; archives are ignored by git. The
 upstream baseline is also available from the original git history.
@@ -57,6 +71,15 @@ python3 agent/experiment.py logs 03-next-change
 The helper reads the ignored, owner-readable `.env`, stores reports outside the
 submitted engine, and never uploads through the retired endpoint. Compare
 throughput, TTFT, TPOT, peak memory, correctness and sample spread for every
-workload. In particular, fixed-capacity attention expands grouped K/V heads in
-the pinned Transformers adapter; eliminating that expansion is a possible next
-optimization after measuring this candidate.
+workload. Candidate 03 eliminates the pinned adapter's grouped-head expansion
+in decode and uses a split-cache attention reduction. Prefill stays native.
+
+Candidate 04 proposes three tokens from earlier matching four-token sequences
+in the current prompt and verified output. It runs only at batch 1; other
+batches use regular captured decode. Qwen verifies current + draft in one
+causally masked forward, accepts only the matching greedy prefix, and emits one
+target correction or bonus token. Predictions after the first rejection are
+discarded. Cache position advances by the number of emitted tokens, masking
+the speculative tail. No draft model, approximate output or extra weights are
+used. Prompt-dependent acceptance may affect the 25% timing-spread gate, so
+this candidate requires a complete official evaluation before promotion.

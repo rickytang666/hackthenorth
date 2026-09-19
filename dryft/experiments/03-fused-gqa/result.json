@@ -1,0 +1,23 @@
+{
+  "id": "02ab97c1-f3c8-4643-9774-feb7ea80b72b",
+  "submissionId": "7c1ef2ff-d744-49d0-91ed-7fc69dd2604c",
+  "teamId": "208b3ec5-c128-444f-bc12-1aade2f55bab",
+  "challenge": "decode",
+  "mode": "official",
+  "state": "queued",
+  "priority": 10,
+  "attempt": 0,
+  "maxAttempts": 3,
+  "submissionDigest": "b36e877b0aed5ce0907a1f0cccf9bf9cc78860713864e5de2b49eb418983a27c",
+  "challengeSpecDigest": "b103e41b682f2e7c1dead713db0a4d104d0045b53162efdd7b4039fd51562ee0",
+  "runtime": "triton-cu124-py311",
+  "commitSha": "3996403f32da22697cea8d47bc84e159b6bd8611",
+  "errorCode": null,
+  "errorMessage": null,
+  "queuedAt": "2026-09-19T14:46:45.373450+00:00",
+  "startedAt": null,
+  "finishedAt": null,
+  "createdAt": "2026-09-19T14:46:44.246976+00:00",
+  "result": null,
+  "cancelRequested": false
+}

@@ -7,6 +7,7 @@ from decode import DecodeState
 from attention import GroupedAttention
 from kernels.fused import swiglu
 from kernels.rmsnorm import rms_norm
+from speculate import DRAFT_TOKENS, PromptLookup
 
 
 class FusedRMSNorm(torch.nn.Module):
@@ -69,11 +70,31 @@ class Engine:
             shape = (len(input_ids), len(input_ids[0]), max_new_tokens)
             if self.state is None or self.state.shape != shape:
                 self.state = None
-                self.state = DecodeState(self.model, *shape)
+                self.state = DecodeState(self.model, *shape, speculative=True)
             state = self.state
             prompt = torch.tensor(input_ids, dtype=torch.int64, device="cuda:0")
             current = state.prefill(self.model, prompt)
-            yield current[:, 0].tolist()
-            for _ in range(max_new_tokens - 1):
-                state.graph.replay()
-                yield state.token[:, 0].tolist()
+            tokens = current[:, 0].tolist()
+            yield tokens
+            lookup = PromptLookup(input_ids[0]) if state.verify_graph is not None else None
+            if lookup is not None:
+                lookup.append(tokens[0])
+            emitted = 1
+            while emitted < max_new_tokens:
+                proposal = None
+                if lookup is not None and max_new_tokens - emitted > DRAFT_TOKENS:
+                    proposal = lookup.propose()
+                if proposal is not None:
+                    verified = state.verify(tokens[0], proposal, shape[1] + emitted - 1)
+                    for token in verified:
+                        tokens = [token]
+                        lookup.append(token)
+                        emitted += 1
+                        yield tokens
+                else:
+                    state.graph.replay()
+                    tokens = state.token[:, 0].tolist()
+                    if lookup is not None:
+                        lookup.append(tokens[0])
+                    emitted += 1
+                    yield tokens
