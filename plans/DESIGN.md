@@ -396,5 +396,5 @@ Targets: first recovered audio under 1.5 s, RTF under 0.5, at most 250 ms betwee
 - Cohere's documented production path is offline or vLLM, not a demonstrated cache-aware streaming encoder. If Cohere wins on WER it may still lose on latency.
 - The Cohere collator and LoRA target-module suffixes are revision-specific. Print `model.named_modules()` and unit-test one batch and one backward pass before launching the paid job. Assert that the intended top encoder blocks are trainable and the lower ones are not.
 - Cohere Transcribe is Apache 2.0 but the repo is gated behind a contact-information click-through, so it costs two minutes rather than an approval queue. Pull from `CohereLabs/cohere-transcribe-03-2026` directly: the third-party ONNX, CoreML and GGUF mirrors are CC-BY-NC and non-commercial.
-- Confirm TORGO's academic non-profit license permits third-party cloud processing before mounting audio on Baseten.
+- TORGO is academic non-profit use with citation. A hackathon qualifies and renting GPUs to process it is not redistribution, so cite it and move on. The one real constraint is that the audio and transcripts never enter this repo, which goes public at submission.
 - Voice enrollment audio is sensitive personal data. Explicit consent, explicit deletion, no secrets or keys in logs. The repo goes public at submission.

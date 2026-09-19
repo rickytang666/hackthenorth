@@ -75,9 +75,9 @@ Both of you run this list. Neither of you is ready to branch until your own colu
 
 | # | Item |
 |---|---|
-| 31 | TORGO license confirmed to permit academic non-profit use and third-party cloud processing on Baseten |
+| 31 | TORGO cited in the README and on Devpost. Academic non-profit use covers a hackathon, and renting GPUs to process it is not redistribution, so this is a citation task and not a blocker |
 | 32 | One consented voice enrollment recording captured, with the consenting person told it can be deleted |
-| 33 | Decided whether the five manifests may be committed. They contain TORGO transcripts and this repo goes public at submission. Default is no: commit `MANIFEST_HASHES` only and have each person regenerate |
+| 33 | **Decided: manifests and audio stay out of git.** `MANIFEST_HASHES` is committed and each person regenerates, which is also what makes exit gate 3 mean anything. This repo goes public at submission, so do not redistribute TORGO through it |
 
 **Exit gate, all six, not a clock:**
 
