@@ -10,8 +10,9 @@ improve this measured result.
 | `01-fused-norm` | Replace all hidden and Q/K RMSNorms with the bundled Triton kernel | Archived locally; GPU evaluation pending |
 | `02-cuda-graph` | Fused norms, fixed KV buffers, CUDA graph decode, direct decoder-layer dispatch | Passed; 354.37 tok/s; commit `11d5c55` |
 | `03-fused-gqa` | Direct grouped KV attention, fused Q/K norm + RoPE, fused SwiGLU | Passed; 706.61 tok/s; commit `3996403` |
-| `04-exact-speculation` | Prompt-lookup drafts, captured multi-token verification, exact acceptance and cache rollback | Official run measuring; commit `cc98be4` |
-| `05-packed-projections` | One decode QKV projection and one MLP gate/up projection; stride-aware fused kernels | Validated for official submission |
+| `04-exact-speculation` | Prompt-lookup drafts, captured multi-token verification, exact acceptance and cache rollback | Passed; 693.63 tok/s; commit `cc98be4` |
+| `05-packed-projections` | One decode QKV projection and one MLP gate/up projection; stride-aware fused kernels | Official run queued; commit `03f4123` |
+| `06-packed-no-speculation` | Same packed projections, with prompt lookup disabled | Prepared to isolate speculation overhead |
 
 First passing public results (five samples each):
 
@@ -88,7 +89,10 @@ target correction or bonus token. Predictions after the first rejection are
 discarded. Cache position advances by the number of emitted tokens, masking
 the speculative tail. No draft model, approximate output or extra weights are
 used. Prompt-dependent acceptance may affect the 25% timing-spread gate, so
-this candidate requires a complete official evaluation before promotion.
+the complete official evaluation matters. Candidate 04 passed all gates but
+scored about 1.8% below candidate 03. Candidate 06 therefore disables the
+`ENABLE_SPECULATION` switch in `engine.py` while retaining the tested verifier
+for future draft-policy experiments.
 
 Candidate 05 retains candidate 04 and packs projection weights during loading.
 Q/K/V prefill modules share slices of the packed decode weight, avoiding weight

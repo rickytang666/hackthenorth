@@ -3,6 +3,7 @@
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "engine"))
 
@@ -132,7 +133,7 @@ class DecodeTests(unittest.TestCase):
         engine = Engine.__new__(Engine)
         engine.model = self.model.cuda()
         engine.state = None
-        with torch.inference_mode():
+        with torch.inference_mode(), patch("engine.ENABLE_SPECULATION", True):
             for length in (1, 4, 5, 9):
                 for token in (7, 11):
                     prompt = [[token] * 12]

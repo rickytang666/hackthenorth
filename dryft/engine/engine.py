@@ -9,6 +9,8 @@ from kernels.fused import swiglu
 from kernels.rmsnorm import rms_norm
 from speculate import DRAFT_TOKENS, PromptLookup
 
+ENABLE_SPECULATION = False
+
 
 class FusedRMSNorm(torch.nn.Module):
     def __init__(self, reference):
@@ -73,7 +75,7 @@ class Engine:
             shape = (len(input_ids), len(input_ids[0]), max_new_tokens)
             if self.state is None or self.state.shape != shape:
                 self.state = None
-                self.state = DecodeState(self.model, *shape, speculative=True)
+                self.state = DecodeState(self.model, *shape, speculative=ENABLE_SPECULATION)
             state = self.state
             prompt = torch.tensor(input_ids, dtype=torch.int64, device="cuda:0")
             current = state.prefill(self.model, prompt)
