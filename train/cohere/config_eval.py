@@ -44,6 +44,7 @@ job = definitions.TrainingJob(
         node_count=1,
     ),
     runtime=runtime,
+    workspace=workspace,
 )
 
 training_project = definitions.TrainingProject(name="voicebridge-cohere-eval-t34", job=job)
