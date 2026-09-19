@@ -1,11 +1,10 @@
-"""Qwen3 with calibrated mixed FP8 gate/up decode, BF16 prefill and CUDA graphs."""
+"""BF16 Qwen3 with fused RMSNorm, preallocated KV storage and CUDA graphs."""
 
 import torch
 from transformers import AutoModelForCausalLM
 
 from decode import DecodeState, stream_decode
 from attention import GroupedAttention
-from kernels.fp8 import fp8, pack
 from kernels.fused import swiglu
 from kernels.gateup import LEGACY_CONFIG, gate_up_swiglu
 from kernels.rmsnorm import rms_norm
@@ -37,7 +36,7 @@ class FusedRMSNorm(torch.nn.Module):
 
 
 class FusedMLP(torch.nn.Module):
-    def __init__(self, reference, layer_index):
+    def __init__(self, reference):
         super().__init__()
         self.gate_up_weight = torch.nn.Parameter(
             torch.cat((reference.gate_proj.weight.detach(), reference.up_proj.weight.detach())),
@@ -46,20 +45,6 @@ class FusedMLP(torch.nn.Module):
         self.gate_up = Projection(self.gate_up_weight, "gate_up")
         self.down_proj = Projection(reference.down_proj.weight, "down")
         self.register_buffer("interleaved_weight", None, persistent=False)
-        # Only the 24 layers in the frozen, validated policy are quantized.
-        from fp8_config import CALIBRATION
-        self.register_buffer("fp8_gate", None, persistent=False)
-        self.register_buffer("fp8_gate_scale", None, persistent=False)
-        self.register_buffer("fp8_smooth", None, persistent=False)
-        self.register_buffer("fp8_one", None, persistent=False)
-        if layer_index in CALIBRATION:
-            smooth, rms = CALIBRATION[layer_index]
-            device = self.gate_up_weight.device
-            self.fp8_smooth = torch.tensor(smooth, device=device, dtype=torch.float32)
-            rms = torch.tensor(rms, device=device, dtype=torch.float32)
-            self.fp8_gate, self.fp8_gate_scale = pack(
-                self.gate_up_weight, self.fp8_smooth, rms, True)
-            self.fp8_one = torch.ones((), device=device, dtype=torch.float32)
 
     def _candidates(self, rows):
         return [config for config in GATEUP_CANDIDATES
@@ -75,11 +60,7 @@ class FusedMLP(torch.nn.Module):
         activated = (value * torch.sigmoid(value)).to(torch.bfloat16).float()
         return (activated * up.float()).to(torch.bfloat16)
 
-    def _intermediate(self, x, rows, allow_fp8=True):
-        if (allow_fp8 and self.fp8_gate is not None and 2 <= rows <= 32
-                and x.ndim == 3 and x.shape[1] == 1):
-            return fp8(x, self.fp8_gate, self.fp8_gate_scale, self.fp8_one,
-                       swiglu=True, smooth=self.fp8_smooth)
+    def _intermediate(self, x, rows):
         if self.interleaved_weight is None:
             gate, up = self.gate_up_weight.detach().chunk(2, 0)
             self.interleaved_weight = torch.stack((gate.T, up.T), -1).flatten(1).contiguous()
@@ -90,7 +71,7 @@ class FusedMLP(torch.nn.Module):
     def forward(self, x):
         rows = x.numel() // x.shape[-1]
         if 2 <= rows <= 32:
-            return self.down_proj(self._intermediate(x, rows, allow_fp8=False))
+            return self.down_proj(self._intermediate(x, rows))
         gate, up = self.gate_up(x).chunk(2, dim=-1)
         return self.down_proj(swiglu(gate, up))
 
@@ -152,13 +133,13 @@ class Engine:
         )
         base = self.model.model
         base.norm = FusedRMSNorm(base.norm)
-        for layer_index, layer in enumerate(base.layers):
+        for layer in base.layers:
             layer.input_layernorm = FusedRMSNorm(layer.input_layernorm)
             layer.post_attention_layernorm = FusedRMSNorm(layer.post_attention_layernorm)
             layer.self_attn.q_norm = FusedRMSNorm(layer.self_attn.q_norm)
             layer.self_attn.k_norm = FusedRMSNorm(layer.self_attn.k_norm)
             layer.self_attn = GroupedAttention(layer.self_attn)
-            layer.mlp = FusedMLP(layer.mlp, layer_index)
+            layer.mlp = FusedMLP(layer.mlp)
         install_fused_projections(self.model)
         self.state = None
 
