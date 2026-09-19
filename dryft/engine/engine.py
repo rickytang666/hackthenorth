@@ -3,7 +3,7 @@
 import torch
 from transformers import AutoModelForCausalLM
 
-from decode import DecodeState
+from decode import DecodeState, stream_decode
 from attention import GroupedAttention
 from kernels.fused import swiglu
 from kernels.gateup import gate_up_swiglu
@@ -91,6 +91,9 @@ class Engine:
             prompt = torch.tensor(input_ids, dtype=torch.int64, device="cuda:0")
             current = prefill(self.model, state, prompt)
             tokens = current[:, 0].tolist()
+            if state.verify_graph is None:
+                yield from stream_decode(state, tokens, max_new_tokens)
+                return
             yield tokens
             lookup = PromptLookup(input_ids[0]) if state.verify_graph is not None else None
             if lookup is not None:

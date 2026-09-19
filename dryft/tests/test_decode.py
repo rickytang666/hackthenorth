@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "engine"))
 try:
     import torch
     from transformers import Qwen3Config, Qwen3ForCausalLM
-    from decode import DecodeState, KVCache, RotaryTable, forward, uses_position_causality
+    from decode import DecodeState, KVCache, RotaryTable, forward, uses_position_causality, stream_decode
     from speculate import verified_tokens
 except ImportError:
     torch = None
@@ -17,6 +17,26 @@ except ImportError:
 
 @unittest.skipIf(torch is None, "requires torch and transformers")
 class DecodeTests(unittest.TestCase):
+    def test_stream_decode_launches_before_yield_without_extra_steps(self):
+        from types import SimpleNamespace
+
+        for batch in (1, 2, 16):
+            for length in (1, 2, 5):
+                token = torch.arange(batch).reshape(batch, 1)
+                launches = []
+                def replay():
+                    token.add_(1)
+                    launches.append(1)
+                state = SimpleNamespace(token=token, graph=SimpleNamespace(replay=replay))
+                first = token[:, 0].tolist()
+                saved = []
+                for step, output in enumerate(stream_decode(state, first, length)):
+                    self.assertEqual(output, [row + step for row in range(batch)])
+                    self.assertEqual(len(launches), min(step + 1, length - 1))
+                    saved.append(output)
+                self.assertEqual(saved[0], list(range(batch)))
+                self.assertEqual(len(launches), length - 1)
+
     def setUp(self):
         torch.manual_seed(7)
         config = Qwen3Config(

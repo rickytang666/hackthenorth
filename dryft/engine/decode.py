@@ -4,6 +4,24 @@ import torch
 
 from speculate import DRAFT_TOKENS, verified_tokens
 
+
+def stream_decode(state, first_tokens, output_length):
+    """Overlap the next graph with delivery of an already-materialized token.
+
+    Only the Python list crosses yield; it cannot alias the graph's token buffer.
+    The final yield has no outstanding replay, and output_length=1 launches none.
+    This path deliberately excludes speculative verification.
+    """
+    tokens = first_tokens
+    for step in range(output_length):
+        has_next = step + 1 < output_length
+        if has_next:
+            state.graph.replay()
+        yield tokens
+        if has_next:
+            tokens = state.token[:, 0].tolist()
+
+
 class KVCache:
     def __init__(self, model, batch_size, capacity):
         config = model.config
