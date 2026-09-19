@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-09-19T22:33:48.626655+00:00",
+  "job": {
+    "id": "wd66me3",
+    "created_at": "2026-09-19T22:26:13.239Z",
+    "current_status": "TRAINING_JOB_COMPLETED",
+    "error_message": null,
+    "instance_type": {
+      "id": "H100",
+      "name": "H100 - 1 H100 GPU, 80 GiB VRAM",
+      "memory_limit_mib": 120832,
+      "millicpu_limit": 16000,
+      "gpu_count": 1,
+      "gpu_type": "H100",
+      "gpu_memory_limit_mib": 81920
+    },
+    "node_count": 1,
+    "updated_at": "2026-09-19T22:33:35.985Z",
+    "training_project_id": "31dm413",
+    "training_project": {
+      "id": "31dm413",
+      "name": "voicebridge-cohere-eval-t34"
+    },
+    "name": "job-4",
+    "checkpoint_sync_status": "COMPLETED",
+    "priority": 0,
+    "availability_model": "dedicated",
+    "user": {
+      "email": "afreed.hassan16@gmail.com"
+    }
+  },
+  "checkpoint_artifacts": [
+    {
+      "url": "https://bt-training-04wnmpb-610f9689-1e1b-441a-ac59-4dbafa3752fa.s3.amazonaws.com/training_projects/31dm413/jobs/wd66me3/rank-0/baseline_cohere.jsonl?AWSAccessKeyId=AKIA4FWSEGGQU5RCDCKX&Signature=Fql8sTJOFeeTYgin0ScR3E7Bd7c%3D&Expires=1790462030",
+      "relative_file_name": "baseline_cohere.jsonl",
+      "node_rank": 0,
+      "size_bytes": 156788,
+      "last_modified": "2026-09-19T22:32:34+00:00"
+    },
+    {
+      "url": "https://bt-training-04wnmpb-610f9689-1e1b-441a-ac59-4dbafa3752fa.s3.amazonaws.com/training_projects/31dm413/jobs/wd66me3/rank-0/tuned_cohere.jsonl?AWSAccessKeyId=AKIA4FWSEGGQU5RCDCKX&Signature=3M2tQh0KjD90iFLPi%2F%2FlHyiOrGw%3D&Expires=1790462030",
+      "relative_file_name": "tuned_cohere.jsonl",
+      "node_rank": 0,
+      "size_bytes": 158119,
+      "last_modified": "2026-09-19T22:33:36+00:00"
+    }
+  ]
+}
