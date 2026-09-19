@@ -10,7 +10,7 @@ from kernels.gateup import LEGACY_CONFIG, gate_up_swiglu
 from kernels.rmsnorm import rms_norm
 from speculate import DRAFT_TOKENS, PromptLookup
 from fused_layer import install as install_fused_projections
-from kernels.dotgemv import dot_projection_residual
+from kernels.tile import tile_projection
 from projections import Projection, probe_point, resolve
 from prefill import prefill
 
@@ -84,36 +84,32 @@ class FusedMLP(torch.nn.Module):
         probe_point("down_residual", _DownResidual(self.down_proj, residual),
                     intermediate, rows)
         choice = resolve("down_residual", rows) or ("legacy",)
-        if choice[0] == "dotres":
+        if choice[0] == "restile":
             return _DownResidual(self.down_proj, residual)._run(choice, intermediate, rows)
         return residual + self.down_proj(intermediate)
 
 
 class _DownResidual:
-    """Calibration adapter: down projection with a fused BF16 residual add."""
+    """Calibration adapter: the residual add fused into the down tile's store."""
 
-    CONFIGS = ((64, 128, 8, 4), (128, 64, 8, 4))
+    TILES = ((32, 128, 2, 5), (64, 128, 4, 5))
 
     def __init__(self, projection, residual):
         self.projection = projection
         self.residual = residual
 
     def _candidates(self, rows):
-        options = [("legacy",)]
-        for config in self.CONFIGS:
-            options.append(("dotres", config, False))
-            options.append(("dotres", config, True))
-        return options
+        return [("legacy",)] + [("restile", column, tile)
+                                for tile in self.TILES for column in (True, False)]
 
     def _run(self, choice, x, rows):
         if choice[0] == "legacy":
             return self.residual + self.projection(x)
-        _, config, column = choice
+        _, column, tile = choice
         n, k = self.projection.weight.shape
-        weight = self.projection._column().T if column else self.projection.weight
-        flat = dot_projection_residual(
-            x.reshape(rows, k), weight, self.residual.reshape(rows, n),
-            rows, n, k, *config, column)
+        weight = self.projection._column() if column else self.projection.weight
+        flat = tile_projection(x.reshape(rows, k), weight, rows, tile,
+                               residual=self.residual.reshape(rows, n))
         return flat.reshape(self.residual.shape)
 
     def _reference(self, x):

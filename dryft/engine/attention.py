@@ -3,37 +3,37 @@
 import torch
 from torch.nn.attention import SDPBackend, sdpa_kernel
 from kernels.attention import grouped_attention, prologue_attention
-from kernels.dotgemv import norm_dot_projection
 from kernels.fused import norm_rope, norm_rope_cache
 from kernels.rmsnorm import rms_norm
+from kernels.tile import tile_projection
 from projections import Projection, probe_point, resolve
 
 
 class _NormQkv:
-    """Calibration adapter: input RMSNorm fused into the QKV projection."""
+    """Calibration adapter: input RMSNorm fused into the QKV projection tile."""
 
-    CONFIGS = ((64, 128, 8, 4), (128, 64, 8, 4))
+    TILES = ((64, 128, 4, 5), (32, 128, 2, 5))
 
     def __init__(self, attention, norm):
         self.attention = attention
         self.norm = norm
 
     def _candidates(self, rows):
-        return [("legacy",)] + [("normdot", config, column)
-                                for config in self.CONFIGS for column in (False, True)]
+        return [("legacy",)] + [("normtile", column, tile)
+                                for tile in self.TILES for column in (True, False)]
 
     def _run(self, choice, x, rows):
         if choice[0] == "legacy":
             return self.attention.qkv(
                 rms_norm(x, self.norm.weight, self.norm.variance_epsilon))
-        _, config, column = choice
-        weight = self.attention.qkv_weight
-        n, k = weight.shape
-        packed = self.attention.qkv._column().T if column else weight
-        flat = norm_dot_projection(x.reshape(rows, k), self.norm.weight,
-                                   self.norm.variance_epsilon, packed,
-                                   rows, n, k, *config, column)
-        return flat.reshape(*x.shape[:-1], n)
+        _, column, tile = choice
+        projection = self.attention.qkv
+        weight = projection._column() if column else projection.weight
+        k = weight.shape[1]
+        flat = tile_projection(x.reshape(rows, k), weight, rows, tile,
+                               gain=self.norm.weight,
+                               eps=self.norm.variance_epsilon)
+        return flat.reshape(*x.shape[:-1], weight.shape[0])
 
     def _reference(self, x):
         value = x.float()
