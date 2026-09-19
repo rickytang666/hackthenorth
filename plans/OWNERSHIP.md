@@ -33,7 +33,7 @@ Start item 2 first and let it run unattended. The TORGO download plus WAV conver
 | 10 | `contract/protocol.md` | The three wire protocols, normative | Every field in DESIGN.md's protocol section appears here |
 | 11 | `contract/mock_asr.py` | Fake ASR server replaying a fixture JSONL on a timer | Streams protocol-correct partials and one final over a WebSocket |
 | 12 | `serve/_template/` | Truss that already speaks Protocol 1 against a stub model | Deploys, or at minimum runs locally and answers a WebSocket |
-| 13 | `bench/latency.py` | Drives Protocol 1, writes a scorecard row | Reports a number against `mock_asr.py` |
+| 13 | `bench/latency.py` | Drives Protocol 1, writes a scorecard row | Reports a number against `mock_asr.py`. This is the Phase 0 protocol client. `app/` is Phase 1 |
 | 14 | `.gitignore` | Stack-specific half | Done. Last moment it is free to edit |
 | 15 | `plans/` and `README.md` | Committed and pushed | The other person can clone and read |
 
@@ -82,7 +82,7 @@ Both of you run this list. Neither of you is ready to branch until your own colu
 **Exit gate, all six, not a clock:**
 
 1. `contract/evaluate.py` prints the full scorecard table from synthetic prediction files
-2. `contract/mock_asr.py` streams protocol-correct partials and `bench/latency.py` reports a number from it
+2. `contract/mock_asr.py` streams protocol-correct partials and `bench/latency.py` reports a number from it. Not a browser page: the page is Phase 1, scoped under "The demo frontend" in DESIGN.md
 3. Both people independently reproduce the five manifest SHA-256 hashes (items 22 to 24)
 4. Both people have a trainable checkpoint loaded and one local backward pass completed (item 29)
 5. `contract/confidence.py` returns a score on a real decode, because NVIDIA's TDT confidence utility is broken and both lanes must threshold identically
@@ -149,7 +149,7 @@ Freeze 04:00 Sunday. Final code and Devpost edits close 08:00. Judging 09:30 at 
 | Wall clock | Person A | Person B | Exit condition |
 |---|---|---|---|
 | 14:30 to 15:45 | Keyboard: `contract/`, manifests, confidence scorer, mock, template, bench | Provisioning list, then verify hashes, run a local backward pass, and time one 7-word OpenVoice synthesis | **All six Phase 0 gates. Branch only now.** |
-| 15:45 to 18:45 | Launch Parakeet NeMo job on H100-A, checkpoint every 200 to 250 steps. While it runs: `serve/asr_parakeet/` against the frozen base, latency harness | Launch Cohere LoRA job on H100-B (top 6 encoder blocks plus decoder, ~400 steps). While it runs: `app/` UI, verifier, OpenVoice enrollment and render, all against `mock_asr.py` | Two tuned candidates plus an audio-in, audio-out shell already working on the mock |
+| 15:45 to 18:45 | Launch Parakeet NeMo job on H100-A, checkpoint every 200 to 250 steps. While it runs: `serve/asr_parakeet/` against the frozen base, latency harness | Launch Cohere LoRA job on H100-B (top 6 encoder blocks plus decoder, ~400 steps). While it runs, in this order: **`app/` to the six-item minimum in DESIGN.md**, then verifier, then OpenVoice enrollment and render, all against `mock_asr.py`. Audio frames must be landing on the mock within 45 minutes or escalate | Two tuned candidates, plus a browser page that captures a microphone, shows partial text, and offers candidate buttons, all against the mock |
 | ~17:00, at 200 steps | **Kill-rule check.** Tuned not beating its own frozen baseline on the dev speaker? Stop the job, join the other lane | Same check, same rule | Both lanes still alive, or one dropped and two people on the survivor |
 | 18:45 to 19:45 | Decode tuned Parakeet on the full dev set, fill its columns | Decode tuned Cohere on the same dev set, fill its columns | Gate table complete |
 | 19:45 to 20:45 | Apply the gate. Deploy your model if it won, otherwise help B wire the Cohere adapter and start profiling the common endpoint | Point `ASR_WS_URL` at the winner, finish streamed audio playback | **Product gate: speech, recovered text, confirmation, audible personal voice** |
@@ -184,6 +184,7 @@ That third step is why the contract is frozen. After the promotion gate, do not 
 ## Escalate immediately, do not queue
 
 - A decision that changes the demo
+- `app/` has no audio reaching the mock 45 minutes into Phase 1, or does not exist by the 20:45 product gate
 - A spike assumption that turned out wrong
 - A credential, account, or key you do not have
 - A change to `contract/` or another person's owned file

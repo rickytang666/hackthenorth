@@ -86,13 +86,55 @@ The other person is not idle and is not coding. Provisioning is genuinely parall
 **Phase 0 exits when all six are true, and not on a clock:**
 
 - `contract/evaluate.py` runs on synthetic prediction files and prints the full scorecard table
-- `contract/mock_asr.py` streams protocol-correct partials to a stub page and `bench/latency.py` reports a number from it
+- `contract/mock_asr.py` streams protocol-correct partials and `bench/latency.py`, a Python Protocol 1 client, reports a number from it. **This gate is deliberately not a browser page**: the page is Phase 1 work and is specified under "The demo frontend" below
 - Both people have independently reproduced the five manifest hashes
 - Both people have a trainable checkpoint loaded and one backward pass completed locally
 - `contract/confidence.py` returns a score on a real decode
 - One 7-word OpenVoice synthesis is timed and the number written down
 
 Only then do the two lanes branch. Skipping any of the six moves the cost to the promotion gate, where it is unrecoverable.
+
+## The demo frontend
+
+A judge cannot watch a checkpoint. `app/` is the only artifact that makes any of
+the model work legible, so it is a scored deliverable rather than a wrapper, and
+it is the thing that is written down here precisely because fine-tuning is the
+higher priority and this would otherwise be remembered at hour 30.
+
+**It is deliberately not built in Phase 0.** It is Person B's Phase 1 work,
+written against `contract/mock_asr.py` while their training job occupies the GPU,
+which costs no training time at all.
+
+**Minimum shippable page.** One HTML file, no build step, no framework:
+
+1. A start/stop button that captures microphone audio and streams PCM16 frames
+   over Protocol 1
+2. Live partial text, with the unstable tail past `stable_prefix_len` visually
+   distinct from the stable prefix
+3. The final transcript plus its confidence
+4. On low confidence, two or three candidate buttons rather than a guess. This
+   is the product's central claim and the only part of the UI that is not
+   cosmetic
+5. A file-upload path that replays a recording through the same socket at real
+   time, which is the booth insurance when venue wifi or a venue microphone fails
+6. A visible `ASR_WS_URL` field, so promoting a model in front of judges is one
+   paste
+
+Anything past this list is optional: styling, waveforms, transcript history,
+speaker avatars. **Video is out of scope.** The plan is audio in, audio out, and
+a talking-head view is new scope that buys no points against this rubric.
+
+**Deadline and backstop.** The page must exist before the Phase 3 product gate at
+20:45, because that gate is defined as speech going in and personal voice coming
+out, which cannot be demonstrated without it. If it does not exist by 20:45,
+that is the escalation, not a thing to absorb quietly: fall back to driving
+`bench/latency.py` on a terminal beside a pre-recorded clip and say plainly that
+the UI is unfinished.
+
+**Risk worth naming now.** Browser microphone capture, PCM16 framing, sample-rate
+handling and WebSocket back-pressure are the pieces most likely to eat two
+unplanned hours, and they are unspiked. Person B should get audio frames landing
+on the mock inside the first 45 minutes of Phase 1 and escalate if they do not.
 
 ## Service boundaries: why the lanes stay independent after Phase 0
 
@@ -264,7 +306,8 @@ hackthenorth/
 |   |-- asr_cohere/            Protocol 1
 |   `-- voice/                 Protocol 2, OpenVoice V2
 |
-|-- app/                       browser UI + verifier client. HTTP/WS only
+|-- app/                       browser UI + verifier client. HTTP/WS only.
+|                              Phase 1, B. Mic, partials, clarification, file upload
 |-- bench/                     latency harness, scorecard writer
 |-- results/                   gitignored, prediction JSONL
 |
@@ -356,6 +399,8 @@ Each rung is reachable in under ten minutes and each is demoable.
 | First-audio budget missed with whole-clause synthesis | Add chunked streaming TTS, measured in Phase 0 before it is built |
 | OpenVoice enrollment fails | Generic pretrained voice, stated honestly on stage |
 | Any live service down at the booth | Fixture replay through `contract/mock_asr.py`, local file on the presenting laptop |
+| Microphone unusable at the booth | The page's file-upload path, replaying a recording through the same socket |
+| `app/` not ready by the 20:45 product gate | `bench/latency.py` on a terminal beside a pre-recorded clip, stated honestly |
 
 ## Evaluation
 
