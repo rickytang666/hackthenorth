@@ -1,0 +1,8 @@
+{
+  "restored_engine_commit": "e134e74e3c5b81d4c36d25e0df995b8cce3ba419",
+  "reverted_change": "fb78d96",
+  "archive_sha256": "2c6e9628fe7a06a60732768f6dfc24c5f0c544c1f2abfeae761fe2adc04395e9",
+  "archive_bytes": 16882,
+  "previous_score": 946.4287411510647,
+  "regressed_score": 939.8143107046291
+}

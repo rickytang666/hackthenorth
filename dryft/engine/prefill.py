@@ -1,12 +1,11 @@
-"""Capture bounded, fixed-shape prefills; recompute every fresh prompt."""
+"""Capture small, fixed-shape prefills; recompute every fresh prompt."""
 
 import torch
 
 
 def prefill(model, state, input_ids):
-    # Very large prefills fall back to eager; the public batched shapes
-    # (8192 prompt tokens) fit comfortably in a captured graph.
-    if input_ids.numel() > 16384:
+    # Larger prefills already keep the GPU busy; graph their decode only.
+    if input_ids.numel() > 2048:
         return state.prefill(model, input_ids)
     if not hasattr(state, "prefill_graph"):
         state.prefill_input = torch.empty_like(input_ids)

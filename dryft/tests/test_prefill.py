@@ -26,7 +26,7 @@ class PrefillTests(unittest.TestCase):
 
     def test_changed_prompts_restore_cache_and_decode_position(self):
         with torch.inference_mode():
-            for batch, length, output in ((2, 7, 6), (1, 1, 1), (1, 12, 9), (16, 512, 1)):
+            for batch, length, output in ((2, 7, 6), (1, 1, 1), (1, 12, 9)):
                 eager = DecodeState(self.model, batch, length, output)
                 graphed = DecodeState(self.model, batch, length, output)
                 for repeat in range(3):
@@ -52,8 +52,8 @@ class PrefillTests(unittest.TestCase):
 
     def test_large_prefill_uses_eager_path(self):
         with torch.inference_mode():
-            ids = torch.randint(0, 97, (32, 513), device="cuda")
-            state = DecodeState(self.model, 32, 513, 1)
+            ids = torch.randint(0, 97, (2, 1025), device="cuda")
+            state = DecodeState(self.model, 2, 1025, 1)
             expected = state.prefill(self.model, ids).clone()
             actual = prefill(self.model, state, ids)
             torch.testing.assert_close(actual, expected, atol=0, rtol=0)
