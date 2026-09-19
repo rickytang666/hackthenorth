@@ -13,6 +13,28 @@ except ImportError:
 
 @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA and Triton")
 class FusedKernelTests(unittest.TestCase):
+    def test_gateup_epilogue_matches_native_under_graph_replay(self):
+        from kernels.gateup import gate_up_swiglu
+
+        torch.manual_seed(719)
+        with torch.inference_mode():
+            for rows, width in ((2,96), (3,9728), (16,9728), (17,96), (31,96), (32,9728)):
+                weight = torch.randn(2*width,2560,device="cuda",dtype=torch.bfloat16)*0.02
+                gate,up = weight.chunk(2,0)
+                packed = torch.stack((gate.T,up.T),-1).flatten(1).contiguous()
+                x = torch.randn(rows,1,2560,device="cuda",dtype=torch.bfloat16)
+                gate_up_swiglu(x,packed)
+                torch.cuda.synchronize()
+                graph = torch.cuda.CUDAGraph()
+                with torch.cuda.graph(graph):
+                    actual = gate_up_swiglu(x,packed)
+                for scale in (0.25,1.,4.):
+                    x.normal_(std=scale)
+                    graph.replay()
+                    g,u = torch.nn.functional.linear(x,weight).chunk(2,-1)
+                    expected = torch.nn.functional.silu(g)*u
+                    torch.testing.assert_close(actual,expected,atol=0.04,rtol=0.02)
+
     def test_norm_rope_cache_matches_separate_updates_under_graph_replay(self):
         from kernels.fused import norm_rope, norm_rope_cache
         from transformers.models.qwen3.modeling_qwen3 import Qwen3RMSNorm

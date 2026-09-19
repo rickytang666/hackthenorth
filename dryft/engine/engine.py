@@ -6,6 +6,7 @@ from transformers import AutoModelForCausalLM
 from decode import DecodeState
 from attention import GroupedAttention
 from kernels.fused import swiglu
+from kernels.gateup import gate_up_swiglu
 from kernels.rmsnorm import rms_norm
 from speculate import DRAFT_TOKENS, PromptLookup
 from fused_layer import install as install_fused_projections
@@ -31,8 +32,15 @@ class FusedMLP(torch.nn.Module):
         )
         self.gate_up = Projection(self.gate_up_weight, "gate_up")
         self.down_proj = Projection(reference.down_proj.weight, "down")
+        self.register_buffer("interleaved_weight", None, persistent=False)
 
     def forward(self, x):
+        rows = x.numel() // x.shape[-1]
+        if 2 <= rows <= 32:
+            if self.interleaved_weight is None:
+                gate, up = self.gate_up_weight.detach().chunk(2, 0)
+                self.interleaved_weight = torch.stack((gate.T, up.T), -1).flatten(1).contiguous()
+            return self.down_proj(gate_up_swiglu(x, self.interleaved_weight))
         gate, up = self.gate_up(x).chunk(2, dim=-1)
         return self.down_proj(swiglu(gate, up))
 
