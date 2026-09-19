@@ -13,7 +13,8 @@ improve this measured result.
 | `04-exact-speculation` | Prompt-lookup drafts, captured multi-token verification, exact acceptance and cache rollback | Passed; 693.60 tok/s; commit `cc98be4` |
 | `05-packed-projections` | One decode QKV projection and one MLP gate/up projection; stride-aware fused kernels | Passed; 748.07 tok/s; commit `03f4123` |
 | `06-packed-no-speculation` | Same packed projections, with prompt lookup disabled | Failed a hidden output check; public cases passed; rejected |
-| `07-confirm-packed` | Exact engine source from the passing 748.07 tok/s candidate | Fresh-prompt confirmation pending |
+| `07-confirm-packed` | Exact engine source from the passing 748.07 tok/s candidate | Passed again; 745.32 tok/s (−0.37%); identical engine source |
+| `08-fused-projections` | Hidden RMSNorm fused into QKV; hidden RMSNorm + gate/up + SwiGLU fused in decode | Experimental submission requested before H100 validation; pending |
 
 First passing public results (five samples each):
 
@@ -35,7 +36,7 @@ Candidate 05 passed at 748.07 tok/s, with public throughput 179.64 / 389.10 /
 2393.73 tok/s and decode steps at 4.92 / 5.51 / 5.57 ms. Peak memory across the
 complete run was 14.94 GiB. Candidate 06 failed correctness on a hidden case,
 so its public speed improvements cannot be used. Candidate 07 restores exactly
-the candidate 05 engine source for confirmation on fresh prompts.
+the candidate 05 engine source and passed again on fresh prompts at 745.32 tok/s (−0.37%).
 
 Each local snapshot holds `engine.tar.gz`; archives are ignored by git. The
 upstream baseline is also available from the original git history.
@@ -107,3 +108,11 @@ Q/K/V prefill modules share slices of the packed decode weight, avoiding weight
 duplication. Fused norm/RoPE and SwiGLU consume the resulting strided views
 directly. It removes two QKV matrix launches per decode layer and one gate/up
 launch per layer for both prefill and decode; weights remain BF16.
+
+Candidate 08 uses vector reductions at one hidden row and tensor-core tiles at
+two through sixteen rows, including speculative verification. Larger batches
+and prefill retain the previous path. It preserves BF16 casts between norm,
+gain multiplication, projections, SiLU and activation multiplication. It has
+not yet been GPU validated or timed; the user explicitly requested submission
+while remote H100 profiling was still starting. The previous passing source
+is retained at commit `4414291` and snapshot `07-confirm-packed`.

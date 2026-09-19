@@ -8,6 +8,7 @@ from attention import GroupedAttention
 from kernels.fused import swiglu
 from kernels.rmsnorm import rms_norm
 from speculate import DRAFT_TOKENS, PromptLookup
+from fused_layer import install as install_fused_projections
 
 
 class FusedRMSNorm(torch.nn.Module):
@@ -58,6 +59,7 @@ class Engine:
             layer.self_attn.k_norm = FusedRMSNorm(layer.self_attn.k_norm)
             layer.self_attn = GroupedAttention(layer.self_attn)
             layer.mlp = FusedMLP(layer.mlp)
+        install_fused_projections(self.model)
         self.state = None
 
     def generate(self, input_ids: list[list[int]], max_new_tokens: int):
