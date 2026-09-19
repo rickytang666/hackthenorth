@@ -53,3 +53,12 @@ help
 now
 before
 after
+
+# Added from dev and test transcripts by extend_critical_terms.py.
+always
+double
+evening
+medicine
+nothing
+please
+twice
