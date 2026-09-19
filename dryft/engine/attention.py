@@ -3,7 +3,7 @@
 import torch
 from torch.nn.attention import SDPBackend, sdpa_kernel
 from kernels.attention import grouped_attention
-from kernels.fused import norm_rope
+from kernels.fused import norm_rope, norm_rope_cache
 from projections import Projection
 
 
@@ -35,17 +35,20 @@ class GroupedAttention(torch.nn.Module):
         qkv = (torch.nn.functional.linear(hidden_states, self.qkv_weight)
                if prefill else self.qkv(hidden_states))
         q, k, v = qkv.split(self.widths, dim=-1)
-        q, k = q.view(shape), k.view(shape)
-        v = v.view(shape).transpose(1, 2)
-        q, k = norm_rope(q, k, ref.q_norm, ref.k_norm, *position_embeddings)
-        q, k = q.transpose(1, 2), k.transpose(1, 2)
-        k, v = past_key_value.update(k, v, ref.layer_idx, {"cache_position": cache_position})
+        q, k, v = q.view(shape), k.view(shape), v.view(shape)
         if prefill:
+            q, k = norm_rope(q, k, ref.q_norm, ref.k_norm, *position_embeddings)
+            q, k, v = q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2)
+            k, v = past_key_value.update(k, v, ref.layer_idx, {"cache_position": cache_position})
             with sdpa_kernel(SDPBackend.FLASH_ATTENTION):
                 result = torch.nn.functional.scaled_dot_product_attention(
                     q, k, v, is_causal=True, dropout_p=0.0, enable_gqa=True,
                 )
         else:
+            q, k, v = norm_rope_cache(
+                q, k, v, ref.q_norm, ref.k_norm, *position_embeddings,
+                past_key_value.keys[ref.layer_idx], past_key_value.values[ref.layer_idx], cache_position,
+            )
             result = grouped_attention(q, k, v, cache_position)
         result = result.transpose(1, 2).reshape(*hidden_states.shape[:-1], -1)
         return ref.o_proj(result), None

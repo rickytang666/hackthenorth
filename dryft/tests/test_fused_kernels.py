@@ -13,6 +13,43 @@ except ImportError:
 
 @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA and Triton")
 class FusedKernelTests(unittest.TestCase):
+    def test_norm_rope_cache_matches_separate_updates_under_graph_replay(self):
+        from kernels.fused import norm_rope, norm_rope_cache
+        from transformers.models.qwen3.modeling_qwen3 import Qwen3RMSNorm
+
+        torch.manual_seed(111)
+        with torch.inference_mode():
+            q_norm = Qwen3RMSNorm(128).cuda().bfloat16()
+            k_norm = Qwen3RMSNorm(128).cuda().bfloat16()
+            q_norm.weight.normal_()
+            k_norm.weight.normal_()
+            for batch, tokens in ((1,1), (4,1), (16,1), (1,4), (3,4)):
+                packed = torch.randn(batch,tokens,6144,device="cuda",dtype=torch.bfloat16)
+                q,k,v = (x.view(batch,tokens,-1,128) for x in packed.split((4096,1024,1024),-1))
+                angles = torch.randn(1,tokens,128,device="cuda")
+                cos,sin = angles.cos().bfloat16(), angles.sin().bfloat16()
+                positions = torch.arange(tokens,device="cuda")*2+3
+                keys = torch.full((batch,8,41,128),-123.,device="cuda",dtype=torch.bfloat16)
+                values = torch.full_like(keys,123.)
+                expected_keys,expected_values = keys.clone(),values.clone()
+                def call():
+                    return norm_rope_cache(q,k,v,q_norm,k_norm,cos,sin,keys,values,positions)
+                call()
+                torch.cuda.synchronize()
+                graph = torch.cuda.CUDAGraph()
+                with torch.cuda.graph(graph):
+                    result,_,_ = call()
+                for offset in (0,13,-13):
+                    positions.add_(offset)
+                    packed.normal_()
+                    expected_q,expected_k = norm_rope(q,k,q_norm,k_norm,cos,sin)
+                    expected_keys.index_copy_(2,positions,expected_k.transpose(1,2))
+                    expected_values.index_copy_(2,positions,v.transpose(1,2))
+                    graph.replay()
+                    torch.testing.assert_close(result,expected_q.transpose(1,2),atol=0,rtol=0)
+                    torch.testing.assert_close(keys,expected_keys,atol=0,rtol=0)
+                    torch.testing.assert_close(values,expected_values,atol=0,rtol=0)
+
     def test_flash_prefill_matches_reference_and_preserves_causality(self):
         from attention import GroupedAttention
         from transformers import Qwen3Config

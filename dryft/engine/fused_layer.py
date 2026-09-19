@@ -2,7 +2,7 @@
 import torch
 
 from kernels.attention import grouped_attention
-from kernels.fused import norm_rope
+from kernels.fused import norm_rope_cache
 from kernels.projection import norm_projection
 
 
@@ -35,10 +35,11 @@ class FusedProjectionLayer(torch.nn.Module):
                                   attention.qkv_weight, selected["qkv"])
             q,k,v = packed.split(attention.widths, -1)
             shape = (*hidden_states.shape[:-1], -1, ref.head_dim)
-            q,k = norm_rope(q.view(shape), k.view(shape), ref.q_norm, ref.k_norm,
-                            *position_embeddings)
-            q,k,v = q.transpose(1,2), k.transpose(1,2), v.view(shape).transpose(1,2)
-            k,v = past_key_value.update(k,v,ref.layer_idx,{"cache_position":cache_position})
+            q,k,v = norm_rope_cache(
+                q.view(shape), k.view(shape), v.view(shape), ref.q_norm, ref.k_norm,
+                *position_embeddings, past_key_value.keys[ref.layer_idx],
+                past_key_value.values[ref.layer_idx], cache_position,
+            )
             a = grouped_attention(q,k,v,cache_position)
             a = a.transpose(1,2).reshape(*hidden_states.shape[:-1], -1)
             a = ref.o_proj(a)
