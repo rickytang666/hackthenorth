@@ -13,6 +13,38 @@ except ImportError:
 
 @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA and Triton")
 class FusedKernelTests(unittest.TestCase):
+    def test_tiled_norm_rope_matches_row_kernel_on_changed_packed_inputs(self):
+        from kernels.fused import norm_rope
+        from transformers.models.qwen3.modeling_qwen3 import Qwen3RMSNorm
+
+        torch.manual_seed(1801)
+        with torch.inference_mode():
+            for batch, tokens, q_heads, k_heads in ((1, 1, 32, 8), (2, 17, 32, 8),
+                                                   (1, 3, 4, 2), (1, 3, 16, 3)):
+                dim = 128
+                packed = torch.randn(batch, tokens, (q_heads + 2*k_heads)*dim,
+                                     device="cuda", dtype=torch.bfloat16)
+                q, k, _ = packed.split((q_heads*dim, k_heads*dim, k_heads*dim), -1)
+                q = q.view(batch, tokens, q_heads, dim)
+                k = k.view(batch, tokens, k_heads, dim)
+                q_norm = Qwen3RMSNorm(dim).cuda().bfloat16()
+                k_norm = Qwen3RMSNorm(dim).cuda().bfloat16()
+                q_norm.weight.normal_()
+                k_norm.weight.normal_()
+                angles = torch.randn(1, tokens, dim, device="cuda")
+                cos, sin = angles.cos().bfloat16(), angles.sin().bfloat16()
+                norm_rope(q, k, q_norm, k_norm, cos, sin)
+                torch.cuda.synchronize()
+                graph = torch.cuda.CUDAGraph()
+                with torch.cuda.graph(graph):
+                    actual = norm_rope(q, k, q_norm, k_norm, cos, sin)
+                for scale in (0., 0.25, 4.):
+                    packed.normal_(std=scale)
+                    graph.replay()
+                    expected = norm_rope(q, k, q_norm, k_norm, cos, sin, tile=False)
+                    for left, right in zip(actual, expected):
+                        torch.testing.assert_close(left, right, atol=0.02, rtol=0.02)
+
     def test_dot_projection_layouts_tail_rows_and_graph_replay(self):
         from kernels.dotgemv import dot_projection
 
@@ -151,7 +183,9 @@ class FusedKernelTests(unittest.TestCase):
                 for offset in (0,13,-13):
                     positions.add_(offset)
                     packed.normal_()
-                    expected_q,expected_k = norm_rope(q,k,q_norm,k_norm,cos,sin)
+                    # Decode cache writes still use the row kernel. Keep this
+                    # comparison bit-exact; tiled prefill is checked separately.
+                    expected_q,expected_k = norm_rope(q,k,q_norm,k_norm,cos,sin,tile=False)
                     expected_keys.index_copy_(2,positions,expected_k.transpose(1,2))
                     expected_values.index_copy_(2,positions,v.transpose(1,2))
                     graph.replay()

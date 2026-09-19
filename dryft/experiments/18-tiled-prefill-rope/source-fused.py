@@ -135,7 +135,7 @@ def norm_rope(q, k, q_norm, k_norm, cos, sin, tile=True):
     k_heads = k.shape[2]
     out_q = torch.empty(q.shape, dtype=q.dtype, device=q.device)
     out_k = torch.empty(k.shape, dtype=k.dtype, device=k.device)
-    if tile and q_heads % 16 == 0 and k_heads == triton.next_power_of_2(k_heads):
+    if tile:
         # One program per (batch, token): cos/sin and gains load once for
         # all heads. The row kernel launched a 128-element program per head
         # and measured 4-5x below memory roofline on prefill shapes.
