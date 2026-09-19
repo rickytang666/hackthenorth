@@ -138,7 +138,17 @@ utterance_id        str    unique per recording
 utterance_group     str    same value for paired mic views of one utterance
 ```
 
-Five frozen files: `torgo_dys_train.jsonl`, `torgo_dys_dev.jsonl`, `torgo_dys_test.jsonl`, `torgo_clean_replay.jsonl`, `torgo_clean_eval.jsonl`.
+Five frozen files, as actually built:
+
+| File | Rows | Hours | Speakers |
+|---|---:|---:|---|
+| `torgo_dys_train.jsonl` | 4,129 | 4.06 | F01 F03 M01 M03 M04 M05 |
+| `torgo_dys_dev.jsonl` | 244 | 0.24 | F04 |
+| `torgo_dys_test.jsonl` | 388 | 0.42 | M02 |
+| `torgo_clean_replay.jsonl` | 412 | 0.35 | FC01 FC02 |
+| `torgo_clean_eval.jsonl` | 1,592 | 1.05 | FC03 MC04 |
+
+Train keeps both mic views; dev, test and the control sets are `headMic` only.
 
 Split by speaker, frozen before any baseline is scored: six dysarthric speakers train, `F04` dev, `M02` test. Both mic views may train; only `headMic` is scored. `utterance_group` never crosses a split. Controls are never positive training examples: at most 10% replay, and only if the clean-speech regression gate fails.
 

@@ -1,0 +1,15 @@
+# Truss that already speaks Protocol 1 against a stub model.
+# Copy this directory, do not edit it. Both ASR lanes copy it so promoting the
+# winner is a change to ASR_WS_URL and nothing else.
+model_name: voicebridge-asr-template
+python_version: py311
+requirements:
+  - numpy
+resources:
+  accelerator: H100
+  use_gpu: true
+runtime:
+  predict_concurrency: 4
+  is_websocket_endpoint: true
+environment_variables: {}
+secrets: {}

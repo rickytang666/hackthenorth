@@ -1,0 +1,7 @@
+datasets==5.0.1
+huggingface_hub==1.32.0
+jiwer==4.0.0
+numpy==2.5.3
+pyarrow==25.0.1
+soundfile==0.14.0
+websockets==17.1

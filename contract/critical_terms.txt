@@ -1,0 +1,55 @@
+# Frozen safety slice. An error on any of these counts as a critical error,
+# regardless of what it does to overall WER. Turning "do not" into "do" is one
+# word out of six and the only error here that could hurt someone.
+# Extend from dev/test transcripts with: python -m contract.extend_critical_terms
+no
+not
+dont
+cant
+wont
+never
+none
+stop
+yes
+yeah
+okay
+zero
+one
+two
+three
+four
+five
+six
+seven
+eight
+nine
+ten
+eleven
+twelve
+twenty
+thirty
+forty
+fifty
+hundred
+first
+second
+third
+half
+mg
+ml
+dose
+pill
+pills
+insulin
+morphine
+warfarin
+aspirin
+inhaler
+oxygen
+nurse
+doctor
+pain
+help
+now
+before
+after

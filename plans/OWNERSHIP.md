@@ -57,7 +57,7 @@ Both of you run this list. Neither of you is ready to branch until your own colu
 | # | Item | Verified by |
 |---|---|---|
 | 22 | TORGO downloaded, 1.56 GB | `hf download abnerh/TORGO-database --repo-type dataset` completed |
-| 23 | `$VOICEBRIDGE_DATA` exported and the WAVs present | `python -c "import contract.manifest as m; m.load_all()"` resolves every path |
+| 23 | `source env.sh`, then the WAVs resolve | `python -c "import contract.manifest as m; m.load_all()"` resolves every path |
 | 24 | **The five manifest hashes match `contract/MANIFEST_HASHES`** | You ran `prepare_torgo.py` yourself and got identical hashes. A mismatch means stop, do not train |
 | 25 | Your lane's base checkpoint downloaded | Parakeet: `ASRModel.from_pretrained` loads. Cohere: `from_pretrained` loads |
 | 26 | OpenVoice V2 weights downloaded | One synthesis produces audible audio |
