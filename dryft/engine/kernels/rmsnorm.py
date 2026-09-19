@@ -1,12 +1,7 @@
 """Qwen3's RMSNorm in Triton, written to match the reference exactly.
 
-Nothing imports this. It is here to demonstrate the two things the baseline
-never shows: how a module beside ``engine.py`` is vendored and imported, and how
-closely a fused kernel has to follow the reference's arithmetic to stay inside
-the tie margin.
-
-To use it, swap it in for the ``Qwen3RMSNorm`` modules on the loaded model in
-``Engine.__init__``. Delete this package if you would rather start clean.
+Used for hidden-state and per-head Q/K normalization. Normalize in FP32,
+round to BF16, then multiply by the learned gain, as in Transformers 4.51.3.
 """
 
 import torch
