@@ -180,21 +180,42 @@ Enforced in code, not in the prompt: a returned `text` must be one of the suppli
 
 ## Repo layout
 
-Every directory below Phase 0 has exactly one owner. Adding a feature means adding a file, never editing a shared list.
-
 ```text
-contract/              built jointly in Phase 0, then frozen
-data/prepare_torgo.py  runs once, produces the five manifests
-serve/_template/       Phase 0, copied by both serving directories
-train/parakeet/        Person A only
-train/cohere/          Person B only
-serve/asr_parakeet/    Person A only, speaks Protocol 1
-serve/asr_cohere/      Person B only, speaks Protocol 1
-serve/voice/           Person B only, speaks Protocol 2
-app/                   Person B only, UI + verifier client
-bench/                 Person A only, latency harness + scorecard writer
-results/               gitignored, JSONL only
+hackthenorth/
+|
+|-- contract/                  the shared ruler. built in Phase 0, then frozen
+|   |-- normalize.py             THE text normalizer, both lanes import this
+|   |-- predictions.py           prediction row schema + writer
+|   |-- evaluate.py              scoring: WER, critical errors, RTF
+|   |-- decode.py                shared decode loop, pluggable transcribe()
+|   |-- critical_terms.txt       frozen safety slice
+|   |-- protocol.md              the three wire protocols, normative
+|   |-- mock_asr.py              fake ASR server, lets app/ start immediately
+|   `-- MANIFEST_HASHES          SHA-256 of the five frozen manifests
+|
+|-- data/
+|   `-- prepare_torgo.py       runs once, emits the five manifests
+|
+|-- train/
+|   |-- parakeet/              NeMo fine-tune, Baseten TrainingProject
+|   `-- cohere/                PEFT LoRA, Baseten TrainingProject
+|
+|-- serve/
+|   |-- _template/             Truss that already speaks Protocol 1. copy, never edit
+|   |-- asr_parakeet/          Protocol 1
+|   |-- asr_cohere/            Protocol 1
+|   `-- voice/                 Protocol 2, OpenVoice V2
+|
+|-- app/                       browser UI + verifier client. HTTP/WS only
+|-- bench/                     latency harness, scorecard writer
+|-- results/                   gitignored, prediction JSONL
+|
+|-- DESIGN.md                  this file
+|-- OWNERSHIP.md               who owns what, when
+`-- voicebridge-plan.md        motivation, citations, Devpost source
 ```
+
+`app/` never imports NeMo, Transformers, PEFT, or a checkpoint. It knows one environment variable, `ASR_WS_URL`.
 
 ## Model lanes
 
@@ -258,11 +279,34 @@ Each rung is reachable in under ten minutes and each is demoable.
 
 ## Evaluation
 
-**Recognition:** dev and test speaker WER and CER, reported separately for isolated words and restricted sentences. Critical error rate. Clarification rate and recovery rate after clarification.
+### In plain terms
 
-**Latency:** time to first partial, time to first recovered audio, p50 and p95 final latency, real-time factor, peak VRAM. Cold start reported separately, never folded into steady state.
+Everything reduces to one question asked four ways: **did the model type what the person actually said, and how fast?**
 
-**Voice identity:** speaker-embedding cosine similarity, F0 contour correlation, speaking-rate and pause-duration error, plus blinded listener preference. Cosine similarity alone is insufficient; a voice can score as the same speaker while losing accent and rhythm.
+We hold out one speaker the model never trained on, play their recordings through it, and compare the typed output to the known correct sentence. Four numbers come out:
+
+1. **How many words it got wrong.** Standard word error rate. 10% means one word in ten is wrong. Reported separately for single words and full sentences, because TORGO repeats a small word list and a model can look good by memorizing it.
+2. **How many words that matter it got wrong.** Turning "do not give her the insulin" into "do give her the insulin" is one word wrong out of seven, but it is the only error that could hurt someone. We keep a frozen list of those terms (no, yes, numbers, names, medications) and count errors on them separately. A model that improves overall but adds one of these is rejected.
+3. **Whether it got worse at ordinary speech.** Fine-tuning hard on eight dysarthric speakers can make a model forget everyone else. We keep a set of control recordings the model never trained on and check the score did not fall off a cliff.
+4. **How fast.** How long until the first words appear, how long until the person hears their own voice, and the slow cases (p95) rather than the average, because the slow cases are what a judge notices.
+
+### Why it is built before branching, not after
+
+Word error rate depends on how you clean up the text first. If one lane strips punctuation and lowercases and the other does not, "Don't." and "dont" count as a mismatch and the score is wrong. Two lanes with two cleanup functions produce two numbers that cannot be compared, and at the hour-5 gate you would be choosing between normalizers instead of models with no time to re-run anything.
+
+So `contract/normalize.py` and `contract/evaluate.py` are written once, by one person, before either lane exists. Both lanes import them. Neither lane may fork them.
+
+### The numbers we report
+
+| Category | What we measure |
+|---|---|
+| Recognition | Dev and test speaker WER and CER, split into isolated words and sentences |
+| Safety | Critical error rate on the frozen term list |
+| Abstention | How often it asked for clarification, and how often that recovered the sentence |
+| Latency | Time to first partial text, time to first recovered audio, p50 and p95 final, RTF, peak VRAM. Cold start reported separately, never folded in |
+| Voice identity | Speaker-embedding cosine similarity, F0 contour correlation, speaking-rate and pause error, plus blinded listener preference |
+
+Cosine similarity alone is insufficient: a voice can score as the same speaker while losing its accent and rhythm entirely, which is the thing we claim to preserve.
 
 Targets: first recovered audio under 1.5 s, RTF under 0.5, at most 250 ms between synthesized clauses.
 

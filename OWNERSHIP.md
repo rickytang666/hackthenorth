@@ -26,17 +26,34 @@ The provisioning lane is real work and is fatal if deferred: Baseten account, CL
 
 Request a change to someone else's file through them. A two-minute ping, not a code review.
 
-| Path | Owner |
-|---|---|
-| `contract/` | **Both, frozen after Phase 0.** Changes are announced, never quiet |
-| `data/prepare_torgo.py` | Phase 0, then frozen. Rerunning it invalidates both lanes |
-| `serve/_template/` | Phase 0, then frozen. Copy it, do not edit it |
-| `train/parakeet/`, `serve/asr_parakeet/`, `bench/` | A |
-| `train/cohere/`, `serve/asr_cohere/`, `serve/voice/`, `app/` | B |
-| `.gitignore`, dependency manifest and lock file | B installs all dependencies |
-| `DESIGN.md` | A |
-| `OWNERSHIP.md`, `.workspace/hackathon-status.md` | either, append only |
-| `results/` | gitignored, no ownership needed |
+```text
+hackthenorth/
+|
+|-- contract/ .................. BOTH, frozen after Phase 0
+|   |                            changes are announced, never quiet
+|   `-- (all files)              a quiet edit here voids every score
+|
+|-- data/prepare_torgo.py ...... PHASE 0, then frozen
+|                                rerunning it invalidates both lanes
+|-- serve/_template/ ........... PHASE 0, then frozen. copy it, do not edit it
+|
+|-- train/parakeet/ ............ A
+|-- serve/asr_parakeet/ ........ A
+|-- bench/ ..................... A
+|-- DESIGN.md .................. A
+|
+|-- train/cohere/ .............. B
+|-- serve/asr_cohere/ .......... B
+|-- serve/voice/ ............... B
+|-- app/ ....................... B
+|-- .gitignore ................. B
+|-- package.json / lock files .. B  (B installs ALL dependencies)
+|-- pyproject.toml / lock ...... B
+|
+|-- OWNERSHIP.md ............... either, append only
+|-- .workspace/hackathon-status.md  either, append only
+`-- results/ ................... gitignored, no owner needed
+```
 
 Standing rules:
 
