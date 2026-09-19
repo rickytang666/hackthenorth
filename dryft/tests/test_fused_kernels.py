@@ -13,6 +13,35 @@ except ImportError:
 
 @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA and Triton")
 class FusedKernelTests(unittest.TestCase):
+    def test_calibrated_prefill_attention_replays_changed_packed_inputs(self):
+        from attention import _prefill_attention, _prefill_backends
+        from torch.nn.attention import SDPBackend, sdpa_kernel
+
+        torch.manual_seed(2001)
+        with torch.inference_mode():
+            packed = torch.randn(2, 33, 6144, device="cuda", dtype=torch.bfloat16)
+            q, k, v = packed.split((4096, 1024, 1024), -1)
+            q = q.reshape(2, 33, 32, 128).contiguous().transpose(1, 2)
+            k = k.reshape(2, 33, 8, 128).contiguous().transpose(1, 2)
+            v = v.view(2, 33, 8, 128).transpose(1, 2)
+            _prefill_backends.clear()
+            _prefill_attention(q, k, v)
+            self.assertEqual(len(_prefill_backends), 1)
+            graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(graph):
+                actual = _prefill_attention(q, k, v)
+            for _ in range(3):
+                q.normal_()
+                k.normal_()
+                v.normal_()
+                graph.replay()
+                with sdpa_kernel(SDPBackend.MATH):
+                    expected = torch.nn.functional.scaled_dot_product_attention(
+                        q, k.repeat_interleave(4, 1), v.repeat_interleave(4, 1),
+                        is_causal=True, dropout_p=0.0)
+                torch.testing.assert_close(actual, expected, atol=0.02, rtol=0.02)
+                self.assertEqual(len(_prefill_backends), 1)
+
     def test_tiled_norm_rope_matches_row_kernel_on_changed_packed_inputs(self):
         from kernels.fused import norm_rope
         from transformers.models.qwen3.modeling_qwen3 import Qwen3RMSNorm
