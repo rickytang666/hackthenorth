@@ -10,6 +10,7 @@ import torch
 from torch.utils.data import Dataset
 
 from contract import manifest
+from train.cohere.model import prompt_ids
 
 SAMPLE_RATE = 16000
 MAX_SECONDS = 30.0  # cap so a rare long clip cannot spike memory
@@ -53,6 +54,9 @@ class SpeechSeq2SeqCollator:
         self.tokenizer = getattr(processor, "tokenizer", processor)
         self.language = language
         self.punctuation = punctuation
+        # The model does no language ID. Train on the same prefix inference
+        # uses, or the adapter learns against a context it will never see.
+        self.prompt = prompt_ids(self.tokenizer, language, punctuation)
 
     def __call__(self, features: list[dict]) -> dict:
         inputs = self.processor(
@@ -62,17 +66,30 @@ class SpeechSeq2SeqCollator:
             language=self.language,
             punctuation=self.punctuation,
         )
-        ids = self.tokenizer(
-            [f["text"] for f in features], return_tensors="pt", padding=True
-        )["input_ids"]
-        if ids.shape[1] < 2:
-            raise RuntimeError("tokenized targets are too short to shift")
+        pad_id = self.tokenizer.pad_token_id
+        eos_id = self.tokenizer.eos_token_id
+        # The prompt already ends the "start of transcript" marker, so the
+        # target contributes content plus EOS, never a second BOS.
+        targets = [
+            self.tokenizer(f["text"], add_special_tokens=False)["input_ids"] + [eos_id]
+            for f in features
+        ]
+        width = len(self.prompt) + max(len(t) for t in targets)
+
+        full, loss_mask = [], []
+        for target in targets:
+            row = self.prompt + target
+            keep = [False] * len(self.prompt) + [True] * len(target)
+            padding = width - len(row)
+            full.append(row + [pad_id] * padding)
+            loss_mask.append(keep + [False] * padding)
+
+        ids = torch.tensor(full, dtype=torch.long)
+        keep = torch.tensor(loss_mask, dtype=torch.bool)
 
         decoder_input_ids = ids[:, :-1].contiguous()
         labels = ids[:, 1:].clone()
-        pad_id = self.tokenizer.pad_token_id
-        if pad_id is not None:
-            labels[labels == pad_id] = -100
+        labels[~keep[:, 1:]] = -100
 
         batch = dict(inputs)
         batch["decoder_input_ids"] = decoder_input_ids

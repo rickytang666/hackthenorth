@@ -21,11 +21,9 @@ import time
 import torch
 from peft import LoraConfig, get_peft_model
 from transformers import AutoProcessor
-from transformers.dynamic_module_utils import get_class_from_dynamic_module
 
 from train.cohere.data import SpeechSeq2SeqCollator, TorgoDataset
-
-MODEL_ID = "CohereLabs/cohere-transcribe-03-2026"
+from train.cohere.model import MODEL_ID, load
 TOP_ENCODER_BLOCKS = 6
 LORA_R = 8
 
@@ -80,23 +78,6 @@ def target_modules(model, top_n: int) -> list[str]:
         elif name.startswith(DECODER_PREFIX) and leaf in DECODER_SUFFIXES:
             names.append(name)
     return names
-
-
-def load_model(dtype):
-    """Load the model, working around a remote-code/transformers version clash.
-
-    This revision declares _keys_to_ignore_on_load_unexpected as a list, and
-    transformers >= 5.x unions it with a set during load finalization, which
-    raises TypeError after the weights have already loaded. Coercing the class
-    attribute is narrower than pinning transformers down a major version.
-    """
-    cls = get_class_from_dynamic_module(
-        "modeling_cohere_asr.CohereAsrForConditionalGeneration", MODEL_ID
-    )
-    ignore = getattr(cls, "_keys_to_ignore_on_load_unexpected", None)
-    if isinstance(ignore, list):
-        cls._keys_to_ignore_on_load_unexpected = set(ignore)
-    return cls.from_pretrained(MODEL_ID, dtype=dtype)
 
 
 def report_modules(model) -> dict:
@@ -205,7 +186,7 @@ def main() -> None:
     print(f"device {device}, dtype {dtype}")
 
     processor = AutoProcessor.from_pretrained(MODEL_ID, trust_remote_code=True)
-    model = load_model(dtype)
+    model = load(dtype)
 
     info = report_modules(model)
     model = apply_lora(model, info["encoder_blocks"], args.top_blocks)
