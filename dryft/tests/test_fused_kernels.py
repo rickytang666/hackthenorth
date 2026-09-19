@@ -13,6 +13,52 @@ except ImportError:
 
 @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA and Triton")
 class FusedKernelTests(unittest.TestCase):
+    def test_flash_prefill_matches_reference_and_preserves_causality(self):
+        from attention import GroupedAttention
+        from transformers import Qwen3Config
+        from transformers.models.qwen3.modeling_qwen3 import Qwen3Attention
+
+        class Cache:
+            prefill = True
+
+            def update(self, keys, values, layer_idx, cache_kwargs):
+                self.keys, self.values = keys, values
+                return keys, values
+
+        torch.manual_seed(17)
+        config = Qwen3Config(hidden_size=2560, num_attention_heads=32,
+                             num_key_value_heads=8, head_dim=128)
+        config._attn_implementation = "sdpa"
+        with torch.inference_mode():
+            reference = Qwen3Attention(config, 0).cuda().bfloat16().eval()
+            attention = GroupedAttention(reference)
+            for batch, length in ((1, 1), (2, 17), (4, 129)):
+                x = torch.randn(batch, length, 2560, device="cuda", dtype=torch.bfloat16)
+                angles = torch.randn(1, length, 128, device="cuda")
+                embeddings = angles.cos().bfloat16(), angles.sin().bfloat16()
+                positions = torch.arange(length, device="cuda")
+                native_cache, flash_cache = Cache(), Cache()
+                expected = reference(x, embeddings, None, past_key_value=native_cache,
+                                     cache_position=positions)[0]
+                actual = attention(x, embeddings, past_key_value=flash_cache,
+                                   cache_position=positions)[0]
+                torch.testing.assert_close(actual, expected, atol=0.02, rtol=0.02)
+                self.assertEqual(flash_cache.keys.shape, (batch, 8, length, 128))
+                torch.testing.assert_close(flash_cache.keys, native_cache.keys, atol=0.02, rtol=0.02)
+                torch.testing.assert_close(flash_cache.values, native_cache.values, atol=0.02, rtol=0.02)
+                if length > 1:
+                    split = length // 2
+                    x[:, split:].normal_()
+                    changed = attention(x, embeddings, past_key_value=Cache(),
+                                        cache_position=positions)[0]
+                    torch.testing.assert_close(changed[:, :split], actual[:, :split], atol=0, rtol=0)
+                    mask = torch.ones(length, length, device="cuda", dtype=torch.bool).tril()
+                    expected = reference(x, embeddings, mask, past_key_value=Cache(),
+                                         cache_position=positions)[0]
+                    actual = attention(x, embeddings, mask, past_key_value=Cache(),
+                                       cache_position=positions)[0]
+                    torch.testing.assert_close(actual, expected, atol=0, rtol=0)
+
     def test_projection_dispatch_boundaries(self):
         from projections import Projection
 
