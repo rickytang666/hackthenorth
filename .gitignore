@@ -30,3 +30,9 @@ checkpoints/
 .venv/
 data/torgo-dataset/
 data/voicebridge/
+
+# voice service: isolated env, vendored source, checkpoints, scratch audio
+serve/voice/.venv/
+serve/voice/vendor/
+serve/voice/checkpoints/
+serve/voice/out/
