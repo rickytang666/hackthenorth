@@ -9,20 +9,84 @@ Two builders. This file binds both of you regardless of whether you write code b
 
 Person A is the demo owner because A's post-gate work (FP8, serving micro-optimization) is the most droppable thing on the board, and B's post-gate work (the product path) is not. The demo owner flips to full-time submission work at 22:45, which the clock below reflects.
 
-## Phase 0 is joint. Do not branch before it exits.
+## Phase 0 is written on one machine. Do not branch before it exits.
 
-One person at the keyboard, the other provisioning. Parallelizing code before the seams exist is the most expensive mistake available here: two lanes independently invent two normalizers, two prediction schemas, and two ideas of what a partial hypothesis is, and then the hour-5 comparison is meaningless.
+One person at the keyboard on one machine, the other getting their own machine and accounts ready. Parallelizing code before the seams exist is the most expensive mistake available here: two lanes independently invent two normalizers, two prediction schemas, and two ideas of what a partial hypothesis is, and then the hour-5 comparison is meaningless.
+
+**Everything in the coding checklist below is generated once, on the Phase 0 machine, and reaches the other person through git.** The other person writes none of it. Their job in the same hour is to be able to pull it and use it immediately, which is the readiness checklist.
+
+### Phase 0 coding checklist, one machine only
+
+Start item 2 first and let it run unattended. The TORGO download plus WAV conversion is the long pole and everything else is written while it works.
+
+| # | File | Does what | Done when |
+|---|---|---|---|
+| 1 | `data/prepare_torgo.py` | Download TORGO, convert to 16 kHz mono WAV, emit the five manifests | Five JSONL files exist, speaker-disjointness assertions pass, printed row and hour counts look sane |
+| 2 | `contract/manifest.py` | Row schema, validator, and path resolution against `$VOICEBRIDGE_DATA` | Loads all five manifests, rejects a row with an absolute path |
+| 3 | `contract/MANIFEST_HASHES` | SHA-256 of each of the five manifests | Committed. Both people will check against this |
+| 4 | `contract/normalize.py` | The one text normalizer both lanes import | Handles case, punctuation, contractions, numbers. Has three worked examples in a docstring |
+| 5 | `contract/predictions.py` | Prediction row schema and writer | Round-trips a row. Rejects a row missing `latency_ms` |
+| 6 | `contract/critical_terms.txt` | Frozen safety slice: negation, yes/no, numbers, names, medications | Non-empty, sourced from the dev and test transcripts |
+| 7 | `contract/evaluate.py` | WER, per-speaker WER, word vs sentence subsets, critical-error rate, RTF | Prints the full scorecard table from two synthetic prediction files |
+| 8 | `contract/confidence.py` | Shared token log-prob scorer plus calibrated threshold | Returns a float on a real decode. NVIDIA's TDT utility is broken, this replaces it |
+| 9 | `contract/decode.py` | Shared decode loop taking a `transcribe(paths) -> list[str]` callable | Produces a valid prediction JSONL from a stub callable |
+| 10 | `contract/protocol.md` | The three wire protocols, normative | Every field in DESIGN.md's protocol section appears here |
+| 11 | `contract/mock_asr.py` | Fake ASR server replaying a fixture JSONL on a timer | Streams protocol-correct partials and one final over a WebSocket |
+| 12 | `serve/_template/` | Truss that already speaks Protocol 1 against a stub model | Deploys, or at minimum runs locally and answers a WebSocket |
+| 13 | `bench/latency.py` | Drives Protocol 1, writes a scorecard row | Reports a number against `mock_asr.py` |
+| 14 | `.gitignore` | Stack-specific half | Done. Last moment it is free to edit |
+| 15 | `plans/` and `README.md` | Committed and pushed | The other person can clone and read |
+
+### Readiness checklist, each person on their own machine
+
+Both of you run this list. Neither of you is ready to branch until your own column is clear.
+
+**Accounts and credentials**
+
+| # | Item | Verified by |
+|---|---|---|
+| 16 | Baseten account, billing active, H100 quota confirmed | `baseten train push` on a hello-world job returns a job ID |
+| 17 | `BASETEN_API_KEY` in your shell, not in a file | `echo $BASETEN_API_KEY` is non-empty and the key is in `.env`, which is gitignored |
+| 18 | Hugging Face account and `HF_TOKEN` | `hf auth whoami` returns your username |
+| 19 | Cohere repo conditions accepted | `hf download CohereLabs/cohere-transcribe-03-2026 --include "*.json"` succeeds. Contact-info click-through, Apache 2.0, two minutes. Never a CC-BY-NC mirror |
+| 20 | Verifier LLM API key | One round-trip returns strict JSON |
+| 21 | GitHub push access to this repo | You have pushed one commit |
+
+**Data and models on your machine**
+
+| # | Item | Verified by |
+|---|---|---|
+| 22 | TORGO downloaded, 1.56 GB | `hf download abnerh/TORGO-database --repo-type dataset` completed |
+| 23 | `$VOICEBRIDGE_DATA` exported and the WAVs present | `python -c "import contract.manifest as m; m.load_all()"` resolves every path |
+| 24 | **The five manifest hashes match `contract/MANIFEST_HASHES`** | You ran `prepare_torgo.py` yourself and got identical hashes. A mismatch means stop, do not train |
+| 25 | Your lane's base checkpoint downloaded | Parakeet: `ASRModel.from_pretrained` loads. Cohere: `from_pretrained` loads |
+| 26 | OpenVoice V2 weights downloaded | One synthesis produces audible audio |
+
+**Toolchain**
+
+| # | Item | Verified by |
+|---|---|---|
+| 27 | GPU visible, CUDA working | `torch.cuda.is_available()` is `True` and reports the right device |
+| 28 | Lane dependencies installed | A: NeMo imports. B: Transformers plus PEFT import |
+| 29 | One backward pass completed locally on your own base model | Loss is finite, `loss.backward()` returns, trainable parameter count is non-zero and plausible |
+| 30 | You can run `contract/evaluate.py` and reproduce the printed scorecard | Same numbers as the Phase 0 machine |
+
+**Legal and consent, whoever gets there first**
+
+| # | Item |
+|---|---|
+| 31 | TORGO license confirmed to permit academic non-profit use and third-party cloud processing on Baseten |
+| 32 | One consented voice enrollment recording captured, with the consenting person told it can be deleted |
+| 33 | Decided whether the five manifests may be committed. They contain TORGO transcripts and this repo goes public at submission. Default is no: commit `MANIFEST_HASHES` only and have each person regenerate |
 
 **Exit gate, all six, not a clock:**
 
 1. `contract/evaluate.py` prints the full scorecard table from synthetic prediction files
 2. `contract/mock_asr.py` streams protocol-correct partials and `bench/latency.py` reports a number from it
-3. Both people independently reproduce the five manifest SHA-256 hashes
-4. Both people have a trainable checkpoint loaded and one local backward pass completed
+3. Both people independently reproduce the five manifest SHA-256 hashes (items 22 to 24)
+4. Both people have a trainable checkpoint loaded and one local backward pass completed (item 29)
 5. `contract/confidence.py` returns a score on a real decode, because NVIDIA's TDT confidence utility is broken and both lanes must threshold identically
 6. One 7-word OpenVoice synthesis is timed and written down, which decides whether streaming TTS is built at all
-
-The provisioning lane is real work and is fatal if deferred: Baseten account, CLI, and H100 quota; `HF_TOKEN` plus the Cohere contact-information click-through accepted (Apache 2.0, two minutes, not an approval queue, and pull from `CohereLabs/cohere-transcribe-03-2026` rather than a CC-BY-NC mirror); TORGO downloaded; OpenVoice V2 weights downloaded; one consented enrollment recording; verifier Model API key; TORGO license checked for third-party cloud processing.
 
 ## File ownership
 
@@ -42,7 +106,6 @@ hackthenorth/
 |-- train/parakeet/ ............ A
 |-- serve/asr_parakeet/ ........ A
 |-- bench/ ..................... A
-|-- DESIGN.md .................. A
 |
 |-- train/cohere/ .............. B
 |-- serve/asr_cohere/ .......... B
@@ -53,8 +116,9 @@ hackthenorth/
 |-- pyproject.toml / lock ...... B
 |
 |-- README.md .................. either, regenerated at phase boundaries
-|-- voicebridge-plan.md ........ either, append only. Devpost source
-|-- OWNERSHIP.md ............... either, append only
+|-- plans/DESIGN.md ............ A
+|-- plans/OWNERSHIP.md ......... either, append only
+|-- plans/voicebridge-plan.md .. either, append only. Devpost source
 |-- .workspace/hackathon-status.md  either, append only
 `-- results/ ................... gitignored, no owner needed
 ```

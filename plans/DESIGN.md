@@ -66,6 +66,8 @@ Phases 0, 3, 5 and 6 are phase boundaries in the handbook sense: regenerate `REA
 
 Two lanes can only run independently if the seams between them already exist as running code. Prose seams drift silently; a committed evaluator and a running mock server do not. Phase 0 builds those seams with **one person at the keyboard**, because three agents on an empty repo invent three answers to the same dozen questions and git merges all three cleanly.
 
+**Phase 0 is written on one machine.** Every file in the keyboard lane is generated once, on that machine, and reaches the other person through git. The other person does not write any of it. What they must do in the same hour is get their own machine and their own accounts to the point where they can pull that work and immediately use it, which is the readiness checklist in [OWNERSHIP.md](OWNERSHIP.md).
+
 The other person is not idle and is not coding. Provisioning is genuinely parallel because it is downloads and approvals, and every item on it is fatal if discovered at hour 8.
 
 **Keyboard lane, in this order:**
@@ -123,8 +125,10 @@ contract/
 
 Produced once by `data/prepare_torgo.py`, then immutable. Both lanes consume byte-identical files and assert the same hashes.
 
+**Paths are relative, never absolute.** Phase 0 runs on one machine, training runs on Baseten, and the second person works on a third machine, so an absolute path baked into a manifest is wrong on two of the three. Every row stores a path relative to a data root and `contract/manifest.py` resolves it against `$VOICEBRIDGE_DATA` at load time. This is also what makes the shared hash meaningful: the same manifest hashes identically on every machine, which it cannot do if the paths differ.
+
 ```text
-audio_filepath      str    absolute path to 16 kHz mono PCM16 WAV
+audio_filepath      str    path RELATIVE to $VOICEBRIDGE_DATA, 16 kHz mono PCM16 WAV
 text                str    training/eval target, from TORGO transcription
 duration            float  seconds
 speaker_id          str    e.g. F04, M02
@@ -254,13 +258,15 @@ hackthenorth/
 |-- bench/                     latency harness, scorecard writer
 |-- results/                   gitignored, prediction JSONL
 |
+|-- plans/
+|   |-- DESIGN.md              this file
+|   |-- OWNERSHIP.md           who owns what, when
+|   `-- voicebridge-plan.md    motivation, citations, Devpost source
+|
 |-- pyproject.toml             one person installs all dependencies
 |-- package.json               same
 |-- .gitignore
-|-- README.md                  orientation, regenerated at phase boundaries
-|-- DESIGN.md                  this file
-|-- OWNERSHIP.md               who owns what, when
-`-- voicebridge-plan.md        motivation, citations, Devpost source
+`-- README.md                  orientation, regenerated at phase boundaries
 ```
 
 `app/` never imports NeMo, Transformers, PEFT, or a checkpoint. It knows one environment variable, `ASR_WS_URL`.
