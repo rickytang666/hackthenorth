@@ -64,6 +64,10 @@
     <input type="text" id="url" value="ws://127.0.0.1:8765" spellcheck="false">
     <span class="hint">ASR_WS_URL. Paste the promoted endpoint to switch models.</span>
   </div>
+  <div class="row" style="margin-top:8px">
+    <input type="text" id="voiceUrl" value="http://127.0.0.1:8770" spellcheck="false">
+    <span class="hint">Voice renderer, Protocol 2. Separate service.</span>
+  </div>
 
   <div class="card">
     <div class="label">Recovered text</div>
@@ -136,11 +140,11 @@ function showClarify(candidates) {
 
 // Protocol 2. Absent a renderer, the demo still runs and says so.
 async function speak(text) {
-  const base = $('url').value.replace(/\/v1\/stream$/, '');
+  const base = $('voiceUrl').value.replace(/\/$/, '');
   try {
-    const r = await fetch(base.replace(/^ws/, 'http') + '/v1/synthesize',
+    const r = await fetch(base + '/v1/synthesize',
       { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ text, voice_id: 'enrolled' }) });
+        body: JSON.stringify({ text }) });
     if (!r.ok) throw new Error(r.status);
     const buf = await r.arrayBuffer();
     $('taud').textContent = Math.round(performance.now() - began) + ' ms';
