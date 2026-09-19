@@ -1,3 +1,27 @@
 .workspace/
 CLAUDE.md
 AGENTS.md
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# node
+node_modules/
+.next/
+dist/
+build/
+
+# data, checkpoints, results
+data/torgo-dataset/
+data/voicebridge/
+results/
+checkpoints/
+*.nemo
+*.wav
+
+# local
+.DS_Store
+.env*
+.worktrees/
