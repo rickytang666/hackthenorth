@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Benchmarks · VoiceBridge</title>
+<style>
+  body { margin: 0 auto; padding: 32px 20px 64px; max-width: 820px;
+         font-family: system-ui, sans-serif; font-size: 15px; line-height: 1.5;
+         color: #1b1b1b; background: #fafafa }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px }
+  h1 { font-size: 19px; margin: 0; font-weight: 600; letter-spacing: -0.01em;
+       display: flex; align-items: center; gap: 8px }
+  h1 .logo { width: 19px; height: 19px }
+  .by { display: flex; align-items: center; gap: 6px; margin: 5px 0 20px;
+        font-size: 12px; color: #888 }
+  .by img { width: 14px; height: 14px; border-radius: 2px }
+  .by b { color: #444; font-weight: 600 }
+  .tabs { display: flex; gap: 4px; flex-shrink: 0 }
+  .tabs a { font-size: 12px; padding: 5px 11px; border: 1px solid #e0e0e0;
+            border-radius: 5px; text-decoration: none; color: #777; background: #fff }
+  .tabs a:hover { border-color: #aaa; color: #333 }
+  .tabs a[aria-current] { background: #1b1b1b; border-color: #1b1b1b; color: #fff }
+  .lede { font-size: 17px; line-height: 1.5; color: #444; margin: 0 0 24px; max-width: 640px }
+  .lede b { color: #1b1b1b; font-weight: 600 }
+  .card { background: #fff; border: 1px solid #e6e6e6; border-radius: 6px; padding: 4px 0 0 }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums }
+  caption { text-align: left; padding: 13px 16px 4px; font-size: 10px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.07em; color: #999 }
+  th, td { padding: 11px 16px; border-bottom: 1px solid #f0f0f0; text-align: right }
+  th:first-child, td:first-child { text-align: left }
+  thead th { font-size: 13px; font-weight: 600; color: #1b1b1b;
+             border-bottom: 1px solid #e0e0e0; padding-bottom: 13px }
+  thead th:first-child { font-size: 12px; font-weight: 600; color: #999 }
+  .marks { display: flex; justify-content: flex-end; align-items: center;
+           gap: 6px; margin-bottom: 6px; height: 19px }
+  .marks img { width: 17px; height: 17px; border-radius: 3px }
+  .marks .vb { width: 19px; height: 19px; border-radius: 0 }
+  /* The bracket says what the tuned model is built from, without a caption. */
+  .built { display: inline-flex; align-items: center; gap: 3px; padding: 0 5px;
+           border-left: 1.5px solid #ccc; border-right: 1.5px solid #ccc; height: 19px }
+  .modelcode { display: block; font-weight: 400; font-size: 11px; color: #aaa;
+               margin-top: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace }
+  tbody th { font-weight: 400; font-size: 14px }
+  tbody th span { display: block; font-size: 11px; color: #999 }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0 }
+  td { font-size: 16px; color: #555 }
+  td.win { color: #1b1b1b; font-weight: 600; background: #f4f4f2 }
+  .notes { font-size: 12px; line-height: 1.7; color: #888; margin: 14px 0 0 }
+  .notes b { color: #555; font-weight: 600 }
+  .facts { display: flex; flex-wrap: wrap; gap: 28px; margin: 22px 0 0;
+           padding-top: 18px; border-top: 1px solid #e6e6e6 }
+  .facts dt { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em;
+              color: #999; margin-bottom: 3px }
+  .facts dd { margin: 0; font-size: 17px }
+  .chart-title { font-size: 15px; font-weight: 600; color: #1b1b1b; margin: 26px 0 4px;
+                 text-transform: none; letter-spacing: 0 }
+  .chart-sub { font-size: 12px; color: #888; margin: 0 0 10px;
+               display: flex; align-items: center; gap: 6px }
+  .chart-sub .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block }
+  .chart-sub .dot.base { background: #c8c8c8 }
+  .chart-sub .dot.after { background: #1f7a4d; margin-left: 10px }
+  .chart-sub .sub-note { margin-left: auto }
+  .chart { padding: 16px 15px 12px }
+  .chart svg { display: block; overflow: visible }
+  .chart .grid line { stroke: #f0f0f0; stroke-width: 1 }
+  .chart .tick { font-size: 10px; fill: #bbb; font-variant-numeric: tabular-nums }
+  .chart .colhead { font-size: 10px; fill: #aaa; text-transform: uppercase;
+                    letter-spacing: 0.07em }
+  .chart .axis { font-size: 11px; fill: #aaa }
+  .chart .hint { font-size: 10px; fill: #bbb }
+  .chart .hint.dark { fill: #666 }
+  .chart .band { fill: #f4f4f2 }
+  .chart .spk { font-size: 13px; fill: #555; font-variant-numeric: tabular-nums }
+  .chart .spk.held { fill: #1b1b1b; font-weight: 700 }
+  .chart .role { font-size: 10px; fill: #bbb }
+  .chart .role.held { fill: #777 }
+  .chart .drop { stroke: #e0e0e0; stroke-width: 2.5; stroke-linecap: round }
+  .chart .base { fill: #c8c8c8 }
+  .chart .after { fill: #1f7a4d }
+  .chart .rel { font-size: 13px; fill: #888; font-variant-numeric: tabular-nums }
+  .chart .rel.held { fill: #1b1b1b; font-weight: 600 }
+  @media (max-width: 620px) { .top { flex-direction: column } th, td { padding: 9px 11px } }
+</style>
+</head>
+<body>
+<div class="top">
+  <div>
+    <h1><img class="logo" src="data:image/png;base64,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" alt="">VoiceBridge</h1>
+    <p class="by">Trained and powered by <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAzElEQVR42u3ZsQnCQBSA4YeFUSGHIhaCXbosIFikEyzsLASHsHIBncANMkEmcCDHOPP6eJFgwjP+xd+FkC+BezlOls+z/+UEAAAAfwAYuMiLyNdzt6wbQBsPr8WXNQAAAAB8cNG8OLSSAoab1dvMDzIFhL4QAAAAANQ3y/d+fEwbpYDpfVuZ3rcTQN1bNDHIAAAA0GOA/lVOyiWxSSaWUSYxAAAAbAMWj1NwUx+Vm/eqRrvEBsD8IAMAAEDPAaHjKXfN7AM4pQQAAECwFwWMbBsS2YwXAAAAAElFTkSuQmCC" alt=""><b>Baseten</b></p>
+  </div>
+  <nav class="tabs"><a href="index.html">Demo</a><a href="architecture.html">Architecture</a><a href="benchmarks.html" aria-current="page">Benchmarks</a></nav>
+</div>
+
+<p class="lede">Adapting Cohere Transcribe to dysarthric speech with LoRA.
+<b>38.6% lower word error rate</b> on a speaker held out from training and from
+every model-selection decision.</p>
+
+<div class="card">
+<table>
+  <caption>Sealed test &middot; speaker M02 &middot; 388 clips</caption>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th><span class="marks"><img src="data:image/png;base64,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" alt=""></span>Cohere Transcribe
+          <span class="modelcode">cohere-transcribe-03-2026</span></th>
+      <th><span class="marks"><img class="vb" src="data:image/png;base64,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" alt=""><span class="built"><img src="data:image/png;base64,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" alt=""><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAzElEQVR42u3ZsQnCQBSA4YeFUSGHIhaCXbosIFikEyzsLASHsHIBncANMkEmcCDHOPP6eJFgwjP+xd+FkC+BezlOls+z/+UEAAAAfwAYuMiLyNdzt6wbQBsPr8WXNQAAAAB8cNG8OLSSAoab1dvMDzIFhL4QAAAAANQ3y/d+fEwbpYDpfVuZ3rcTQN1bNDHIAAAA0GOA/lVOyiWxSSaWUSYxAAAAbAMWj1NwUx+Vm/eqRrvEBsD8IAMAAEDPAaHjKXfN7AM4pQQAAECwFwWMbBsS2YwXAAAAAElFTkSuQmCC" alt=""></span></span>VoiceBridge
+          <span class="modelcode">tuned</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><th>Word error rate</th>
+        <td>56.68%</td><td class="win">34.81%</td></tr>
+    <tr><th>Isolated words</th>
+        <td>101.69%</td><td class="win">46.28%</td></tr>
+    <tr><th>Sentences</th>
+        <td>36.34%</td><td class="win">29.62%</td></tr>
+    <tr><th>Critical errors<span>negation, numbers, medications</span></th>
+        <td>40.00%</td><td class="win">28.57%</td></tr>
+    <tr><th>Exact transcripts</th>
+        <td>98 / 388</td><td class="win">198 / 388</td></tr>
+    <tr><th>Tail latency<span>p95</span></th>
+        <td class="win">154 ms</td><td>216 ms</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 class="chart-title">Every speaker improved, and the hardest improved most</h2>
+<p class="chart-sub"><i class="dot base"></i>frozen baseline<i class="dot after"></i>tuned<span class="sub-note">shaded rows were never trained on</span></p>
+<div class="card chart">
+<svg viewBox="0 0 740 338" width="100%" role="img" aria-label="Word error rate falls for all eight speakers after adaptation">
+<g class="grid">
+<line x1="128.0" y1="32" x2="128.0" y2="298"/>
+<text class="tick" x="128.0" y="315" text-anchor="middle">0.0</text>
+<line x1="255.0" y1="32" x2="255.0" y2="298"/>
+<text class="tick" x="255.0" y="315" text-anchor="middle">0.3</text>
+<line x1="382.0" y1="32" x2="382.0" y2="298"/>
+<text class="tick" x="382.0" y="315" text-anchor="middle">0.6</text>
+<line x1="509.0" y1="32" x2="509.0" y2="298"/>
+<text class="tick" x="509.0" y="315" text-anchor="middle">0.9</text>
+<line x1="636.0" y1="32" x2="636.0" y2="298"/>
+<text class="tick" x="636.0" y="315" text-anchor="middle">1.2</text>
+</g>
+<text class="colhead" x="116" y="22" text-anchor="end">speaker</text>
+<text class="colhead" x="650" y="22">improvement</text>
+<text class="axis" x="382" y="332" text-anchor="middle">word error rate &#8212; further left is better</text>
+<text class="spk" x="70" y="65.5" text-anchor="end">M03</text>
+<text class="role" x="78" y="65.5">in training</text>
+<line class="drop" x1="159.3" y1="61.5" x2="134.3" y2="61.5"/>
+<circle class="after" cx="134.3" cy="61.5" r="5.5"/>
+<circle class="base" cx="159.3" cy="61.5" r="4.5"/>
+<text class="rel" x="650" y="65.5">&#8722;80%</text>
+<rect class="band" x="10" y="79.5" width="638" height="26" rx="4"/>
+<text class="spk held" x="70" y="96.5" text-anchor="end">F04</text>
+<text class="role held" x="78" y="96.5">validation</text>
+<line class="drop" x1="174.5" y1="92.5" x2="142.0" y2="92.5"/>
+<circle class="after" cx="142.0" cy="92.5" r="5.5"/>
+<circle class="base" cx="174.5" cy="92.5" r="4.5"/>
+<text class="rel held" x="650" y="96.5">&#8722;70%</text>
+<text class="spk" x="70" y="127.5" text-anchor="end">F03</text>
+<text class="role" x="78" y="127.5">in training</text>
+<line class="drop" x1="258.5" y1="123.5" x2="181.4" y2="123.5"/>
+<circle class="after" cx="181.4" cy="123.5" r="5.5"/>
+<circle class="base" cx="258.5" cy="123.5" r="4.5"/>
+<text class="rel" x="650" y="127.5">&#8722;59%</text>
+<text class="spk" x="70" y="158.5" text-anchor="end">M05</text>
+<text class="role" x="78" y="158.5">in training</text>
+<line class="drop" x1="293.9" y1="154.5" x2="190.7" y2="154.5"/>
+<circle class="after" cx="190.7" cy="154.5" r="5.5"/>
+<circle class="base" cx="293.9" cy="154.5" r="4.5"/>
+<text class="rel" x="650" y="158.5">&#8722;62%</text>
+<rect class="band" x="10" y="172.5" width="638" height="26" rx="4"/>
+<text class="spk held" x="70" y="189.5" text-anchor="end">M02</text>
+<text class="role held" x="78" y="189.5">sealed test</text>
+<line class="drop" x1="367.9" y1="185.5" x2="275.4" y2="185.5"/>
+<circle class="after" cx="275.4" cy="185.5" r="5.5"/>
+<circle class="base" cx="367.9" cy="185.5" r="4.5"/>
+<text class="rel held" x="650" y="189.5">&#8722;39%</text>
+<text class="spk" x="70" y="220.5" text-anchor="end">F01</text>
+<text class="role" x="78" y="220.5">in training</text>
+<line class="drop" x1="407.2" y1="216.5" x2="252.6" y2="216.5"/>
+<circle class="after" cx="252.6" cy="216.5" r="5.5"/>
+<circle class="base" cx="407.2" cy="216.5" r="4.5"/>
+<text class="rel" x="650" y="220.5">&#8722;55%</text>
+<text class="spk" x="70" y="251.5" text-anchor="end">M01</text>
+<text class="role" x="78" y="251.5">in training</text>
+<line class="drop" x1="410.5" y1="247.5" x2="251.9" y2="247.5"/>
+<circle class="after" cx="251.9" cy="247.5" r="5.5"/>
+<circle class="base" cx="410.5" cy="247.5" r="4.5"/>
+<text class="rel" x="650" y="251.5">&#8722;56%</text>
+<text class="spk" x="70" y="282.5" text-anchor="end">M04</text>
+<text class="role" x="78" y="282.5">in training</text>
+<line class="drop" x1="605.0" y1="278.5" x2="266.7" y2="278.5"/>
+<circle class="after" cx="266.7" cy="278.5" r="5.5"/>
+<circle class="base" cx="605.0" cy="278.5" r="4.5"/>
+<text class="rel" x="650" y="282.5">&#8722;71%</text>
+</svg>
+</div>
+</div>
+
+<p class="notes">Lower is better except exact transcripts. M02 was held out from training and from tuning.</p>
+
+<dl class="facts">
+  <div><dt>Method</dt><dd>LoRA, rank 8</dd></div>
+  <div><dt>Trainable</dt><dd>0.166%</dd></div>
+  <div><dt>Training time</dt><dd>10.6 min, one H100</dd></div>
+  <div><dt>Training data</dt><dd>4.06 hours</dd></div>
+</dl>
+</body>
+</html>

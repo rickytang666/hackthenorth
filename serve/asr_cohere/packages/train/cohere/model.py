@@ -1,7 +1,7 @@
 """Single place that loads Cohere Transcribe, with the revision workarounds.
 
-Revision b1eacc26 needs two patches against transformers 5.x. Both are narrower
-than pinning transformers down a major version, and both belong here rather than
+Revision b1eacc26 needs three patches against transformers 5.x. All are narrower
+than pinning transformers down a major version, and all belong here rather than
 duplicated in every caller.
 """
 
@@ -35,6 +35,17 @@ def model_class():
     #    base class keeps the model's own generate() first in the MRO.
     if not issubclass(cls, GenerationMixin):
         cls = type(cls.__name__, (cls, GenerationMixin), {})
+
+    # 3. transformers 5.17's generate() cleanup iterates `cache.layers`, which
+    #    EncoderDecoderCache does not expose; it holds two sub-caches instead.
+    #    Only encoder-decoder models hit this, which is why the CUDA deployment
+    #    never did and local MPS serving does.
+    from transformers.cache_utils import EncoderDecoderCache
+    if not hasattr(EncoderDecoderCache, "layers"):
+        EncoderDecoderCache.layers = property(
+            lambda self: [*getattr(self.self_attention_cache, "layers", []),
+                          *getattr(self.cross_attention_cache, "layers", [])]
+        )
 
     _patched = cls
     return cls

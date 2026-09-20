@@ -3,270 +3,519 @@
 <title>VoiceBridge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  :root {
-    --bg:#fbfbfa; --fg:#1a1a18; --muted:#6b6b66; --line:#e4e4e0;
-    --accent:#2f6f4f; --warn:#a6601a; --card:#fff; --tail:#a0a09a;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg:#16161a; --fg:#ecece8; --muted:#9a9a94; --line:#2c2c33;
-      --accent:#6fbf8f; --warn:#d9a05b; --card:#1e1e24; --tail:#6a6a72;
-    }
-  }
-  * { box-sizing:border-box }
-  body { margin:0; padding:24px 16px; background:var(--bg); color:var(--fg);
-    font:16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif }
-  main { max-width:760px; margin:0 auto }
-  h1 { font-size:20px; margin:0 0 2px; letter-spacing:-.01em }
-  .sub { color:var(--muted); font-size:14px; margin:0 0 20px }
-  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap }
-  button { font:inherit; padding:10px 18px; border-radius:8px; border:1px solid var(--line);
-    background:var(--card); color:var(--fg); cursor:pointer }
-  button.primary { background:var(--accent); border-color:var(--accent); color:#fff }
-  button:disabled { opacity:.45; cursor:not-allowed }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:10px;
-    padding:16px; margin-top:14px }
-  .label { font-size:12px; text-transform:uppercase; letter-spacing:.06em;
-    color:var(--muted); margin-bottom:8px }
-  #transcript { font-size:26px; line-height:1.35; min-height:2.6em; word-break:break-word }
-  #transcript .tail { color:var(--tail) }
-  #transcript .empty { color:var(--muted); font-size:16px }
-  .meter { height:6px; background:var(--line); border-radius:3px; overflow:hidden; margin-top:10px }
-  .meter > i { display:block; height:100%; width:0; background:var(--accent); transition:width .15s }
-  .meter.low > i { background:var(--warn) }
-  .stats { display:flex; gap:22px; flex-wrap:wrap; font-size:14px; color:var(--muted);
-    font-variant-numeric:tabular-nums }
-  .stats b { color:var(--fg); font-weight:600 }
-  #clarify { display:none; border-color:var(--warn) }
-  #clarify.show { display:block }
-  #choices button { display:block; width:100%; text-align:left; margin-top:8px }
-  .dot { width:8px; height:8px; border-radius:50%; background:var(--muted); display:inline-block }
-  .dot.on { background:var(--accent) }
-  .dot.err { background:var(--warn) }
-  input[type=text] { font:inherit; padding:8px 10px; border-radius:8px; border:1px solid var(--line);
-    background:var(--bg); color:var(--fg); min-width:min(320px, 100%) }
-  .hint { color:var(--muted); font-size:13px }
+  body { margin: 0 auto; padding: 32px 20px 64px; max-width: 820px;
+         font-family: system-ui, sans-serif; font-size: 15px; line-height: 1.5;
+         color: #1b1b1b; background: #fafafa }
+  h1 { font-size: 19px; margin: 0; font-weight: 600; letter-spacing: -0.01em;
+       display: flex; align-items: center; gap: 8px }
+  h1 .logo { width: 19px; height: 19px }
+  .by { display: flex; align-items: center; gap: 6px; margin: 5px 0 20px;
+        font-size: 12px; color: #888 }
+  .by img { width: 14px; height: 14px; border-radius: 2px }
+  .by b { color: #444; font-weight: 600 }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px }
+  .tabs { display: flex; gap: 4px; flex-shrink: 0 }
+  .tabs a { font-size: 12px; padding: 5px 11px; border: 1px solid #e0e0e0;
+            border-radius: 5px; text-decoration: none; color: #777; background: #fff }
+  .tabs a:hover { border-color: #aaa; color: #333 }
+  .tabs a[aria-current] { background: #1b1b1b; border-color: #1b1b1b; color: #fff }
+  .card { background: #fff; border: 1px solid #e6e6e6; border-radius: 6px;
+          margin: 0 0 12px; padding: 13px 15px }
+  .card h2 { font-size: 10px; font-weight: 600; text-transform: uppercase;
+             letter-spacing: 0.07em; color: #999; margin: 0 0 10px }
+  .muted { color: #bbb }
+  #clips { display: flex; flex-wrap: wrap; gap: 5px }
+  #clips button { padding: 5px 5px 4px; font-size: 11px; color: #777; line-height: 1;
+                  border-radius: 5px }
+  #clips button[aria-pressed="true"] { border-color: #1b1b1b; color: #1b1b1b;
+                                       background: #f2f2f2 }
+  #clips canvas { display: block }
+  #viewer { display: none; margin-top: 10px }
+  #viewer video { display: block; width: 100%; max-width: 360px; background: #000 }
+  #transcript { font-size: 26px; line-height: 1.3; min-height: 1.3em;
+                letter-spacing: -0.01em }
+  #transcript .muted { font-size: 15px; letter-spacing: 0 }
+  #transcript .tail { color: #999 }
+  .line { margin-top: 10px; font-size: 14px }
+  .line .k { display: inline-block; min-width: 116px; color: #777 }
+  #reference { color: #000 }
+  #baseline, #baseline .k { color: #aaa }
+  #clarify[hidden] { display: none }
+  #choices button { display: block; width: 100%; text-align: left; margin-top: 6px;
+                    padding: 7px 10px; color: #666 }
+  #choices button:first-child { border-color: #1b1b1b; color: #1b1b1b; font-size: 17px;
+                                padding: 10px 12px; margin-top: 8px }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap }
+  button, input { font: inherit }
+  button { padding: 6px 13px; border: 1px solid #d0d0d0; background: #fff;
+           border-radius: 5px; cursor: pointer; transition: background .12s, border-color .12s }
+  button:hover:not(:disabled) { border-color: #999; background: #f6f6f6 }
+  button:disabled { opacity: .4; cursor: default }
+  #run { background: #1b1b1b; border-color: #1b1b1b; color: #fff; font-weight: 500 }
+  #run:hover:not(:disabled) { background: #333; border-color: #333 }
+  input[type=text], input[type=password] { padding: 4px 6px; border: 1px solid #ccc;
+                                           min-width: min(340px, 100%) }
+  label { font-size: 12px; color: #555 }
+  #status { font-size: 13px; color: #555 }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace }
+
+  /* speaker chips */
+  .chips { display: flex; gap: 5px; flex-wrap: wrap; align-items: center;
+           font-size: 11px; margin: 8px 0 0 }
+  .chip { border: 1px solid #e6e6e6; background: #fbfbfb; border-radius: 4px;
+          padding: 2px 7px; color: #666; white-space: nowrap }
+  .chip b { color: #000; font-weight: 600; font-variant-numeric: tabular-nums }
+  .chip .arrow { color: #aaa; padding: 0 3px }
+
+  /* confidence */
+  #confWrap[hidden] { display: none }
+  #confWrap { display: inline-flex; align-items: center; gap: 6px; font-size: 13px;
+              color: #555; font-variant-numeric: tabular-nums }
+  .bar { position: relative; display: inline-block; width: 90px; height: 6px;
+         background: #e8e8e8; border-radius: 3px; overflow: hidden }
+  .bar i { display: block; height: 100%; background: #1b1b1b; transition: width .2s }
+  .bar u { position: absolute; top: -2px; width: 1px; height: 10px; background: #000 }
+
+  /* latency waterfall */
+  #fall { display: flex; height: 13px; width: 100%; background: #f2f2f2;
+          border-radius: 3px; overflow: hidden }
+  #fall:empty { display: none }
+  #legend:empty::after { content: 'Nothing measured yet.'; color: #bbb; font-size: 12px }
+  #fall span { height: 100%; border-right: 1px solid #fff }
+  #fall span:last-child { border-right: 0 }
+  #legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 7px;
+            font-size: 11px; color: #666; font-variant-numeric: tabular-nums }
+  #legend b { color: #000; font-weight: 600 }
+  #legend i { display: inline-block; width: 8px; height: 8px; margin-right: 5px }
+  #modelRow { margin-top: 9px; font-size: 11px; color: #666;
+              display: flex; align-items: center; gap: 5px }
+  #modelRow[hidden] { display: none }
+  #modelRow img { width: 13px; height: 13px; display: none }
+
+  /* endpoints are config, not content */
+  details.quiet { font-size: 11px; color: #888 }
+  details.quiet summary { cursor: pointer; color: #999 }
+  details.quiet input { font-size: 11px; color: #666; border: 1px solid #eee;
+                        padding: 3px 5px; min-width: 260px }
+  details.quiet .row { margin-top: 5px }
 </style>
-<link rel="stylesheet" href="static/report.css?v=3">
 
-<body class="report-ui page-index">
-<main>
-  <h1>VoiceBridge</h1>
-  <p class="sub">Speak, see the recovered words, confirm when it asks, hear it back in your voice.</p>
-
-  <div class="row">
-    <button id="talk" class="primary">Start speaking</button>
-    <input type="file" id="file" accept="audio/*" hidden>
-    <button id="pick">Use a recording</button>
-    <span class="row" style="gap:6px"><span class="dot" id="dot"></span>
-      <span class="hint" id="status">idle</span></span>
+<body>
+<div class="top">
+  <div>
+    <h1><img class="logo" src="data:image/png;base64,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" alt="">VoiceBridge</h1>
+    <p class="by">Trained and powered by <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAzElEQVR42u3ZsQnCQBSA4YeFUSGHIhaCXbosIFikEyzsLASHsHIBncANMkEmcCDHOPP6eJFgwjP+xd+FkC+BezlOls+z/+UEAAAAfwAYuMiLyNdzt6wbQBsPr8WXNQAAAAB8cNG8OLSSAoab1dvMDzIFhL4QAAAAANQ3y/d+fEwbpYDpfVuZ3rcTQN1bNDHIAAAA0GOA/lVOyiWxSSaWUSYxAAAAbAMWj1NwUx+Vm/eqRrvEBsD8IAMAAEDPAaHjKXfN7AM4pQQAAECwFwWMbBsS2YwXAAAAAElFTkSuQmCC" alt=""><b>Baseten</b></p>
   </div>
+  <nav class="tabs"><a href="index.html" aria-current="page">Demo</a><a href="architecture.html">Architecture</a><a href="benchmarks.html">Benchmarks</a></nav>
+</div>
 
-  <div class="row" style="margin-top:12px">
-    <input type="text" id="url" value="wss://model-qk542geq.api.baseten.co/environments/production/websocket" spellcheck="false">
-    <span class="hint">ASR_WS_URL. Live Baseten H100. Fallback: <code>ws://127.0.0.1:8765</code> (mock) or <code>:8766</code> (local model).</span>
-  </div>
+<section class="card">
+  <h2>Clip</h2>
+  <div id="clips"></div>
+  <div id="viewer"><video id="video" playsinline preload="auto"></video></div>
+  <div class="chips" id="caption"></div>
   <div class="row" style="margin-top:8px">
-    <input type="password" id="apiKey" placeholder="Baseten API key (this browser only)" spellcheck="false">
-    <span class="hint">Kept in sessionStorage. Leave blank for a local endpoint.</span>
+    <button id="run" disabled>Recover speech</button>
+    <button id="original" disabled>Play original</button>
+    <span id="status">pick a clip</span>
+    <span id="confWrap" hidden>confidence <b id="confVal"></b><span class="bar">
+      <i id="confFill"></i><u id="confTick"></u></span></span>
   </div>
-  <div class="row" style="margin-top:8px">
-    <input type="text" id="voiceUrl" value="http://127.0.0.1:8770" spellcheck="false">
-    <span class="hint">Voice renderer, Protocol 2. Separate service.</span>
-  </div>
+</section>
 
-  <div class="card">
-    <div class="label">Recovered text</div>
-    <div id="transcript"><span class="empty">Nothing yet.</span></div>
-    <div class="meter" id="meter"><i id="conf"></i></div>
-  </div>
+<section class="card">
+  <h2>Recovered text</h2>
+  <div id="transcript"><span class="muted">Pick a clip and press Recover speech.</span></div>
+  <p class="line" id="reference"></p>
+  <p class="line" id="baseline"></p>
+</section>
 
-  <div class="card" id="clarify">
-    <div class="label" id="clarifyLabel">Not sure. Which did you mean?</div>
-    <div id="choices"></div>
-  </div>
+<section class="card" id="clarify" hidden>
+  <h2>Confirm</h2>
+  <div id="clarifyLabel"></div>
+  <div id="choices"></div>
+</section>
 
-  <div class="card">
-    <div class="label">Latency</div>
-    <div class="stats">
-      <span>first partial <b id="tfp">-</b></span>
-      <span>final <b id="tfin">-</b></span>
-      <span>first audio <b id="taud">-</b></span>
-      <span>model <b id="model">-</b></span>
-    </div>
-  </div>
-</main>
+<section class="card">
+  <h2>Latency</h2>
+  <div id="fall"></div>
+  <div id="legend"></div>
+  <div id="modelRow" hidden><img id="modelLogo" alt=""><span id="model" class="mono">-</span></div>
+</section>
+
+<details class="quiet">
+  <summary>Endpoints</summary>
+  <div class="row"><label for="url">ASR</label>
+    <input type="text" id="url" class="mono" value="ws://127.0.0.1:8765" spellcheck="false"></div>
+  <div class="row"><label for="voiceUrl">Voice</label>
+    <input type="text" id="voiceUrl" class="mono" value="http://127.0.0.1:8770"
+           spellcheck="false"></div>
+</details>
 
 <script>
-const SAMPLE_RATE = 16000, FRAME = 320;          // 320 samples = 20 ms
-const CLARIFY_BELOW = 0.879;   // calibrated on F04; matches contract/confidence.py
+const SAMPLE_RATE = 16000, FRAME = 320;        // 320 samples = 20 ms
+const CLARIFY_BELOW = 0.879;                   // calibrated on F04; see contract/confidence.py
 const $ = id => document.getElementById(id);
-let ws, ctx, node, stream, seq = 0, began = 0, sawPartial = false;
 
-const setStatus = (text, state) => {
-  $('status').textContent = text;
-  $('dot').className = 'dot' + (state ? ' ' + state : '');
-};
+let clips = [], current = null, ws = null, began = 0, sawPartial = false;
+let voiceId = null, enrolling = null;
+
+const setStatus = t => { $('status').textContent = t; };
+
+// One AudioContext for the page. Browsers cap how many you may create, and the
+// old code leaked two per utterance.
+let audioCtx = null;
+const ac = () => (audioCtx ??= new AudioContext({ sampleRate: SAMPLE_RATE }));
+
+// Locate the data chunk rather than assuming a 44-byte header; TORGO WAVs
+// carry a LIST chunk ahead of it.
+function pcmOf(raw) {
+  const view = new DataView(raw);
+  if (view.getUint32(0, false) !== 0x52494646) throw new Error('not a RIFF file');
+  let off = 12;
+  while (off + 8 <= raw.byteLength) {
+    const id = view.getUint32(off, false), size = view.getUint32(off + 4, true);
+    if (id === 0x64617461) return new Int16Array(raw, off + 8, size >> 1);
+    off += 8 + size + (size & 1);
+  }
+  throw new Error('no data chunk');
+}
+
+function drawWave(canvas, channel) {
+  const w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+  const step = Math.floor(channel.length / w) || 1;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#888';
+  for (let x = 0; x < w; x++) {
+    let peak = 0;
+    for (let i = x * step; i < (x + 1) * step && i < channel.length; i++) {
+      const v = Math.abs(channel[i]);
+      if (v > peak) peak = v;
+    }
+    const bar = Math.max(1, peak * h);
+    ctx.fillRect(x, (h - bar) / 2, 1, bar);
+  }
+}
+
+async function loadClips() {
+  clips = await (await fetch('clips/manifest.json')).json();
+  const box = $('clips');
+  for (const [i, clip] of clips.entries()) {
+    const b = document.createElement('button');
+    b.setAttribute('aria-pressed', 'false');
+    b.title = `${clip.duration_s}s`;
+    const c = document.createElement('canvas');
+    c.width = 84; c.height = 26;
+    b.append(c, document.createTextNode(
+      `${clip.video ? '▶' : i + 1} · ${clip.duration_s}s`));
+    b.onclick = () => select(i);
+    box.append(b);
+    const raw = await (await fetch(clip.wav)).arrayBuffer();
+    // Keep the file's own samples for the wire. Decoding to float and
+    // requantizing changes them just enough to flip a low-confidence word.
+    clip.pcm = pcmOf(raw);
+    const buf = await ac().decodeAudioData(raw.slice(0));
+    clip.buffer = buf;                                  // playback and waveform only
+    drawWave(c, buf.getChannelData(0));
+  }
+  setStatus('pick a clip');
+}
+
+async function select(i) {
+  current = clips[i];
+  [...$('clips').children].forEach((b, j) =>
+    b.setAttribute('aria-pressed', String(j === i)));
+  showChips();
+  const viewer = $('viewer'), video = $('video');
+  if (current.video) {
+    video.src = current.video;
+    video.load();
+    viewer.style.display = 'block';
+  } else {
+    video.removeAttribute('src');
+    viewer.style.display = 'none';
+  }
+  $('run').disabled = $('original').disabled = false;
+  clearTranscript('Ready. Press Recover speech.');
+  $('reference').textContent = $('baseline').textContent = '';
+  $('clarify').hidden = true;
+  setStatus('ready');
+  enrolling = enroll(current);        // start the clone now so beat 5 is not waiting on it
+}
+
+// The sealed-test aggregate, so the seven clips read as a sample of a measured
+// population rather than a lucky handful. Numbers are from docs/RESULTS.md.
+const SEALED = { speaker: 'M02', clips: 388, baseline: 0.567, tuned: 0.348 };
+
+function showChips() {
+  const box = $('caption');
+  box.textContent = '';
+  const chip = html => {
+    const el = document.createElement('span');
+    el.className = 'chip';
+    el.innerHTML = html;
+    box.append(el);
+  };
+  if (current.video) {
+    chip(`<b>${current.label || 'video'}</b>`);
+    chip('unscripted, outside the corpus');
+    chip(`<b>${current.duration_s}</b> s`);
+    return;
+  }
+  chip(`speaker <b>${SEALED.speaker}</b>`);
+  chip('sealed test, never trained on');
+  chip(`<b>${SEALED.clips}</b> clips`);
+  chip(`WER <b>${SEALED.baseline.toFixed(3)}</b>`
+       + `<span class="arrow">\u2192</span><b>${SEALED.tuned.toFixed(3)}</b>`);
+}
+
+// A video source plays through its own element so picture and sound stay
+// together; everything else goes through the shared AudioContext.
+function playOriginal() {
+  if (current.video) {
+    const v = $('video');
+    v.currentTime = 0;
+    return v.play();
+  }
+  return play(current.buffer);
+}
+
+function play(buffer) {
+  const src = ac().createBufferSource();
+  src.buffer = buffer;
+  src.connect(ac().destination);
+  src.start();
+  return src;
+}
+
+// Protocol 2, step 1. The renderer needs a reference of this speaker before it
+// can synthesize as them; without it /v1/synthesize answers 409.
+async function enroll(clip) {
+  const base = $('voiceUrl').value.replace(/\/$/, '');
+  const bytes = new Uint8Array(await (await fetch(clip.wav)).arrayBuffer());
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000)
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  const r = await fetch(base + '/v1/enroll', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ wavs_b64: [btoa(bin)] }),
+  });
+  if (!r.ok) throw new Error(`enroll ${r.status}`);
+  voiceId = (await r.json()).voice_id;
+  return voiceId;
+}
+
+async function speak(text) {
+  const base = $('voiceUrl').value.replace(/\/$/, '');
+  // Timed from here, not from the start of the stream: a clarification can sit
+  // on screen for as long as the person takes, and that is not our latency.
+  const asked = performance.now();
+  try {
+    const id = await enrolling;
+    const r = await fetch(base + '/v1/synthesize', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice_id: id }),
+    });
+    if (!r.ok) throw new Error(`synthesize ${r.status} ${await r.text()}`);
+    const buf = await ac().decodeAudioData(await r.arrayBuffer());
+    stat('synth', performance.now() - asked);
+    play(buf);
+  } catch (e) {
+    stat('synth', 0);
+    setStatus('voice renderer: ' + e.message);
+  }
+}
+
+function showConfidence(value) {
+  $('confVal').textContent = value.toFixed(3);
+  $('confFill').style.width = Math.round(value * 100) + '%';
+  $('confTick').style.left = (CLARIFY_BELOW * 100) + '%';   // the accept threshold
+  $('confWrap').hidden = false;
+}
+
+// A waterfall rather than a row of numbers: the point is which stage costs what,
+// and three bare millisecond figures do not show that at a glance.
+const STAGES = [
+  { key: 'capture', label: 'audio to first partial', shade: '#c9c9c9' },
+  { key: 'decode', label: 'partial to final', shade: '#8a8a8a' },
+  { key: 'synth', label: 'synthesis', shade: '#3a3a3a' },
+];
+const timings = {};
+
+function drawLatency() {
+  const total = STAGES.reduce((sum, s) => sum + (timings[s.key] || 0), 0) || 0;
+  const fall = $('fall'), legend = $('legend');
+  fall.textContent = '';
+  legend.textContent = '';
+  for (const stage of STAGES) {
+    const ms = timings[stage.key];
+    if (!ms) continue;
+    const seg = document.createElement('span');
+    seg.style.width = (100 * ms / total) + '%';
+    seg.style.background = stage.shade;
+    seg.title = `${stage.label} ${Math.round(ms)} ms`;
+    fall.append(seg);
+    const item = document.createElement('span');
+    item.innerHTML = `<i style="background:${stage.shade}"></i>${stage.label} `
+                   + `<b>${Math.round(ms)} ms</b>`;
+    legend.append(item);
+  }
+  if (total) {
+    const sum = document.createElement('span');
+    sum.innerHTML = `total <b>${Math.round(total)} ms</b>`;
+    legend.append(sum);
+  }
+}
+
+function stat(key, value) {
+  timings[key] = value;
+  drawLatency();
+}
+
+const COHERE_LOGO = 'data:image/png;base64,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';
+function showModel(id) {
+  $('modelRow').hidden = !id;
+  $('model').textContent = id || '-';
+  const logo = $('modelLogo');
+  const isCohere = /cohere/i.test(id || '');
+  if (isCohere) logo.src = COHERE_LOGO;
+  logo.style.display = isCohere ? 'inline' : 'none';
+}
+
+function clearTranscript(message) {
+  $('transcript').innerHTML = `<span class="muted">${message}</span>`;
+}
 
 function render(text, stableLen) {
   const el = $('transcript');
-  if (!text) { el.innerHTML = '<span class="empty">Nothing yet.</span>'; return; }
+  el.textContent = '';
   const cut = Math.max(0, Math.min(stableLen ?? text.length, text.length));
-  el.textContent = text.slice(0, cut);
+  el.append(document.createTextNode(text.slice(0, cut)));
   if (cut < text.length) {
     const s = document.createElement('span');
-    s.className = 'tail';                          // past stable_prefix_len, may still change
+    s.className = 'tail';           // past stable_prefix_len, still revisable
     s.textContent = text.slice(cut);
     el.append(s);
   }
 }
 
-function setConfidence(value) {
-  $('conf').style.width = Math.round((value ?? 0) * 100) + '%';
-  $('meter').classList.toggle('low', (value ?? 1) < CLARIFY_BELOW);
+function showComparison() {
+  const put = (id, key, value) => {
+    const el = $(id);
+    el.textContent = '';
+    const k = document.createElement('span');
+    k.className = 'k';
+    k.textContent = key;
+    el.append(k, document.createTextNode(value));
+  };
+  if (current.truth) put('reference', 'Ground truth', current.truth);
+  if (current.baseline) put('baseline', 'Frozen baseline', current.baseline);
 }
 
-function confirm(text) {
+function accept(text) {
   render(text, text.length);
-  $('clarify').classList.remove('show');
+  $('clarify').hidden = true;
+  showComparison();
   speak(text);
 }
 
 function showClarify(candidates) {
   const box = $('choices');
   box.textContent = '';
+  // Framed as a confirmation, not a menu. The model's own best guess is first
+  // and primary; the rest are there because weak evidence should be visible,
+  // not because the model is undecided.
   $('clarifyLabel').textContent = candidates.length > 1
-    ? 'Not sure. Which did you mean?' : 'Not sure. Did you say this?';
-  candidates.slice(0, 3).forEach(c => {
+    ? 'Below the accept threshold. Confirm the top reading, or pick another.'
+    : 'Below the accept threshold. Confirm before speaking.';
+  for (const c of candidates.slice(0, 3)) {
     const b = document.createElement('button');
     b.textContent = c.text;
-    b.onclick = () => confirm(c.text);
+    b.onclick = () => accept(c.text);
     box.append(b);
-  });
-  $('clarify').classList.add('show');
-}
-
-// Protocol 2. Absent a renderer, the demo still runs and says so.
-async function speak(text) {
-  const base = $('voiceUrl').value.replace(/\/$/, '');
-  try {
-    const r = await fetch(base + '/v1/synthesize',
-      { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ text }) });
-    if (!r.ok) throw new Error(r.status);
-    const buf = await r.arrayBuffer();
-    $('taud').textContent = Math.round(performance.now() - began) + ' ms';
-    await new AudioContext().decodeAudioData(buf).then(b => {
-      const c = new AudioContext(), src = c.createBufferSource();
-      src.buffer = b; src.connect(c.destination); src.start();
-    });
-  } catch {
-    $('taud').textContent = 'no renderer';
   }
+  $('clarify').hidden = false;
 }
 
 function connect() {
   return new Promise((resolve, reject) => {
-    const url = $('url').value;
-    const key = $('apiKey').value.trim();
-    if (key) try { sessionStorage.setItem('bt_key', key); } catch {}
-    // A browser cannot set an Authorization header on a WebSocket, so Baseten
-    // takes the key as a subprotocol. Local endpoints need neither.
-    ws = key && /baseten\.co/.test(url)
-      ? new WebSocket(url, ['Authorization', `Api-Key ${key}`])
-      : new WebSocket(url);
-    ws.onopen = () => { setStatus('listening', 'on'); resolve(); };
-    ws.onerror = () => { setStatus('connection failed', 'err'); reject(new Error('ws')); };
-    ws.onclose = () => setStatus('idle');
+    // Always a local URL. app/serve.py holds the API key and adds the
+    // Authorization header upstream, because a browser cannot set one and a
+    // subprotocol is not a legal place to put a key.
+    ws = new WebSocket($('url').value);
+    ws.onopen = () => { setStatus('streaming'); resolve(); };
+    ws.onerror = () => { setStatus('connection failed'); reject(new Error('ws')); };
     ws.onmessage = e => {
       const m = JSON.parse(e.data);
       if (m.type === 'partial') {
-        if (!sawPartial) { sawPartial = true; $('tfp').textContent = Math.round(performance.now()-began)+' ms'; }
-        render(m.text, m.stable_prefix_len);
-        setConfidence(m.confidence);
-      } else if (m.type === 'final') {
-        render(m.text, m.text.length);
-        setConfidence(m.confidence);
-        $('tfin').textContent = Math.round(performance.now()-began)+' ms';
-        $('model').textContent = m.model_id ?? '-';
-        stop();
-        // Weak evidence asks instead of guessing. This is the product's claim.
-        if ((m.confidence ?? 1) < CLARIFY_BELOW) {
-          showClarify(m.candidates && m.candidates.length ? m.candidates : [{text: m.text}]);
-        } else {
-          speak(m.text);
+        if (!sawPartial) {
+          sawPartial = true;
+          stat('capture', performance.now() - began);
         }
+        render(m.text, m.stable_prefix_len);
+      } else if (m.type === 'final') {
+        stat('decode', performance.now() - began - (timings.capture || 0));
+        showModel(m.model_id);
+        setStatus('done');
+        showConfidence(m.confidence ?? 0);
+        if ((m.confidence ?? 1) < CLARIFY_BELOW) {
+          render(m.text, m.text.length);
+          showComparison();
+          const alts = m.candidates?.length ? m.candidates : [{ text: m.text }];
+          alts.sort((a, b) => (b.text === m.text) - (a.text === m.text));
+          showClarify(alts);
+        } else {
+          accept(m.text);
+        }
+        ws.close();
       } else if (m.type === 'error') {
-        setStatus('error: ' + m.message, 'err');
+        setStatus('error: ' + m.message);
       }
     };
   });
 }
 
-function sendPcm(f32) {
+function sendPcm(pcm) {
   if (!ws || ws.readyState !== 1) return;
-  const pcm = new Int16Array(f32.length);
-  for (let i = 0; i < f32.length; i++) {
-    const s = Math.max(-1, Math.min(1, f32[i]));
-    pcm[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
-  }
-  const bytes = new Uint8Array(pcm.buffer);
+  const bytes = new Uint8Array(pcm.buffer, pcm.byteOffset, pcm.byteLength);
   let bin = '';
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  ws.send(JSON.stringify({ type:'audio', seq: seq++, pcm16_b64: btoa(bin) }));
+  ws.send(JSON.stringify({ type: 'audio', pcm16_b64: btoa(bin) }));
 }
 
-function reset() {
-  seq = 0; sawPartial = false; began = performance.now();
-  $('clarify').classList.remove('show'); render('', 0); setConfidence(0);
-  $('tfp').textContent = $('tfin').textContent = $('taud').textContent = '-';
-}
-
-async function start() {
-  reset();
-  try { await connect(); } catch { return; }
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio:{ channelCount:1, sampleRate:SAMPLE_RATE } });
-  } catch (e) { setStatus('microphone denied', 'err'); ws.close(); return; }
-  ctx = new AudioContext({ sampleRate: SAMPLE_RATE });
-  const src = ctx.createMediaStreamSource(stream);
-  node = ctx.createScriptProcessor(4096, 1, 1);
-  node.onaudioprocess = e => {
-    const d = e.inputBuffer.getChannelData(0);
-    for (let o = 0; o < d.length; o += FRAME) sendPcm(d.subarray(o, o + FRAME));
-  };
-  src.connect(node); node.connect(ctx.destination);
-  $('talk').textContent = 'Stop';
-  $('talk').onclick = () => { try { ws.send(JSON.stringify({type:'end'})); } catch {} stop(); };
-}
-
-function stop() {
-  try { node && node.disconnect(); } catch {}
-  try { ctx && ctx.close(); } catch {}
-  try { stream && stream.getTracks().forEach(t => t.stop()); } catch {}
-  node = ctx = stream = null;
-  $('talk').textContent = 'Start speaking';
-  $('talk').onclick = start;
-}
-
-// Booth insurance: the venue microphone and the venue wifi both fail; a file does not.
-async function playFile(file) {
-  reset();
-  try { await connect(); } catch { return; }
-  setStatus('replaying ' + file.name, 'on');
-  const decoded = await new AudioContext({ sampleRate: SAMPLE_RATE })
-    .decodeAudioData(await file.arrayBuffer());
-  const d = decoded.getChannelData(0);
-  for (let o = 0; o < d.length; o += FRAME) {
+async function run() {
+  if (!current) return;
+  $('run').disabled = true;
+  sawPartial = false;
+  clearTranscript('Listening\u2026');
+  $('reference').textContent = $('baseline').textContent = '';
+  $('clarify').hidden = true;
+  for (const k of Object.keys(timings)) delete timings[k];
+  drawLatency();
+  showModel('');
+  $('confWrap').hidden = true;
+  try { await connect(); } catch { $('run').disabled = false; return; }
+  began = performance.now();
+  // The room hears the distorted original while the text resolves against it.
+  // Synthesis lands about a second after this finishes, so the two never overlap.
+  playOriginal();
+  const d = current.pcm;
+  for (let o = 0, frame = 0; o < d.length; o += FRAME, frame++) {
     sendPcm(d.subarray(o, o + FRAME));
-    await new Promise(r => setTimeout(r, 20));   // real time, so the latency numbers mean something
+    // Paced against the wall clock, not a flat 20 ms sleep. setTimeout always
+    // overshoots, which drifted the transcript seconds behind the audio.
+    const due = began + (frame + 1) * 20;
+    const wait = due - performance.now();
+    if (wait > 0) await new Promise(r => setTimeout(r, wait));
   }
-  ws.send(JSON.stringify({ type:'end' }));
+  if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'end' }));
+  $('run').disabled = false;
 }
 
-try { const k = sessionStorage.getItem('bt_key'); if (k) $('apiKey').value = k; } catch {}
-$('talk').onclick = start;
-$('pick').onclick = () => $('file').click();
-$('file').onchange = e => e.target.files[0] && playFile(e.target.files[0]);
+// Deliberately a separate button. Synthesis lands a second after the clip ends,
+// so the room hears only the recovered voice unless someone asks for the original.
+$('original').onclick = () => current && playOriginal();
+$('run').onclick = run;
+loadClips();
 </script>
 </body>

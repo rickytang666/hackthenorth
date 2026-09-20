@@ -141,6 +141,20 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
+def pick_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    # MPS roughly halves synthesis on Apple Silicon, which is the difference
+    # between a demo gap you notice and one you do not. Overridable because the
+    # converter has hit MPS kernel gaps on older torch builds.
+    import os
+    if os.environ.get("VOICE_DEVICE"):
+        return os.environ["VOICE_DEVICE"]
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
 def main() -> None:
     global _engine
     parser = argparse.ArgumentParser()
@@ -149,7 +163,7 @@ def main() -> None:
                         help="enroll these wavs at startup")
     args = parser.parse_args()
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = pick_device()
     began = time.perf_counter()
     _engine = Engine(device)
     print(f"engine ready on {device} in {time.perf_counter()-began:.1f}s")
