@@ -35,7 +35,7 @@ import numpy as np
 import soundfile as sf
 import torch
 
-from contract.confidence import from_logprobs
+from contract.confidence import ACCEPT_THRESHOLD, from_logprobs
 from train.cohere.model import MODEL_ID, load, prompt_ids
 
 SAMPLE_RATE = 16000
@@ -98,16 +98,55 @@ class Recognizer:
         self.stable = text
         return {"text": text, "stable_prefix_len": shared, "confidence": confidence.sequence}
 
+    def _alternatives(self, best: str, n: int = 3) -> list[dict]:
+        """Beam-search n-best, for when the greedy answer is not trustworthy.
+
+        Run only below the accept threshold. The greedy pass still produces the
+        text and the confidence, so the calibrated threshold stays valid and the
+        common path pays nothing for this.
+        """
+        audio = np.frombuffer(bytes(self.pcm), dtype="<i2").astype(np.float32) / 32768.0
+        audio = audio[-int(WINDOW_SECONDS * SAMPLE_RATE):]
+        inputs = self.processor([audio], sampling_rate=SAMPLE_RATE, return_tensors="pt",
+                                language="en", punctuation=False)
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+        with torch.inference_mode():
+            gen = self.model.generate(
+                **inputs, decoder_input_ids=self.prompt, max_new_tokens=128,
+                num_beams=max(4, n + 1), num_return_sequences=n,
+                return_dict_in_generate=True, output_scores=True,
+            )
+        scores = getattr(gen, "sequences_scores", None)
+        out, seen = [], set()
+        for i, seq in enumerate(gen.sequences):
+            text = self.processor.tokenizer.decode(seq, skip_special_tokens=True).strip()
+            key = text.lower()
+            if not text or key in seen:
+                continue
+            seen.add(key)
+            out.append({"text": text,
+                        "score": float(scores[i]) if scores is not None else -float(i + 1)})
+        # The greedy answer must be offered even if beam search ranked it out.
+        if best and best.lower() not in seen:
+            out.insert(0, {"text": best, "score": 0.0})
+        return out[:n]
+
     def finish(self) -> dict:
         result = self._decode(max_new_tokens=128)
         if result is None:
             return {"text": "", "confidence": 0.0, "candidates": [{"text": "", "score": -99.0}]}
         text, confidence = result
-        return {
-            "text": text,
-            "confidence": confidence.sequence,
-            "candidates": [{"text": text, "score": float(np.log(max(confidence.sequence, 1e-6)))}],
-        }
+        candidates = [{"text": text,
+                       "score": float(np.log(max(confidence.sequence, 1e-6)))}]
+        if confidence.sequence < ACCEPT_THRESHOLD:
+            try:
+                alts = self._alternatives(text)
+                if len(alts) > 1:
+                    candidates = alts
+            except Exception as exc:
+                # Alternatives are a nicety; never fail the transcript over them.
+                print(f"n-best failed, falling back to single candidate: {exc}", flush=True)
+        return {"text": text, "confidence": confidence.sequence, "candidates": candidates}
 
 
 class Model:

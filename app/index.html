@@ -80,7 +80,7 @@
   </div>
 
   <div class="card" id="clarify">
-    <div class="label">Not sure. Which did you mean?</div>
+    <div class="label" id="clarifyLabel">Not sure. Which did you mean?</div>
     <div id="choices"></div>
   </div>
 
@@ -133,6 +133,8 @@ function confirm(text) {
 function showClarify(candidates) {
   const box = $('choices');
   box.textContent = '';
+  $('clarifyLabel').textContent = candidates.length > 1
+    ? 'Not sure. Which did you mean?' : 'Not sure. Did you say this?';
   candidates.slice(0, 3).forEach(c => {
     const b = document.createElement('button');
     b.textContent = c.text;
@@ -187,8 +189,8 @@ function connect() {
         $('model').textContent = m.model_id ?? '-';
         stop();
         // Weak evidence asks instead of guessing. This is the product's claim.
-        if ((m.confidence ?? 1) < CLARIFY_BELOW && (m.candidates||[]).length > 1) {
-          showClarify(m.candidates);
+        if ((m.confidence ?? 1) < CLARIFY_BELOW) {
+          showClarify(m.candidates && m.candidates.length ? m.candidates : [{text: m.text}]);
         } else {
           speak(m.text);
         }
