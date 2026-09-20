@@ -128,6 +128,26 @@ streaming TTS was cut from the plan.
 | Mac, MPS + bfloat16 | n/a | 145 to 292 ms | 0.5 GiB. fp16 overflows this model's attention mask |
 | On-box inference alone | n/a | 70 ms | The model itself |
 
+## End to end, live
+
+Audio into the deployed Baseten endpoint, through the deterministic verifier,
+out as the speaker's own voice. Four sealed-test clips, all transcribed
+correctly, `model_id` confirming the tuned adapter.
+
+| Clip | ASR | Confidence | Verdict | First partial | ASR total | Synthesis |
+|---|---|---:|---|---:|---:|---:|
+| wicked | wicked | 0.815 | clarify | 1757 ms | 5555 ms | 2900 ms |
+| jagged | jagged | 0.985 | accept | 880 ms | 4413 ms | 1063 ms |
+| brawn | brawn | 0.645 | clarify | 1451 ms | 4326 ms | 1005 ms |
+| witty | witty | 0.794 | accept-then-ask | 907 ms | 3726 ms | 1041 ms |
+
+**Cold start is 33 seconds.** The deployment scales to zero, so the endpoint
+must be warmed before a demo or the first connection times out.
+
+Three of four route to `clarify` under the calibrated 0.879 threshold even
+though all four are correct. That is the intended trade: the threshold was set
+for 95% precision on accepted answers, and the cost is asking more often.
+
 ## What these numbers do not show
 
 - Eight speakers, two of them genuinely held out. Not proof of generalization.
