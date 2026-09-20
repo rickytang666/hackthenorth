@@ -214,3 +214,12 @@ Synthesis runs on MPS. On CPU the same calls took 2.2 s to 3.9 s, so
 Browser run of the same path, clip 6 then clip 1: clarification card offered
 three real alternatives with the model's own best guess first, and synthesis
 after confirmation took 1317 ms and 735 ms.
+
+### Browser and script now send identical bytes
+
+The page originally decoded each clip to float via `decodeAudioData` and
+requantized to int16 before streaming. That round trip is lossy and asymmetric,
+and on clip 7 it changed the result: the browser decoded "upon a small organ"
+at 0.888 where the script got "upon our small organ" at 0.892, twice. The page
+now slices the WAV's own PCM and uses the decoded buffer only for playback and
+the waveform. Re-checked in the browser: "upon our small organ", 0.892.
