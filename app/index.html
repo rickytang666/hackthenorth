@@ -285,10 +285,17 @@ async function run() {
   stat('model', '-');
   try { await connect(); } catch { $('run').disabled = false; return; }
   began = performance.now();
+  // The room hears the distorted original while the text resolves against it.
+  // Synthesis lands about a second after this finishes, so the two never overlap.
+  play(current.buffer);
   const d = current.buffer.getChannelData(0);
-  for (let o = 0; o < d.length; o += FRAME) {
+  for (let o = 0, frame = 0; o < d.length; o += FRAME, frame++) {
     sendPcm(d.subarray(o, o + FRAME));
-    await new Promise(r => setTimeout(r, 20));   // real time, so the timings mean something
+    // Paced against the wall clock, not a flat 20 ms sleep. setTimeout always
+    // overshoots, which drifted the transcript seconds behind the audio.
+    const due = began + (frame + 1) * 20;
+    const wait = due - performance.now();
+    if (wait > 0) await new Promise(r => setTimeout(r, wait));
   }
   if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'end' }));
   $('run').disabled = false;
