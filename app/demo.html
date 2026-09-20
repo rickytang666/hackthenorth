@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>VoiceBridge comparison</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M7 16h6m6 0h6M13 10v12m6-12v12' stroke='%23355f82' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="static/report.css?v=5">
+  <link rel="stylesheet" href="static/report.css?v=7">
 </head>
 <body class="report-ui page-single">
   <header class="single-header">
@@ -20,16 +20,16 @@
     <section class="source-bar" aria-labelledby="sourceTitle">
       <div class="source-copy">
         <span class="section-label">Source recording</span>
-        <strong id="sourceTitle">M02_0233.wav</strong>
-        <span>3.5 seconds · sealed test speaker</span>
+        <strong id="sourceTitle">Choose a local recording</strong>
+        <span id="sourceMeta">WAV or browser-supported audio · stays on this device</span>
       </div>
       <div class="source-wave" aria-hidden="true">
         <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
       </div>
-      <div class="source-actions">
-        <button id="playSource" type="button">Play recording</button>
-        <button class="primary" id="runComparison" type="button">Run comparison</button>
-      </div>
+      <label class="source-picker" for="sourceFile">
+        Select recording
+        <input id="sourceFile" type="file" accept="audio/*">
+      </label>
     </section>
 
     <section class="comparison-section" aria-labelledby="comparisonTitle">
@@ -45,9 +45,20 @@
         <article class="model-pane baseline-pane" id="baselinePane">
           <div class="pane-head">
             <div><span>Original model</span><strong>Frozen baseline</strong></div>
-            <span class="model-state" id="baselineState">Complete</span>
+            <span class="model-state" id="baselineState">Ready</span>
           </div>
-          <div class="transcript-copy" id="baselineTranscript">“who were killed”</div>
+          <button class="pipeline-trigger" id="runBaseline" type="button" disabled>
+            <span class="play-symbol">▶</span>
+            <span><small>Input recording</small><strong>Play through original model</strong></span>
+          </button>
+          <div class="transcript-block">
+            <span>Returned transcript</span>
+            <div class="transcript-copy" id="baselineTranscript">Run this path to compare</div>
+          </div>
+          <div class="returned-audio">
+            <div><span>Returned speech</span><strong>Generic real-time TTS</strong></div>
+            <button id="playBaselineReturn" type="button" disabled>Play response</button>
+          </div>
           <dl class="pane-metrics">
             <div><dt>Clip result</dt><dd>Incorrect</dd></div>
             <div><dt>Aggregate WER</dt><dd>56.7%</dd></div>
@@ -57,9 +68,20 @@
         <article class="model-pane tuned-pane" id="tunedPane">
           <div class="pane-head">
             <div><span>New model</span><strong>VoiceBridge tuned</strong></div>
-            <span class="model-state" id="tunedState">Complete</span>
+            <span class="model-state" id="tunedState">Ready</span>
           </div>
-          <div class="transcript-copy" id="tunedTranscript">“wicked”</div>
+          <button class="pipeline-trigger" id="runTuned" type="button" disabled>
+            <span class="play-symbol">▶</span>
+            <span><small>Input recording</small><strong>Play through VoiceBridge</strong></span>
+          </button>
+          <div class="transcript-block">
+            <span>Returned transcript</span>
+            <div class="transcript-copy" id="tunedTranscript">Run this path to compare</div>
+          </div>
+          <div class="returned-audio">
+            <div><span>Returned speech</span><strong>Live speaker-voice TTS</strong></div>
+            <button id="playTunedReturn" type="button" disabled>Play response</button>
+          </div>
           <dl class="pane-metrics">
             <div><dt>Clip confidence</dt><dd>94%</dd></div>
             <div><dt>Aggregate WER</dt><dd>34.8%</dd></div>
@@ -76,18 +98,6 @@
     </section>
 
     <section class="outcome-grid">
-      <article class="playback-panel" aria-labelledby="playbackTitle">
-        <div>
-          <span class="section-label">Text to speech</span>
-          <h2 id="playbackTitle">Play the result back</h2>
-          <p>Voice-continuity sample: “I need my medication before dinner tonight.”</p>
-        </div>
-        <div class="playback-actions">
-          <button class="primary" id="playPersonal" type="button"><span>▶</span> Speaker’s voice</button>
-          <button id="playGeneric" type="button"><span>▶</span> Generic TTS</button>
-        </div>
-      </article>
-
       <article class="clarification-panel" aria-labelledby="clarificationTitle">
         <div class="clarification-copy">
           <span class="section-label">Low-confidence behavior</span>
@@ -105,6 +115,6 @@
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="static/single-page.js?v=1"></script>
+  <script src="static/single-page.js?v=3"></script>
 </body>
 </html>
