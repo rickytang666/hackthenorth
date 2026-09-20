@@ -103,7 +103,11 @@ class DecodeState:
     def __init__(self, model, batch_size, prompt_length, output_length, speculative=False,
                  cache_rotary=True, omit_unused_masks=True):
         self.shape = (batch_size, prompt_length, output_length)
-        capacity = prompt_length + output_length - 1
+        self.draft_tokens = (draft_width(output_length)
+                             if speculative and batch_size == 1 else 0)
+        # Tail verification may write beyond the last requested output.
+        # Causal attention hides these scratch slots from earlier queries.
+        capacity = prompt_length + output_length - 1 + self.draft_tokens
         device = model.device
         self.cache = KVCache(model, batch_size, capacity)
         self.prompt_positions = torch.arange(prompt_length, device=device)
@@ -114,10 +118,9 @@ class DecodeState:
         self.position_causality = omit_unused_masks and uses_position_causality(model)
         self.graph = None
         self.verify_graph = None
-        self.draft_tokens = draft_width(output_length)
         if output_length > 1:
             self.capture(model)
-        if speculative and batch_size == 1 and self.draft_tokens >= 1:
+        if self.draft_tokens >= 1:
             self.capture_verifier(model)
 
     def step(self, model):

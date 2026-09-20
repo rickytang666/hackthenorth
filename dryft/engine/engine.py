@@ -8,7 +8,7 @@ from attention import GroupedAttention
 from kernels.fused import swiglu
 from kernels.gateup import LEGACY_CONFIG, gate_up_swiglu
 from kernels.rmsnorm import rms_norm
-from speculate import DraftGovernor, BackoffPromptLookup as PromptLookup
+from speculate import BackoffPromptLookup as PromptLookup
 from fused_layer import install as install_fused_projections
 from kernels.tile import tile_projection
 from projections import Projection, probe_point, resolve
@@ -169,18 +169,17 @@ class Engine:
                       if state.verify_graph is not None else None)
             if lookup is not None:
                 lookup.append(tokens[0])
-            governor = DraftGovernor()
             emitted = 1
             while emitted < max_new_tokens:
                 proposal = None
-                if (lookup is not None
-                        and max_new_tokens - emitted > state.draft_tokens
-                        and governor.should_draft()):
+                if lookup is not None:
                     proposal = lookup.propose()
                 if proposal is not None:
                     verified = state.verify(tokens[0], proposal, shape[1] + emitted - 1)
-                    governor.record(len(verified))
-                    for token in verified:
+                    # The cache carries scratch slots for the draft, so a
+                    # verify may run at any position; only the tokens this
+                    # generation still owes are emitted.
+                    for token in verified[:max_new_tokens - emitted]:
                         tokens = [token]
                         lookup.append(token)
                         emitted += 1
