@@ -32,7 +32,24 @@ def _add_rms_norm_kernel(X, R, W, SUM, OUT, N: tl.constexpr,
     tl.store(OUT + offset, normalized * weight, valid)
 
 
-def add_rms_norm(x, residual, weight, eps):
+@triton.jit
+def _add_rms_norm_native_kernel(X, R, W, SUM, OUT, N, EPS, BLOCK: tl.constexpr):
+    row = tl.program_id(0)
+    col = tl.arange(0, BLOCK)
+    valid = col < N
+    offset = row * N + col
+    x = tl.load(X + offset, valid, 0.).to(tl.float32)
+    residual = tl.load(R + offset, valid, 0.).to(tl.float32)
+    summed = (x + residual).to(tl.bfloat16)
+    tl.store(SUM + offset, summed, valid)
+    value = summed.to(tl.float32)
+    inverse = tl.rsqrt(tl.sum(value * value, 0) / N + EPS)
+    normalized = (value * inverse).to(tl.bfloat16)
+    gain = tl.load(W + col, valid, 0.)
+    tl.store(OUT + offset, normalized * gain, valid)
+
+
+def add_rms_norm(x, residual, weight, eps, *, match_separate=False):
     """Return (rounded residual sum, normalized sum), without input mutation.
 
     Experimental decode fusion; benchmark before enabling in the engine.
@@ -47,9 +64,12 @@ def add_rms_norm(x, residual, weight, eps):
     if block > MAX_BLOCK:
         raise ValueError('normalization row exceeds supported width')
     summed, normalized = torch.empty_like(x), torch.empty_like(x)
-    _add_rms_norm_kernel[(x.numel() // cols,)](
+    # The cross-layer path matches the separate RMSNorm's runtime divisor,
+    # epsilon, and contraction settings. Keep existing callers unchanged.
+    kernel = _add_rms_norm_native_kernel if match_separate else _add_rms_norm_kernel
+    kernel[(x.numel() // cols,)](
         x, residual, weight, summed, normalized, cols, eps, block,
-        num_warps=max(4, min(16, block // 256)), enable_fp_fusion=False,
+        num_warps=max(4, min(16, block // 256)), enable_fp_fusion=match_separate,
     )
     return summed, normalized
 

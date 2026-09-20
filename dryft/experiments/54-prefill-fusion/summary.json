@@ -1,0 +1,39 @@
+{
+  "candidate_positions": 10720,
+  "candidate_failures": 0,
+  "paired_tokens_identical_to_legacy": true,
+  "speedup_vs_legacy": [
+    1.0012733807410805,
+    1.0163939183567638
+  ],
+  "speedup_vs_submitted": [
+    0.9746266540271253,
+    1.0009879205399481
+  ],
+  "profiled_gpu_events": {
+    "main": 370.0,
+    "fused": 335.0
+  },
+  "engine_sha256": {
+    "attention.py": "2b0b2e58c479f096d7cba724c861c558f142aa3c8ddd6aaf3a6ebb05ab203b2f",
+    "decode.py": "a88640bd0d55772cf3f224052b6fdfe355496c9353bde7a668115b1ab77024c8",
+    "engine.py": "73485fce3f116b1212e9482efcfa54ac6f1e6b75ff8aba95b778f6986a960431",
+    "fused_layer.py": "c3563e902b1ab982c5fc4a9a287a849eaac7c0db60693c940f686f13feeb03ad",
+    "kernels/__init__.py": "29a4a94caa6473daa795011c4c11e07d31ca0f73c02ba28b41e8f5f8e5438084",
+    "kernels/attention.py": "bf6c013d83f4df262d91480ed84f503e9b167f19800f3e3d3ecbdb05084bc1a1",
+    "kernels/chain.py": "2e2e7c4272493be453f6802cf810a5e276c5c6c74c202f44bef84691123d84fc",
+    "kernels/dotgemv.py": "a86c961244aafaf4d2217f3287f4acff49c437fd84de077650f6f9c95c718db0",
+    "kernels/down.py": "31750fdddb04811adfb4834e47902c9ea656330aa00e0ed60db7f43a8e081ac3",
+    "kernels/fused.py": "b93b31998a71daac464bb8b7201d54e6ab60742bd1da49b7afe54be5b3a33cab",
+    "kernels/gateup.py": "bad8c16dcd7397de42a4b51b7a36dc27c4c44fb568ab6b3f359103c4bb7645ae",
+    "kernels/greedy.py": "5c713eca6739e6fc98ec6b60f57b389aedfe14760a349d88e0ff337747ce740f",
+    "kernels/projection.py": "d31406c39ce041c5041dcdfff7bfb26e993d28e767dc02dac9b80398ef727a40",
+    "kernels/rmsnorm.py": "c46f07b54cf68f8e8b67610a8517d57a5e4f5488bfab5e95d137152c9c975f68",
+    "kernels/sglang_attention.py": "27645ae42568afd8189f6bd96ece8b708d0c3b2923b1febb5e707a008bc5a0ba",
+    "kernels/split_down.py": "e1add228498462b30f98d7fbe509c36d97cd52cc924f36410d4052fd0ce07102",
+    "kernels/tile.py": "00232c70928738fc75ca92613f785db07cae7822c9c9b48a2d6b0597de06dc56",
+    "prefill.py": "ddfa139f63c3b70513da87398998b31028a3e914bca062eb0b4be18c03061180",
+    "projections.py": "68374586267998c40e91dd1f28a17b9fa746a0168f1d51dcb4d3e8b72cd7cb2b",
+    "speculate.py": "463f553334b2f90b09e1db42b6c5b78b2c9c77d1ed6a1bbebce2c5c3e38d59b0"
+  }
+}

@@ -7,7 +7,7 @@ from decode import DecodeState, stream_decode
 from attention import GroupedAttention
 from kernels.fused import swiglu
 from kernels.gateup import LEGACY_CONFIG, gate_up_swiglu
-from kernels.rmsnorm import rms_norm
+from kernels.rmsnorm import rms_norm, add_rms_norm
 from speculate import BackoffPromptLookup as PromptLookup
 from fused_layer import install as install_fused_projections
 from kernels.tile import tile_projection
@@ -112,10 +112,14 @@ class _DownNextNorm:
         self.norm = norm
 
     def _candidates(self, rows):
-        return [("legacy",), ("fused", 16)]
+        return [("legacy",), ("addnorm",)]
 
     def compute(self, choice, x, rows):
         norm = self.norm
+        if choice[0] == "addnorm":
+            projected = self.mlp.down_proj(x)
+            return add_rms_norm(projected, self.residual, norm.weight,
+                                norm.variance_epsilon, match_separate=True)
         if choice[0] == "legacy":
             out = self.mlp._down_residual(x, self.residual, rows)
             return out, rms_norm(out, norm.weight, norm.variance_epsilon)
