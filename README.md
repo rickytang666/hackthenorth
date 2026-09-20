@@ -2,9 +2,13 @@
 <img src="app/logo-white.png" width="150" alt="VoiceBridge logo">
 <h1>VoiceBridge</h1>
 <p>Speech recovery for dysarthric speakers, spoken back in the speaker's own voice.</p>
+
+[Watch it on YouTube](https://youtu.be/e1tZalE6_i8)
+
 </div>
 
 ---
+
 
 ## The problem
 
