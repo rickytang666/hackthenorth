@@ -20,6 +20,8 @@ results/
 checkpoints/
 *.nemo
 *.wav
+# Baseten checkpoint metadata contains temporary signed download URLs.
+voicebridge-*_checkpoints.json
 
 # local
 .DS_Store
