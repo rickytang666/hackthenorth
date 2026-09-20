@@ -86,6 +86,20 @@ const setStatus = t => { $('status').textContent = t; };
 let audioCtx = null;
 const ac = () => (audioCtx ??= new AudioContext({ sampleRate: SAMPLE_RATE }));
 
+// Locate the data chunk rather than assuming a 44-byte header; TORGO WAVs
+// carry a LIST chunk ahead of it.
+function pcmOf(raw) {
+  const view = new DataView(raw);
+  if (view.getUint32(0, false) !== 0x52494646) throw new Error('not a RIFF file');
+  let off = 12;
+  while (off + 8 <= raw.byteLength) {
+    const id = view.getUint32(off, false), size = view.getUint32(off + 4, true);
+    if (id === 0x64617461) return new Int16Array(raw, off + 8, size >> 1);
+    off += 8 + size + (size & 1);
+  }
+  throw new Error('no data chunk');
+}
+
 function drawWave(canvas, channel) {
   const w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
   const step = Math.floor(channel.length / w) || 1;
@@ -114,8 +128,12 @@ async function loadClips() {
     b.append(c, document.createTextNode(`${i + 1} · ${clip.duration_s}s`));
     b.onclick = () => select(i);
     box.append(b);
-    const buf = await ac().decodeAudioData(await (await fetch(clip.wav)).arrayBuffer());
-    clip.buffer = buf;
+    const raw = await (await fetch(clip.wav)).arrayBuffer();
+    // Keep the file's own samples for the wire. Decoding to float and
+    // requantizing changes them just enough to flip a low-confidence word.
+    clip.pcm = pcmOf(raw);
+    const buf = await ac().decodeAudioData(raw.slice(0));
+    clip.buffer = buf;                                  // playback and waveform only
     drawWave(c, buf.getChannelData(0));
   }
   setStatus('pick a clip');
@@ -261,14 +279,9 @@ function connect() {
   });
 }
 
-function sendPcm(f32) {
+function sendPcm(pcm) {
   if (!ws || ws.readyState !== 1) return;
-  const pcm = new Int16Array(f32.length);
-  for (let i = 0; i < f32.length; i++) {
-    const s = Math.max(-1, Math.min(1, f32[i]));
-    pcm[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
-  }
-  const bytes = new Uint8Array(pcm.buffer);
+  const bytes = new Uint8Array(pcm.buffer, pcm.byteOffset, pcm.byteLength);
   let bin = '';
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
   ws.send(JSON.stringify({ type: 'audio', pcm16_b64: btoa(bin) }));
@@ -288,7 +301,7 @@ async function run() {
   // The room hears the distorted original while the text resolves against it.
   // Synthesis lands about a second after this finishes, so the two never overlap.
   play(current.buffer);
-  const d = current.buffer.getChannelData(0);
+  const d = current.pcm;
   for (let o = 0, frame = 0; o < d.length; o += FRAME, frame++) {
     sendPcm(d.subarray(o, o + FRAME));
     // Paced against the wall clock, not a flat 20 ms sleep. setTimeout always
