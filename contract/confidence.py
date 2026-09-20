@@ -13,8 +13,14 @@ promotion table are not comparable.
 import math
 from dataclasses import dataclass
 
-# Starting values. Calibrate on the dev speaker before trusting them.
-ACCEPT_THRESHOLD = 0.70
+# Calibrated on F04, the validation speaker, over 244 tuned decodes.
+# 0.879 is the lowest threshold whose accepted set is at least 95% correct:
+# it accepts 91.4% of utterances at 95.1% precision. The previous 0.70 guess
+# accepted 97.5% at only 94.1%, which is how a wrong transcript scored 0.876
+# and was silently accepted.
+# Raising it costs 6 points of coverage and buys a point of precision; those
+# 6 points become clarification prompts, which is the intended behaviour.
+ACCEPT_THRESHOLD = 0.879
 ABSTAIN_THRESHOLD = 0.30
 
 

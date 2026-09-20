@@ -61,8 +61,12 @@
   </div>
 
   <div class="row" style="margin-top:12px">
-    <input type="text" id="url" value="ws://127.0.0.1:8765" spellcheck="false">
-    <span class="hint">ASR_WS_URL. Paste the promoted endpoint to switch models.</span>
+    <input type="text" id="url" value="wss://model-qk542geq.api.baseten.co/deployment/woo8697/websocket" spellcheck="false">
+    <span class="hint">ASR_WS_URL. Live Baseten H100. Fallback: <code>ws://127.0.0.1:8765</code> (mock) or <code>:8766</code> (local model).</span>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <input type="password" id="apiKey" placeholder="Baseten API key (this browser only)" spellcheck="false">
+    <span class="hint">Kept in sessionStorage. Leave blank for a local endpoint.</span>
   </div>
   <div class="row" style="margin-top:8px">
     <input type="text" id="voiceUrl" value="http://127.0.0.1:8770" spellcheck="false">
@@ -93,7 +97,7 @@
 
 <script>
 const SAMPLE_RATE = 16000, FRAME = 320;          // 320 samples = 20 ms
-const CLARIFY_BELOW = 0.70;                       // matches contract/confidence.py
+const CLARIFY_BELOW = 0.879;   // calibrated on F04; matches contract/confidence.py
 const $ = id => document.getElementById(id);
 let ws, ctx, node, stream, seq = 0, began = 0, sawPartial = false;
 
@@ -159,7 +163,14 @@ async function speak(text) {
 
 function connect() {
   return new Promise((resolve, reject) => {
-    ws = new WebSocket($('url').value);
+    const url = $('url').value;
+    const key = $('apiKey').value.trim();
+    if (key) try { sessionStorage.setItem('bt_key', key); } catch {}
+    // A browser cannot set an Authorization header on a WebSocket, so Baseten
+    // takes the key as a subprotocol. Local endpoints need neither.
+    ws = key && /baseten\.co/.test(url)
+      ? new WebSocket(url, ['Authorization', `Api-Key ${key}`])
+      : new WebSocket(url);
     ws.onopen = () => { setStatus('listening', 'on'); resolve(); };
     ws.onerror = () => { setStatus('connection failed', 'err'); reject(new Error('ws')); };
     ws.onclose = () => setStatus('idle');
@@ -249,6 +260,7 @@ async function playFile(file) {
   ws.send(JSON.stringify({ type:'end' }));
 }
 
+try { const k = sessionStorage.getItem('bt_key'); if (k) $('apiKey').value = k; } catch {}
 $('talk').onclick = start;
 $('pick').onclick = () => $('file').click();
 $('file').onchange = e => e.target.files[0] && playFile(e.target.files[0]);
