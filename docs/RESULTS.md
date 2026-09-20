@@ -63,10 +63,19 @@ hardest, against 38.6% on M02. That is the product thesis, measured.
 
 ## What the recognizer actually fixes
 
-Sealed-test examples, frozen model against tuned:
+All from the sealed test speaker, frozen model against tuned. The seven
+sentences are the clips the demo ships, selected because the tuned model matches
+the reference exactly and the frozen model does not.
 
 | Said | Frozen heard | Tuned |
 |---|---|---|
+| this was easy for us | "thats whats using force" | exact |
+| why yell or worry over silly items | "why yelled a warrior of a silly agent" | exact |
+| he will allow a rare lie | "he will **not** allow a real life" | exact |
+| we gathered shells on the beach | "forget the tails on the beach" | exact |
+| their house is grey and white | "there are houses grey and white" | exact |
+| two other cases also were under advisement | "two of the cases also were under advisement" | exact |
+| twice each day he plays skillfully and with zest upon our small organ | "twice each day **she** played skilfully and with **that** upon **her** small organ" | exact |
 | wicked | "who were killed" | wicked |
 | jagged | "they are good" | jagged |
 | brawn | "oh put it on" | brawn |
@@ -74,6 +83,39 @@ Sealed-test examples, frozen model against tuned:
 
 The frozen model does not fail quietly. It produces fluent, confident, wrong
 English, which is exactly the failure the clarification step exists to catch.
+Row three is the sharpest case: the baseline inserts a negation that was never
+spoken, inverting the meaning.
+
+## End to end, live
+
+`scripts/e2e_check.py` drives the real chain once per demo clip: 20 ms PCM
+frames to the deployed Baseten endpoint over Protocol 1, then enrollment and
+synthesis against the OpenVoice renderer on MPS. Nothing mocked, nothing
+precomputed. Measured 2026-09-19 23:05 EDT.
+
+| # | Clip | Transcript exact | Confidence | Asks | Alternatives | First partial | Final | Synthesis |
+|---|---|---|---:|---|---:|---:|---:|---:|
+| 1 | M02_1_headMic_0141 | yes | 0.924 | no | 1 | 645 ms | 4854 ms | 862 ms |
+| 2 | M02_1_headMic_0135 | yes | 0.815 | yes | 3 | 596 ms | 10036 ms | 1078 ms |
+| 3 | M02_1_headMic_0185 | yes | 0.901 | no | 1 | 604 ms | 6288 ms | 739 ms |
+| 4 | M02_1_headMic_0184 | yes | 0.848 | yes | 3 | 591 ms | 6820 ms | 1725 ms |
+| 5 | M02_1_headMic_0196 | yes | 0.976 | no | 1 | 598 ms | 8493 ms | 892 ms |
+| 6 | M02_2_headMic_0088 | yes | 0.754 | yes | 3 | 612 ms | 11837 ms | 2002 ms |
+| 7 | M02_1_headMic_0092 | yes | 0.892 | no | 1 | 608 ms | 14191 ms | 1011 ms |
+
+**All seven transcribe exactly.** `final` is wall clock from the first frame, so
+it includes streaming the clip in real time; the decode itself lands roughly 1.5
+to 2.5 s after the audio ends. Three clips fall under the 0.879 threshold and
+ask before speaking, each offering three genuine alternatives with the model's
+own best guess ranked first.
+
+Driven by hand in a browser over the same path: synthesis after confirmation
+took 1317 ms and 735 ms.
+
+**Cold start is 33 seconds.** Autoscaling is `min_replica: 0` with a 60 s
+window, so the endpoint sleeps when idle and the first connection times out.
+Either warm it before demoing, or set `min_replica: 1` beforehand and accept an
+idle H100.
 
 ## Training
 
@@ -112,9 +154,6 @@ parameters the model is 13% worse.
 The binding constraint is data, not capacity: 4.06 hours across 6 speakers is
 what caps this, and rank 8 on 6 encoder blocks is already the right size for it.
 The original run's dev loss bottoming at step 900 of 1200 was the same signal.
-
-Practical consequence: the configuration is chosen by measurement rather than
-inherited, and there is no accuracy left on the table from a bigger adapter.
 More speakers would help; more parameters will not.
 
 ## Data
@@ -138,88 +177,37 @@ cross a split.
 
 OpenVoice V2, speaker embedding from five M02 clips. Job `w7rrz03`.
 
-| | H100 | Mac CPU |
-|---|---:|---:|
-| 7-word synthesis | **196 ms** | 2200 ms |
-| Base TTS / tone conversion | 52 / 141 ms | 703 / 1497 ms |
+| | H100 | Mac MPS | Mac CPU |
+|---|---:|---:|---:|
+| 7-word synthesis | **196 ms** | 1078 ms | 2200 ms |
+| Base TTS / tone conversion | 52 / 141 ms | n/a | 703 / 1497 ms |
 
-At 196 ms, whole-clause synthesis fits the 1.5 s first-audio budget, so chunked
-streaming TTS was cut from the plan.
+`serve/voice/server.py` selects MPS when CUDA is absent, which is roughly 3x
+faster than CPU on Apple Silicon; override with `VOICE_DEVICE=cpu` if a
+converter kernel is missing on an older torch. At these speeds whole-clause
+synthesis fits the 1.5 s first-audio budget, so chunked streaming TTS was cut
+from the plan.
 
 ## Serving
 
 | Path | First partial | Per clip | Notes |
 |---|---:|---:|---|
-| Baseten H100, production (`woo8697`) | ~1000 ms | 4 to 7 s | Network plus 400 ms re-decode cadence |
+| Baseten H100, production (`woo8697`) | ~600 to 1000 ms | 4 to 14 s | Network, 400 ms re-decode cadence, and real-time streaming of the clip |
 | Mac, MPS + bfloat16 | n/a | 145 to 292 ms | 0.5 GiB. fp16 overflows this model's attention mask |
 | On-box inference alone | n/a | 70 ms | The model itself |
 
-## End to end, live
-
-Audio into the deployed Baseten endpoint, through the deterministic verifier,
-out as the speaker's own voice. Four sealed-test clips, all transcribed
-correctly, `model_id` confirming the tuned adapter.
-
-| Clip | ASR | Confidence | Verdict | First partial | ASR total | Synthesis |
-|---|---|---:|---|---:|---:|---:|
-| wicked | wicked | 0.815 | clarify | 1757 ms | 5555 ms | 2900 ms |
-| jagged | jagged | 0.985 | accept | 880 ms | 4413 ms | 1063 ms |
-| brawn | brawn | 0.645 | clarify | 1451 ms | 4326 ms | 1005 ms |
-| witty | witty | 0.794 | accept-then-ask | 907 ms | 3726 ms | 1041 ms |
-
-**Cold start is 33 seconds.** Autoscaling is `min_replica: 0` with a 60 s
-window, so the endpoint sleeps when idle and the first connection times out.
-Either warm it before demoing, or set `min_replica: 1` shortly beforehand and
-accept an idle H100.
-
-Three of four route to `clarify` under the calibrated 0.879 threshold even
-though all four are correct. That is the intended trade: the threshold was set
-for 95% precision on accepted answers, and the cost is asking more often.
-
 ## What these numbers do not show
 
-- Eight speakers, two of them genuinely held out. Not proof of generalization.
+- Eight speakers, two of them genuinely held out. Evidence, not proof of
+  generalization.
 - TORGO is **read prompts**: isolated words and a fixed sentence set. No
-  spontaneous or conversational speech, so nothing here speaks to open dialogue.
+  spontaneous or conversational speech.
+- We tested the adapter on spontaneous conversational speech from outside the
+  corpus, an 11.8 s clip of a stroke survivor in a clinical interview. It did
+  not transfer: frozen 0.654 WER, tuned 0.731. Confidence correctly collapsed to
+  0.657 and the system asked rather than asserting, but the fine-tuning bought
+  nothing there. The adapter is specialized to TORGO's distribution.
 - 76% of the sealed test set is single isolated words, which is the hardest case
   and where the gain is largest. Longer utterances gain 17 to 25%.
 - 34.8% WER on M02 is still high. The claim is the relative reduction on an
   unseen speaker, not that the problem is solved.
-
-## End-to-end demo path, measured 2026-09-19 23:05 EDT
-
-`scripts/e2e_check.py` drives the real chain once per curated clip: 20 ms PCM
-frames to the live Baseten deployment over Protocol 1, then enrollment and
-synthesis against the OpenVoice renderer on MPS. Nothing is mocked and nothing
-is precomputed.
-
-| # | Clip | Transcript exact | Confidence | Clarifies | Alternatives | First partial | Final | Synthesis |
-|---|---|---|---:|---|---:|---:|---:|---:|
-| 1 | M02_1_headMic_0141 | yes | 0.924 | no | 1 | 645 ms | 4854 ms | 862 ms |
-| 2 | M02_1_headMic_0135 | yes | 0.815 | yes | 3 | 596 ms | 10036 ms | 1078 ms |
-| 3 | M02_1_headMic_0185 | yes | 0.901 | no | 1 | 604 ms | 6288 ms | 739 ms |
-| 4 | M02_1_headMic_0184 | yes | 0.848 | yes | 3 | 591 ms | 6820 ms | 1725 ms |
-| 5 | M02_1_headMic_0196 | yes | 0.976 | no | 1 | 598 ms | 8493 ms | 892 ms |
-| 6 | M02_2_headMic_0088 | yes | 0.754 | yes | 3 | 612 ms | 11837 ms | 2002 ms |
-| 7 | M02_1_headMic_0092 | yes | 0.892 | no | 1 | 608 ms | 14191 ms | 1011 ms |
-
-All seven transcribe exactly. `final` is wall clock from the first frame, so it
-includes streaming the clip in real time; the decode itself lands roughly 1.5 to
-2.5 s after the audio ends.
-
-Synthesis runs on MPS. On CPU the same calls took 2.2 s to 3.9 s, so
-`serve/voice/server.py` selects MPS when CUDA is absent; override with
-`VOICE_DEVICE=cpu` if a converter kernel is missing on an older torch.
-
-Browser run of the same path, clip 6 then clip 1: clarification card offered
-three real alternatives with the model's own best guess first, and synthesis
-after confirmation took 1317 ms and 735 ms.
-
-### Browser and script now send identical bytes
-
-The page originally decoded each clip to float via `decodeAudioData` and
-requantized to int16 before streaming. That round trip is lossy and asymmetric,
-and on clip 7 it changed the result: the browser decoded "upon a small organ"
-at 0.888 where the script got "upon our small organ" at 0.892, twice. The page
-now slices the WAV's own PCM and uses the decoded buffer only for playback and
-the waveform. Re-checked in the browser: "upon our small organ", 0.892.
