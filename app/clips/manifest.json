@@ -1,0 +1,93 @@
+[
+  {
+    "utterance_id": "M02_1_headMic_0141",
+    "wav": "clips/M02_1_headMic_0141.wav",
+    "speaker_id": "M02",
+    "truth": "this was easy for us",
+    "baseline": "thats whats using force",
+    "tuned": "this was easy for us",
+    "baseline_word_errors": 5,
+    "baseline_wer": 1.0,
+    "expected_confidence": 0.9233,
+    "clarifies": false,
+    "duration_s": 4.01
+  },
+  {
+    "utterance_id": "M02_1_headMic_0135",
+    "wav": "clips/M02_1_headMic_0135.wav",
+    "speaker_id": "M02",
+    "truth": "why yell or worry over silly items",
+    "baseline": "why yelled a warrior of a silly agent",
+    "tuned": "why yell or worry over silly items",
+    "baseline_word_errors": 6,
+    "baseline_wer": 0.8571,
+    "expected_confidence": 0.8126,
+    "clarifies": true,
+    "duration_s": 7.46
+  },
+  {
+    "utterance_id": "M02_1_headMic_0185",
+    "wav": "clips/M02_1_headMic_0185.wav",
+    "speaker_id": "M02",
+    "truth": "he will allow a rare lie",
+    "baseline": "he will not allow a real life",
+    "tuned": "he will allow a rare lie",
+    "baseline_word_errors": 3,
+    "baseline_wer": 0.5,
+    "expected_confidence": 0.9015,
+    "clarifies": false,
+    "duration_s": 5.03
+  },
+  {
+    "utterance_id": "M02_1_headMic_0184",
+    "wav": "clips/M02_1_headMic_0184.wav",
+    "speaker_id": "M02",
+    "truth": "we gathered shells on the beach",
+    "baseline": "forget the tails on the beach",
+    "tuned": "we gathered shells on the beach",
+    "baseline_word_errors": 3,
+    "baseline_wer": 0.5,
+    "expected_confidence": 0.8409,
+    "clarifies": true,
+    "duration_s": 4.93
+  },
+  {
+    "utterance_id": "M02_1_headMic_0196",
+    "wav": "clips/M02_1_headMic_0196.wav",
+    "speaker_id": "M02",
+    "truth": "their house is grey and white",
+    "baseline": "there are houses grey and white",
+    "tuned": "their house is grey and white",
+    "baseline_word_errors": 3,
+    "baseline_wer": 0.5,
+    "expected_confidence": 0.9775,
+    "clarifies": false,
+    "duration_s": 5.54
+  },
+  {
+    "utterance_id": "M02_2_headMic_0088",
+    "wav": "clips/M02_2_headMic_0088.wav",
+    "speaker_id": "M02",
+    "truth": "two other cases also were under advisement",
+    "baseline": "two of the cases also were under advisement",
+    "tuned": "two other cases also were under advisement",
+    "baseline_word_errors": 2,
+    "baseline_wer": 0.2857,
+    "expected_confidence": 0.7437,
+    "clarifies": true,
+    "duration_s": 8.57
+  },
+  {
+    "utterance_id": "M02_1_headMic_0092",
+    "wav": "clips/M02_1_headMic_0092.wav",
+    "speaker_id": "M02",
+    "truth": "twice each day he plays skillfully and with zest upon our small organ",
+    "baseline": "twice each day she played skilfully and with that upon her small organ",
+    "tuned": "twice each day he plays skillfully and with zest upon our small organ",
+    "baseline_word_errors": 5,
+    "baseline_wer": 0.3846,
+    "expected_confidence": 0.8935,
+    "clarifies": false,
+    "duration_s": 11.64
+  }
+]
