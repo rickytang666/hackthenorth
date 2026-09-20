@@ -124,7 +124,7 @@ streaming TTS was cut from the plan.
 
 | Path | First partial | Per clip | Notes |
 |---|---:|---:|---|
-| Baseten H100, deployment `woo8697` | ~1000 ms | 4 to 7 s | Network plus 400 ms re-decode cadence |
+| Baseten H100, production (`woo8697`) | ~1000 ms | 4 to 7 s | Network plus 400 ms re-decode cadence |
 | Mac, MPS + bfloat16 | n/a | 145 to 292 ms | 0.5 GiB. fp16 overflows this model's attention mask |
 | On-box inference alone | n/a | 70 ms | The model itself |
 
@@ -141,8 +141,10 @@ correctly, `model_id` confirming the tuned adapter.
 | brawn | brawn | 0.645 | clarify | 1451 ms | 4326 ms | 1005 ms |
 | witty | witty | 0.794 | accept-then-ask | 907 ms | 3726 ms | 1041 ms |
 
-**Cold start is 33 seconds.** The deployment scales to zero, so the endpoint
-must be warmed before a demo or the first connection times out.
+**Cold start is 33 seconds.** Autoscaling is `min_replica: 0` with a 60 s
+window, so the endpoint sleeps when idle and the first connection times out.
+Either warm it before demoing, or set `min_replica: 1` shortly beforehand and
+accept an idle H100.
 
 Three of four route to `clarify` under the calibrated 0.879 threshold even
 though all four are correct. That is the intended trade: the threshold was set
