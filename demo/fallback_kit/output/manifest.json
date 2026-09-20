@@ -1,0 +1,50 @@
+{
+  "artifacts": {
+    "frozen_baseline": {
+      "bytes": 16,
+      "file": "02_frozen_baseline.txt",
+      "sha256": "beca229551ba894c1c7f83867732454a77726bb5c626ae595fe351bf16d4e182"
+    },
+    "generic_tts": {
+      "bytes": 279910,
+      "channels": 1,
+      "duration_seconds": 3.173,
+      "file": "05_generic_tts.wav",
+      "sample_rate_hz": 44100,
+      "sample_width_bytes": 2,
+      "sha256": "48861fb12cca770d9c9d332a7c7a48a954fcdedd404a72b902e5a06ce8a5eca4"
+    },
+    "m02_source": {
+      "bytes": 113004,
+      "channels": 1,
+      "duration_seconds": 3.53,
+      "file": "01_m02_source.wav",
+      "sample_rate_hz": 16000,
+      "sample_width_bytes": 2,
+      "sha256": "c3cd6943ac3313f68ba572a56fef11b382b73f131a3d197116bfa49a565d50bf"
+    },
+    "personal_voice": {
+      "bytes": 139820,
+      "channels": 1,
+      "duration_seconds": 3.17,
+      "file": "04_personal_voice.wav",
+      "sample_rate_hz": 22050,
+      "sample_width_bytes": 2,
+      "sha256": "b7e9bcac42a366ff3272a522391b09e7e956728a25eabe6e18f3bafb4138af42"
+    },
+    "tuned": {
+      "bytes": 7,
+      "file": "03_tuned_transcript.txt",
+      "sha256": "36cd3b870777eb645a8077f0083ef7fce5b0bcbe16d4a57e812c3894e7f31967"
+    }
+  },
+  "bundle": "VoiceBridge booth fallback kit",
+  "m02_fixture": {
+    "frozen_heard": "who were killed",
+    "said": "wicked",
+    "source_file": "1_M02_2_headMic_0233.wav",
+    "tuned": "wicked"
+  },
+  "offline": true,
+  "voice_comparison_text": "I need my medication before dinner tonight"
+}

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VoiceBridge offline replay</title>
+  <style>
+    :root { --ink:#070806; --paper:#f1f0e8; --acid:#d7ff3f; --signal:#ff5a36; --cyan:#43d9ff; --muted:#8f9488; --line:rgba(241,240,232,.17); --display:"Avenir Next Condensed","DIN Condensed","Franklin Gothic Condensed",sans-serif; --body:"Avenir Next","Gill Sans",sans-serif }
+    * { box-sizing:border-box }
+    html,body { width:100%; min-height:100%; margin:0 }
+    body { color:var(--paper); background:radial-gradient(circle at 85% 12%,rgba(215,255,63,.09),transparent 34%),var(--ink); font-family:var(--body) }
+    button { font:inherit }
+    .grain { position:fixed; inset:0; pointer-events:none; opacity:.18; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E") }
+    header { height:76px; padding:0 4vw; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between }
+    .wordmark { font:800 18px/1 var(--display); letter-spacing:.18em }
+    .wordmark i { display:inline-block; width:14px; height:14px; margin-right:10px; border:4px solid var(--acid); border-top-color:transparent; border-radius:50%; transform:rotate(-28deg); vertical-align:-2px }
+    .network { display:flex; align-items:center; gap:9px; color:var(--acid); font:800 9px/1 var(--display); letter-spacing:.14em }
+    .network i { width:8px; height:8px; border:2px solid currentColor; border-radius:50% }
+    main { min-height:calc(100vh - 132px); padding:clamp(26px,5vh,60px) 4vw; display:grid; grid-template-columns:minmax(270px,.65fr) minmax(520px,1.35fr); gap:clamp(28px,5vw,78px); align-items:center }
+    .eyebrow { margin:0 0 12px; color:var(--acid); font:800 11px/1 var(--display); letter-spacing:.18em }
+    h1 { margin:0; font:900 clamp(50px,7vw,108px)/.82 var(--display); letter-spacing:-.055em; text-transform:uppercase }
+    h1 em { color:var(--acid); font-style:normal }
+    .lede { max-width:510px; margin:22px 0 0; color:var(--muted); font-size:clamp(16px,1.5vw,22px); line-height:1.35 }
+    .readiness { margin-top:28px; display:grid; gap:8px }
+    .readiness div { display:flex; justify-content:space-between; padding:10px 0; border-top:1px solid var(--line); color:var(--muted); font:800 9px/1 var(--display); letter-spacing:.11em }
+    .readiness strong { color:var(--paper) }
+    .readiness .ready strong { color:var(--acid) }
+    .replay { border:1px solid var(--line); background:rgba(12,14,11,.9); overflow:hidden }
+    .replay-head { padding:18px 22px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; color:var(--muted); font:800 8px/1 var(--display); letter-spacing:.13em }
+    .replay-head strong { color:var(--cyan) }
+    .wave { position:relative; height:120px; border-bottom:1px solid var(--line); background:linear-gradient(transparent 49%,rgba(241,240,232,.08) 50%,transparent 51%) }
+    #waveform { width:100%; height:100%; display:block }
+    .transcript { min-height:150px; padding:28px 22px; display:grid; align-content:center; gap:8px }
+    .transcript span { color:var(--muted); font:800 9px/1 var(--display); letter-spacing:.14em }
+    .transcript strong { font:900 clamp(44px,7vw,94px)/.88 var(--display); letter-spacing:-.045em; text-transform:uppercase }
+    .transcript strong i { color:var(--signal); font-style:normal }
+    .confidence { height:5px; background:rgba(241,240,232,.08) }
+    .confidence i { display:block; width:0; height:100%; background:var(--signal); transition:width .2s ease,background .2s ease }
+    .compare { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--line) }
+    .compare div { min-width:0; padding:18px 22px }
+    .compare div + div { border-left:1px solid var(--line) }
+    .compare span { color:var(--muted); font:800 8px/1 var(--display); letter-spacing:.13em }
+    .compare strong { display:block; margin-top:8px; font:800 clamp(19px,2vw,30px)/1.05 var(--display) }
+    .compare .wrong strong { color:var(--signal); text-decoration:line-through } .compare .right strong { color:var(--acid) }
+    .actions { display:flex; gap:9px; padding:18px 22px; border-top:1px solid var(--line) }
+    .actions button { min-height:44px; padding:0 16px; border:1px solid var(--line); background:transparent; color:var(--paper); font:800 9px/1 var(--display); letter-spacing:.13em; cursor:pointer }
+    .actions button:hover,.actions button:focus-visible { border-color:var(--acid); outline:none }
+    .actions .primary { background:var(--acid); border-color:var(--acid); color:var(--ink) }
+    footer { height:56px; padding:0 4vw; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; color:var(--muted); font:800 9px/1 var(--display); letter-spacing:.13em }
+    footer strong { color:var(--acid) }
+    @media (max-width:900px) { main { grid-template-columns:1fr } }
+    @media (max-width:560px) { .compare { grid-template-columns:1fr } .compare div + div { border-left:0; border-top:1px solid var(--line) } }
+    @media (prefers-reduced-motion:reduce) { * { animation-duration:.01ms!important; transition-duration:.01ms!important } }
+  </style>
+  <link rel="stylesheet" href="static/report.css?v=3">
+</head>
+<body class="report-ui page-offline">
+  <div class="grain" aria-hidden="true"></div>
+  <header><div class="wordmark"><i></i>VOICEBRIDGE</div><div class="network"><i></i><span id="network">CHECKING OFFLINE KIT</span></div></header>
+  <main>
+    <section>
+      <p class="eyebrow">FALLBACK RUNG 03</p>
+      <h1>The demo<br>survives <em>Wi-Fi.</em></h1>
+      <p class="lede">A recorded Protocol 1 session, the booth surfaces, and every local asset stay ready in the browser cache.</p>
+      <div class="readiness">
+        <div id="worker"><span>SERVICE WORKER</span><strong>INSTALLING</strong></div>
+        <div id="fixture"><span>RECORDED SESSION</span><strong>LOADING</strong></div>
+        <div id="control"><span>PAGE CONTROL</span><strong>CHECKING</strong></div>
+      </div>
+    </section>
+    <section class="replay">
+      <div class="replay-head"><span id="fixtureName">M02 BOOTH RECOVERY</span><strong id="clock">SIMULATED TIMING · 0 MS</strong></div>
+      <div class="wave"><canvas id="waveform"></canvas></div>
+      <div class="transcript"><span>RECORDED PROTOCOL 1 OUTPUT</span><strong id="transcript">READY</strong></div>
+      <div class="confidence"><i id="confidence"></i></div>
+      <div class="compare"><div class="wrong"><span>FROZEN BASELINE</span><strong id="baseline">-</strong></div><div class="right"><span>TUNED ADAPTER</span><strong id="tuned">-</strong></div></div>
+      <div class="actions"><button class="primary" id="play">REPLAY OFFLINE</button><button id="reload">RELOAD TO TAKE CONTROL</button></div>
+    </section>
+  </main>
+  <footer><span>RECORDED FIXTURE · NO MODEL · NO NETWORK</span><strong id="footerState">PREPARING CACHE</strong></footer>
+  <script>
+    const byId=id=>document.getElementById(id);
+    let session;
+    let replayToken=0;
+
+    function mark(id,label,ready=true) {
+      const row=byId(id);
+      row.classList.toggle('ready',ready);
+      row.querySelector('strong').textContent=label;
+    }
+
+    function drawWaveform(values,progress=1) {
+      const canvas=byId('waveform');
+      const ratio=Math.min(devicePixelRatio||1,2);
+      canvas.width=Math.round(canvas.clientWidth*ratio);
+      canvas.height=Math.round(canvas.clientHeight*ratio);
+      const context=canvas.getContext('2d');
+      const center=canvas.height/2;
+      context.clearRect(0,0,canvas.width,canvas.height);
+      context.strokeStyle='#355f82';
+      context.lineWidth=2*ratio;
+      context.beginPath();
+      values.forEach((value,index)=>{
+        const x=(index/(values.length-1))*canvas.width;
+        const y=center-value*center*.78;
+        if (index===0) context.moveTo(x,y); else context.lineTo(x,y);
+      });
+      context.stroke();
+      context.fillStyle='rgba(246,247,248,.78)';
+      context.fillRect(canvas.width*progress,0,canvas.width*(1-progress),canvas.height);
+    }
+
+    async function replay() {
+      if (!session) return;
+      const token=++replayToken;
+      byId('baseline').textContent='-';
+      byId('tuned').textContent='-';
+      byId('confidence').style.width='0';
+      byId('transcript').textContent='LISTENING';
+      drawWaveform(session.waveform,0);
+      const began=performance.now();
+      for (const event of session.events) {
+        const wait=Math.max(0,event.at_ms-(performance.now()-began));
+        await new Promise(resolve=>setTimeout(resolve,wait));
+        if (token!==replayToken) return;
+        byId('clock').textContent=`SIMULATED TIMING · ${event.at_ms} MS`;
+        drawWaveform(session.waveform,Math.min(1,event.at_ms/session.final_ms));
+        if (event.type==='start') continue;
+        const stable=event.text.slice(0,event.stable_prefix_len);
+        const tail=event.text.slice(event.stable_prefix_len);
+        byId('transcript').textContent=stable;
+        if (tail) {
+          const unstable=document.createElement('i');
+          unstable.textContent=tail;
+          byId('transcript').append(unstable);
+        }
+        byId('confidence').style.width=`${Math.round(event.confidence*100)}%`;
+        byId('confidence').style.background=event.confidence>=.7?'var(--acid)':'var(--signal)';
+      }
+      drawWaveform(session.waveform,1);
+      byId('baseline').textContent=session.baseline;
+      byId('tuned').textContent=session.tuned;
+      byId('footerState').textContent=`SIMULATED REPLAY COMPLETE · ${session.final_ms} MS`;
+    }
+
+    async function prepare() {
+      try {
+        const response=await fetch('./fixtures/session-m02.json');
+        session=await response.json();
+        byId('fixtureName').textContent=session.fixture.toLocaleUpperCase();
+        mark('fixture','CACHED FIXTURE');
+        drawWaveform(session.waveform,1);
+      } catch (error) {
+        mark('fixture','FIXTURE MISSING',false);
+      }
+
+      if ('serviceWorker' in navigator) {
+        try {
+          await navigator.serviceWorker.register('./sw.js');
+          await navigator.serviceWorker.ready;
+          mark('worker','CACHE READY');
+          const controlled=Boolean(navigator.serviceWorker.controller);
+          mark('control',controlled?'OFFLINE CONTROLLED':'RELOAD ONCE',controlled);
+          byId('network').textContent=controlled?'OFFLINE KIT READY':'CACHE READY · RELOAD ONCE';
+          byId('footerState').textContent=controlled?'SAFE TO DISCONNECT WI-FI':'RELOAD ONCE TO TAKE CONTROL';
+        } catch (error) {
+          mark('worker','INSTALL FAILED',false);
+        }
+      } else {
+        mark('worker','UNSUPPORTED',false);
+      }
+    }
+
+    byId('play').onclick=replay;
+    byId('reload').onclick=()=>location.reload();
+    addEventListener('resize',()=>session&&drawWaveform(session.waveform,1));
+    prepare();
+  </script>
+</body>
+</html>

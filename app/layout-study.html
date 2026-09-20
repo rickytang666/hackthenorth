@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VoiceBridge report layout study</title>
+  <style>
+    * { box-sizing:border-box }
+    html,body { min-width:320px; min-height:100%; margin:0 }
+    body { background:#eceeef; color:#202326; font-family:"Avenir Next","Gill Sans",sans-serif; font-size:14px }
+    button { font:inherit }
+    .study-bar { min-height:72px; padding:12px 22px; display:flex; align-items:center; justify-content:space-between; gap:20px; border-bottom:1px solid #d3d6d8; background:#f8f8f7 }
+    .study-title { display:grid; gap:2px; flex:0 0 auto }
+    .study-title strong { font-size:13px; font-weight:650 }
+    .study-title span { color:#73787d; font-size:11px }
+    .direction-picker { display:flex; gap:5px; overflow:auto }
+    .direction-picker button { min-height:38px; padding:0 12px; border:1px solid #d0d3d5; border-radius:5px; background:#fff; color:#555b60; font-size:11px; white-space:nowrap; cursor:pointer }
+    .direction-picker button:hover,.direction-picker button:focus-visible { border-color:#8d9297; outline:none }
+    .direction-picker button.active { border-color:#4e5963; background:#4e5963; color:#fff }
+    .direction-picker small { margin-right:6px; opacity:.55 }
+    .stage { min-height:calc(100vh - 72px); padding:20px; display:grid; place-items:center }
+    .concept { width:min(1040px,100%); min-height:min(650px,calc(100vh - 112px)); overflow:hidden; background:#fff; border:1px solid #d5d8da }
+    .concept[hidden] { display:none }
+    .muted { color:#6e757b }
+
+    /* 1. Conventional written report */
+    .standard-report { padding:38px 48px; color:#273039; font-family:"Avenir Next","Gill Sans",sans-serif }
+    .report-head { display:flex; justify-content:space-between; align-items:start; padding-bottom:20px; border-bottom:1px solid #d8dde1 }
+    .report-brand { font-size:13px; font-weight:700; letter-spacing:.04em }
+    .report-meta { display:grid; gap:3px; color:#737b82; font-size:11px; text-align:right }
+    .report-title { margin:30px 0 6px; font-size:28px; font-weight:650; letter-spacing:-.02em }
+    .report-subtitle { margin:0; color:#69727a; font-size:14px }
+    .summary-box { margin-top:26px; padding:16px 18px; border:1px solid #d8dde1; border-left:3px solid #54789a; background:#f7f9fa; line-height:1.55 }
+    .summary-box strong { color:#385f83 }
+    .metric-grid { margin-top:22px; display:grid; grid-template-columns:repeat(3,1fr); border:1px solid #d8dde1 }
+    .metric { padding:15px 18px; border-right:1px solid #d8dde1 }
+    .metric:last-child { border-right:0 }
+    .metric span { display:block; margin-bottom:5px; color:#747c83; font-size:11px }
+    .metric strong { font-size:20px; font-weight:650 }
+    .report-section-title { margin:28px 0 10px; font-size:14px; font-weight:650 }
+    .result-table { width:100%; border-collapse:collapse; font-size:13px }
+    .result-table th,.result-table td { padding:13px 12px; border-top:1px solid #dde1e4; text-align:left }
+    .result-table th { color:#697179; font-size:11px; font-weight:600 }
+    .result-table td:last-child,.result-table th:last-child { text-align:right }
+    .result-table .selected { background:#f3f6f8 }
+    .result-table .selected td:first-child { color:#385f83; font-weight:650 }
+    .report-note { margin:18px 0 0; color:#747c83; font-size:11px; line-height:1.5 }
+
+    /* 2. Simple review comparison */
+    .comparison-review { padding:34px 40px; color:#252a2e; font-family:"Avenir Next","Gill Sans",sans-serif }
+    .review-head { display:flex; justify-content:space-between; gap:24px; align-items:end; padding-bottom:18px; border-bottom:1px solid #d9dcde }
+    .review-head h1 { margin:0 0 4px; font-size:25px; font-weight:650; letter-spacing:-.02em }
+    .review-head p { margin:0; color:#71777c; font-size:12px }
+    .review-head span { color:#71777c; font-size:11px }
+    .review-panels { margin-top:26px; display:grid; grid-template-columns:1fr 1fr; gap:16px }
+    .review-panel { padding:22px; border:1px solid #d9dcde; border-radius:6px; background:#fafafa }
+    .review-panel.adapted { border-color:#bccbd7; background:#f5f8fa }
+    .review-label { display:flex; justify-content:space-between; gap:16px; color:#6f767c; font-size:11px }
+    .review-label strong { color:#4b555d; font-weight:600 }
+    .review-transcript { min-height:96px; margin:18px 0 10px; display:flex; align-items:center; font-size:28px; font-weight:550; line-height:1.15; letter-spacing:-.02em }
+    .review-panel:first-child .review-transcript { color:#6e7478 }
+    .review-panel.adapted .review-transcript { color:#355f82 }
+    .review-caption { margin:0; color:#72797f; font-size:12px; line-height:1.45 }
+    .review-summary { margin-top:22px; border-top:1px solid #d9dcde }
+    .summary-row { min-height:48px; display:grid; grid-template-columns:1fr 140px 140px; align-items:center; border-bottom:1px solid #e0e3e5; font-size:12px }
+    .summary-row span { color:#71787e }
+    .summary-row strong { font-size:14px; font-weight:600; text-align:right }
+    .summary-row strong:last-child { color:#355f82 }
+    .review-foot { margin-top:17px; display:flex; justify-content:space-between; gap:20px; color:#747b80; font-size:11px }
+
+    /* 3. Research-style brief */
+    .research-brief { padding:42px 56px; color:#2c2b28; background:#fcfbf7; font-family:"Iowan Old Style","Palatino Linotype",Palatino,serif }
+    .brief-wrap { max-width:800px; margin:0 auto }
+    .brief-head { padding-bottom:16px; border-bottom:1px solid #cbc8bf; display:flex; justify-content:space-between; gap:24px; color:#68665f; font-size:12px }
+    .brief-head strong { color:#34332f; font-family:"Avenir Next","Gill Sans",sans-serif; font-size:12px; letter-spacing:.04em }
+    .brief-title { margin:28px 0 10px; font-size:30px; font-weight:500; line-height:1.15; letter-spacing:-.02em }
+    .brief-deck { margin:0; color:#66635c; font-size:16px; line-height:1.5 }
+    .brief-body { margin-top:26px; display:grid; grid-template-columns:minmax(0,1fr) 210px; gap:42px }
+    .brief-copy p { margin:0 0 16px; font-size:15px; line-height:1.65 }
+    .inline-quote { padding:14px 0; border-top:1px solid #d7d3ca; border-bottom:1px solid #d7d3ca; display:grid; grid-template-columns:1fr auto 1fr; gap:15px; color:#646159; font-size:13px }
+    .inline-quote strong { color:#344f66; font-weight:600 }
+    .brief-evidence { padding-left:20px; border-left:1px solid #d7d3ca }
+    .brief-evidence h2 { margin:0 0 12px; font-family:"Avenir Next","Gill Sans",sans-serif; font-size:12px; font-weight:650 }
+    .evidence-line { padding:12px 0; border-top:1px solid #dfdcd4 }
+    .evidence-line strong { display:block; color:#344f66; font-family:"Avenir Next","Gill Sans",sans-serif; font-size:18px; font-weight:600 }
+    .evidence-line span { color:#6d6961; font-size:12px }
+    .brief-note { margin-top:24px; padding-top:14px; border-top:1px solid #cbc8bf; color:#757169; font-size:11px; line-height:1.5 }
+
+    /* 4. Ordinary product workspace */
+    .product-workspace { display:grid; grid-template-columns:180px 1fr; color:#25303a; background:#f7f8f9; font-family:"Avenir Next","Gill Sans",sans-serif }
+    .workspace-nav { padding:24px 18px; border-right:1px solid #d8dcdf; background:#f1f3f4 }
+    .workspace-brand { margin-bottom:30px; font-size:12px; font-weight:700; letter-spacing:.04em }
+    .workspace-nav span { display:block; margin-bottom:8px; padding:8px 10px; border-radius:4px; color:#6d747a; font-size:12px }
+    .workspace-nav span.active { background:#e1e7ec; color:#344f66; font-weight:600 }
+    .workspace-main { padding:32px 38px }
+    .workspace-head { display:flex; justify-content:space-between; align-items:start; gap:24px }
+    .workspace-head h1 { margin:0 0 4px; font-size:24px; font-weight:650; letter-spacing:-.02em }
+    .workspace-head p { margin:0; color:#71787e; font-size:12px }
+    .workspace-status { padding:6px 9px; border:1px solid #cbd5dd; border-radius:4px; color:#466681; background:#f5f8fa; font-size:11px }
+    .workspace-card { margin-top:24px; border:1px solid #d8dcdf; border-radius:6px; background:#fff }
+    .workspace-card-head { padding:14px 17px; display:flex; justify-content:space-between; gap:20px; border-bottom:1px solid #e0e3e5; color:#70777d; font-size:11px }
+    .workspace-result { padding:22px 18px; display:grid; grid-template-columns:1fr 1fr; gap:18px }
+    .workspace-result div { padding:16px; border:1px solid #e0e3e5; border-radius:5px; background:#fafbfb }
+    .workspace-result span { display:block; margin-bottom:10px; color:#757c82; font-size:11px }
+    .workspace-result strong { display:block; font-size:24px; font-weight:550; letter-spacing:-.02em }
+    .workspace-result .final { border-color:#c7d5df; background:#f7f9fb }
+    .workspace-result .final strong { color:#355f82 }
+    .workspace-metrics { display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid #e0e3e5 }
+    .workspace-metrics div { padding:14px 17px; border-right:1px solid #e0e3e5 }
+    .workspace-metrics div:last-child { border-right:0 }
+    .workspace-metrics span { display:block; margin-bottom:4px; color:#747b81; font-size:10px }
+    .workspace-metrics strong { font-size:15px; font-weight:600 }
+    .workspace-note { margin:18px 0 0; color:#737a80; font-size:11px; line-height:1.5 }
+
+    @media (max-width:780px) {
+      .study-bar { align-items:flex-start; flex-direction:column }
+      .direction-picker { width:100% }
+      .concept { min-height:0 }
+      .metric-grid,.review-panels,.brief-body,.workspace-result { grid-template-columns:1fr }
+      .metric { border-right:0; border-bottom:1px solid #d8dde1 }
+      .metric:last-child { border-bottom:0 }
+      .summary-row { grid-template-columns:1fr auto auto }
+      .product-workspace { grid-template-columns:1fr }
+      .workspace-nav { display:none }
+    }
+    @media (max-width:520px) {
+      .study-bar { padding:11px }
+      .stage { padding:0 }
+      .concept { border-left:0; border-right:0 }
+      .standard-report,.comparison-review,.research-brief,.workspace-main { padding:26px 20px }
+      .report-head,.review-head,.brief-head,.workspace-head { flex-direction:column }
+      .report-meta { text-align:left }
+      .summary-row { grid-template-columns:1fr; gap:5px; padding:10px 0 }
+      .summary-row strong { text-align:left }
+      .review-foot { flex-direction:column }
+    }
+  </style>
+</head>
+<body>
+  <header class="study-bar">
+    <div class="study-title"><strong>VoiceBridge report study</strong><span>Four quiet layouts using the same evidence</span></div>
+    <nav class="direction-picker" aria-label="Report direction">
+      <button class="active" data-show="report"><small>1</small>Standard report</button>
+      <button data-show="comparison"><small>2</small>Comparison review</button>
+      <button data-show="brief"><small>3</small>Research brief</button>
+      <button data-show="workspace"><small>4</small>Product workspace</button>
+    </nav>
+  </header>
+
+  <main class="stage">
+    <section class="concept standard-report" data-concept="report">
+      <header class="report-head"><div class="report-brand">VoiceBridge</div><div class="report-meta"><span>Evaluation summary</span><span>Speaker M02 · 388 clips</span></div></header>
+      <h1 class="report-title">Dysarthric speech recognition results</h1>
+      <p class="report-subtitle">Frozen baseline compared with the adapted model on the sealed test set.</p>
+      <div class="summary-box">The adapted model reduced word error by <strong>38.6% relative</strong>. On the selected clip, the baseline returned “who were killed” and the adapted model returned “wicked.”</div>
+      <div class="metric-grid"><div class="metric"><span>Baseline WER</span><strong>56.7%</strong></div><div class="metric"><span>Adapted WER</span><strong>34.8%</strong></div><div class="metric"><span>Exact-match clips</span><strong>198 / 388</strong></div></div>
+      <h2 class="report-section-title">Selected clip comparison</h2>
+      <table class="result-table"><thead><tr><th>Model</th><th>Transcript</th><th>Result</th></tr></thead><tbody><tr><td>Frozen baseline</td><td>who were killed</td><td>Incorrect</td></tr><tr class="selected"><td>Adapted model</td><td>wicked</td><td>Correct</td></tr></tbody></table>
+      <p class="report-note">The selected example is shown with the aggregate result. One sealed speaker is not evidence of broad clinical generalization.</p>
+    </section>
+
+    <section class="concept comparison-review" data-concept="comparison" hidden>
+      <header class="review-head"><div><h1>Transcript comparison</h1><p>Same recording, evaluated with both models</p></div><span>M02_0233.wav</span></header>
+      <div class="review-panels"><article class="review-panel"><div class="review-label"><span>Frozen baseline</span><strong>56.7% WER</strong></div><div class="review-transcript">who were killed</div><p class="review-caption">The baseline turns one word into a different phrase.</p></article><article class="review-panel adapted"><div class="review-label"><span>Adapted model</span><strong>34.8% WER</strong></div><div class="review-transcript">wicked</div><p class="review-caption">The adapted model returns the expected word.</p></article></div>
+      <div class="review-summary"><div class="summary-row"><span>Word error rate</span><strong>56.7%</strong><strong>34.8%</strong></div><div class="summary-row"><span>Exact-match clips</span><strong>98</strong><strong>198</strong></div><div class="summary-row"><span>Evaluated clips</span><strong>388</strong><strong>388</strong></div></div>
+      <footer class="review-foot"><span>Relative error reduction: 38.6%</span><span>Sealed test speaker M02</span></footer>
+    </section>
+
+    <section class="concept research-brief" data-concept="brief" hidden>
+      <div class="brief-wrap"><header class="brief-head"><strong>VoiceBridge research note</strong><span>Evaluation summary · September 2026</span></header><h1 class="brief-title">Adapting speech recognition to dysarthric speech</h1><p class="brief-deck">A compact result from one sealed speaker, presented alongside the limitations of the evaluation.</p>
+        <div class="brief-body"><article class="brief-copy"><p>The frozen speech model produced a word error rate of 56.7% across 388 clips from speaker M02. After adaptation, word error fell to 34.8%, a relative reduction of 38.6%.</p><p>On the selected recording, the baseline transcript was “who were killed.” The adapted transcript was “wicked,” matching the reference.</p><div class="inline-quote"><span>Baseline: who were killed</span><span>→</span><strong>Adapted: wicked</strong></div></article><aside class="brief-evidence"><h2>Key results</h2><div class="evidence-line"><strong>38.6%</strong><span>relative reduction</span></div><div class="evidence-line"><strong>34.8%</strong><span>adapted WER</span></div><div class="evidence-line"><strong>198 / 388</strong><span>exact matches</span></div></aside></div>
+        <p class="brief-note">Limitation: this is one sealed speaker and does not establish generalization or clinical validity.</p>
+      </div>
+    </section>
+
+    <section class="concept product-workspace" data-concept="workspace" hidden>
+      <aside class="workspace-nav"><div class="workspace-brand">VoiceBridge</div><span>Live session</span><span class="active">Evaluation</span><span>Recordings</span><span>Settings</span></aside>
+      <div class="workspace-main"><header class="workspace-head"><div><h1>Evaluation result</h1><p>M02_0233.wav · sealed test clip</p></div><span class="workspace-status">Complete</span></header><section class="workspace-card"><div class="workspace-card-head"><span>Transcript output</span><span>Two-model comparison</span></div><div class="workspace-result"><div><span>Frozen baseline</span><strong>who were killed</strong></div><div class="final"><span>Adapted model</span><strong>wicked</strong></div></div><div class="workspace-metrics"><div><span>Relative reduction</span><strong>38.6%</strong></div><div><span>Adapted WER</span><strong>34.8%</strong></div><div><span>Test clips</span><strong>388</strong></div></div></section><p class="workspace-note">Aggregate metrics are shown with the selected clip. Results cover one sealed speaker.</p></div>
+    </section>
+  </main>
+
+  <script>
+    const concepts=[...document.querySelectorAll('[data-concept]')];
+    const buttons=[...document.querySelectorAll('[data-show]')];
+    function showConcept(name) {
+      concepts.forEach(concept=>{ concept.hidden=concept.dataset.concept!==name; });
+      buttons.forEach(button=>button.classList.toggle('active',button.dataset.show===name));
+    }
+    buttons.forEach(button=>button.onclick=()=>showConcept(button.dataset.show));
+    document.addEventListener('keydown',event=>{
+      const button=buttons[Number(event.key)-1];
+      if (button) showConcept(button.dataset.show);
+    });
+  </script>
+</body>
+</html>

@@ -47,7 +47,9 @@
     background:var(--bg); color:var(--fg); min-width:min(320px, 100%) }
   .hint { color:var(--muted); font-size:13px }
 </style>
+<link rel="stylesheet" href="static/report.css?v=3">
 
+<body class="report-ui page-index">
 <main>
   <h1>VoiceBridge</h1>
   <p class="sub">Speak, see the recovered words, confirm when it asks, hear it back in your voice.</p>
@@ -267,3 +269,4 @@ $('talk').onclick = start;
 $('pick').onclick = () => $('file').click();
 $('file').onchange = e => e.target.files[0] && playFile(e.target.files[0]);
 </script>
+</body>

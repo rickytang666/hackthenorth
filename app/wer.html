@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VoiceBridge word correction</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 8h24M4 16h16M4 24h10' stroke='%23d7ff3f' stroke-width='5'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --ink:#070806; --paper:#f1f0e8; --acid:#d7ff3f; --signal:#ff5a36;
+      --muted:#92968b; --line:rgba(241,240,232,.18); --panel:#10120e;
+      --display:"Avenir Next Condensed","DIN Condensed","Franklin Gothic Condensed",sans-serif;
+      --body:"Avenir Next","Gill Sans",sans-serif;
+    }
+    * { box-sizing:border-box }
+    html,body { width:100%; min-height:100%; margin:0 }
+    body { color:var(--paper); background:radial-gradient(circle at 84% 12%,rgba(215,255,63,.09),transparent 27%),#070806; font-family:var(--body) }
+    button,input,textarea,select { font:inherit }
+    header { height:76px; padding:0 4vw; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between }
+    .wordmark { font:800 18px/1 var(--display); letter-spacing:.18em }
+    .wordmark i { display:inline-block; width:14px; height:14px; margin-right:10px; border:4px solid var(--acid); border-top-color:transparent; border-radius:50%; transform:rotate(-28deg); vertical-align:-2px }
+    .proof { color:var(--muted); font:800 10px/1 var(--display); letter-spacing:.14em }
+    .proof strong { color:var(--acid) }
+    main { padding:30px 4vw 42px }
+    .intro { display:grid; grid-template-columns:1fr auto; align-items:end; gap:30px; margin-bottom:28px }
+    .eyebrow { margin:0 0 10px; color:var(--acid); font:800 11px/1 var(--display); letter-spacing:.18em }
+    h1 { margin:0; font:900 clamp(48px,6.8vw,106px)/.86 var(--display); letter-spacing:-.045em; text-transform:uppercase }
+    h1 em { color:var(--acid); font-style:normal }
+    .wer-score { display:flex; align-items:center; gap:18px; padding:18px 20px; border:1px solid var(--line); background:var(--panel) }
+    .score { display:grid; gap:5px }
+    .score span { color:var(--muted); font:800 8px/1 var(--display); letter-spacing:.14em }
+    .score strong { font:900 34px/1 var(--display) }
+    .score.tuned strong { color:var(--acid) }
+    .score-arrow { color:var(--acid); font-size:24px }
+    .diff-board { border:1px solid var(--line); background:rgba(16,18,14,.82) }
+    .diff-row { display:grid; grid-template-columns:160px 1fr; min-height:158px; border-bottom:1px solid var(--line) }
+    .diff-row:last-child { border-bottom:0 }
+    .row-label { padding:24px; border-right:1px solid var(--line); display:grid; align-content:space-between }
+    .row-label span { color:var(--muted); font:800 9px/1 var(--display); letter-spacing:.15em }
+    .row-label strong { font:800 20px/1 var(--display) }
+    .diff-row.before .row-label { border-top:4px solid var(--signal) }
+    .diff-row.after .row-label { border-top:4px solid var(--acid) }
+    .word-line { padding:26px 30px; display:flex; flex-wrap:wrap; align-content:center; gap:12px }
+    .diff-word { position:relative; min-width:1.1em; padding:9px 5px 8px; font:750 clamp(30px,4vw,62px)/1 var(--display); letter-spacing:-.03em; animation:land .42s cubic-bezier(.2,.85,.2,1) both; animation-delay:var(--delay) }
+    @keyframes land { from { opacity:0; transform:translateY(18px) scale(.92); filter:blur(3px) } to { opacity:1; transform:none; filter:none } }
+    .before .diff-word.same { color:#a5a89e }
+    .after .diff-word.same { color:var(--paper) }
+    .before .diff-word.replace,.before .diff-word.delete { color:#b2b3ad; text-decoration:line-through; text-decoration-color:var(--signal); text-decoration-thickness:3px }
+    .after .diff-word.replace,.after .diff-word.insert { color:var(--acid) }
+    .diff-word.delete::after,.diff-word.insert::after,.diff-word.replace::after { position:absolute; left:5px; bottom:-5px; font:800 7px/1 var(--display); letter-spacing:.13em }
+    .before .diff-word.delete::after { content:"REMOVED"; color:var(--signal) }
+    .after .diff-word.insert::after { content:"ADDED"; color:var(--acid) }
+    .diff-word.replace::after { content:"CORRECTED"; color:var(--acid) }
+    .diff-word:has(+ .diff-word) { margin-right:2px }
+    .diff-word.delete:empty,.diff-word.insert:empty { opacity:.28 }
+    .summary { min-height:60px; padding:0 22px; display:flex; align-items:center; gap:24px; border-top:1px solid var(--line); color:var(--muted); font:800 9px/1 var(--display); letter-spacing:.13em }
+    .summary strong { color:var(--paper); font-size:15px }
+    .summary .improved { margin-left:auto; color:var(--acid); font-size:11px }
+    .controls { margin-top:18px; display:flex; align-items:center; gap:10px; flex-wrap:wrap }
+    .control { min-height:44px; padding:0 16px; border:1px solid var(--line); background:transparent; color:var(--paper); font:800 10px/1 var(--display); letter-spacing:.12em; cursor:pointer }
+    .control:hover,.control:focus-visible { border-color:var(--acid); outline:none }
+    .control.primary { color:var(--ink); background:var(--acid); border-color:var(--acid) }
+    .control select { border:0; color:inherit; background:transparent; font:inherit }
+    .json-label input { position:absolute; opacity:0; pointer-events:none }
+    .edit-grid { margin-top:14px; display:none; grid-template-columns:1fr 1fr; gap:10px }
+    .edit-grid.open { display:grid }
+    .edit-grid label { display:grid; gap:6px; color:var(--muted); font:800 8px/1 var(--display); letter-spacing:.12em }
+    textarea { min-height:80px; padding:12px; border:1px solid var(--line); border-radius:0; resize:vertical; color:var(--paper); background:var(--panel) }
+    .toast { position:fixed; left:50%; bottom:28px; padding:12px 18px; color:var(--ink); background:var(--acid); font:800 10px/1 var(--display); letter-spacing:.12em; transform:translate(-50%,16px); opacity:0; transition:.18s ease; pointer-events:none }
+    .toast.show { transform:translate(-50%,0); opacity:1 }
+    @media (max-width:760px) {
+      .intro { grid-template-columns:1fr }
+      .wer-score { justify-self:start }
+      .diff-row { grid-template-columns:1fr }
+      .row-label { min-height:68px; border-right:0; border-bottom:1px solid var(--line); grid-template-columns:1fr auto; align-items:center }
+      .edit-grid { grid-template-columns:1fr }
+    }
+    @media (prefers-reduced-motion:reduce) { * { animation-duration:.01ms!important; animation-delay:0ms!important } }
+  </style>
+  <link rel="stylesheet" href="static/report.css?v=3">
+</head>
+<body class="report-ui page-wer">
+  <header>
+    <div class="wordmark"><i></i>VOICEBRIDGE</div>
+    <div class="proof">SEALED TEST · <strong>388 CLIPS</strong> · SPEAKER M02</div>
+  </header>
+  <main>
+    <section class="intro">
+      <div>
+        <p class="eyebrow">WORD-LEVEL ALIGNMENT · NO CHERRY-PICKED TOKENS</p>
+        <h1>Every correction<br><em>leaves a trace.</em></h1>
+      </div>
+      <div class="wer-score" aria-label="Word error rate comparison">
+        <div class="score"><span>FROZEN WER</span><strong id="beforeWer">56.7%</strong></div>
+        <div class="score-arrow">→</div>
+        <div class="score tuned"><span>TUNED WER</span><strong id="afterWer">34.8%</strong></div>
+      </div>
+    </section>
+
+    <section class="diff-board" aria-label="Transcript word comparison">
+      <div class="diff-row before">
+        <div class="row-label"><span>OFF-THE-SHELF</span><strong>Frozen</strong></div>
+        <div class="word-line" id="beforeWords"></div>
+      </div>
+      <div class="diff-row after">
+        <div class="row-label"><span>VOICEBRIDGE</span><strong>Tuned</strong></div>
+        <div class="word-line" id="afterWords"></div>
+      </div>
+      <div class="summary">
+        <span>SAME <strong id="sameCount">0</strong></span>
+        <span>CORRECTED <strong id="replaceCount">0</strong></span>
+        <span>REMOVED <strong id="deleteCount">0</strong></span>
+        <span>ADDED <strong id="insertCount">0</strong></span>
+        <span class="improved">38.6% RELATIVE ERROR REDUCTION</span>
+      </div>
+    </section>
+
+    <div class="controls">
+      <button class="control primary" id="animateDiff" type="button">ANIMATE CORRECTION</button>
+      <label class="control">EXAMPLE
+        <select id="preset">
+          <option value="0">Wicked</option>
+          <option value="1">Jagged</option>
+          <option value="2">Brawn</option>
+          <option value="3">Witty</option>
+          <option value="4">Critical negation</option>
+        </select>
+      </label>
+      <button class="control" id="toggleEdit" type="button">EDIT WORDS</button>
+      <label class="control json-label">LOAD SCORECARD JSON
+        <input id="scorecardFile" type="file" accept="application/json,.json">
+      </label>
+    </div>
+
+    <div class="edit-grid" id="editGrid">
+      <label>Frozen transcript<textarea id="beforeInput"></textarea></label>
+      <label>Tuned transcript<textarea id="afterInput"></textarea></label>
+    </div>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="static/diff.js"></script>
+  <script>
+    const examples = [
+      ['who were killed', 'wicked'],
+      ['they are good', 'jagged'],
+      ['oh put it on', 'brawn'],
+      ['where is he ah where is he', 'witty'],
+      ['do give her the insulin', 'do not give her the insulin'],
+    ];
+    const byId = id => document.getElementById(id);
+    let toastTimer;
+
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      byId('toast').textContent = message;
+      byId('toast').classList.add('show');
+      toastTimer = setTimeout(() => byId('toast').classList.remove('show'), 2200);
+    }
+
+    function render(before, after) {
+      const alignment = VoiceBridgeDiff.alignWords(before, after);
+      const summary = VoiceBridgeDiff.summarize(alignment);
+      VoiceBridgeDiff.renderWordDiff(byId('beforeWords'), byId('afterWords'), alignment);
+      byId('beforeInput').value = before;
+      byId('afterInput').value = after;
+      byId('sameCount').textContent = summary.same;
+      byId('replaceCount').textContent = summary.replace;
+      byId('deleteCount').textContent = summary.delete;
+      byId('insertCount').textContent = summary.insert;
+    }
+
+    function renderPreset() {
+      const [before, after] = examples[Number(byId('preset').value)];
+      render(before, after);
+    }
+
+    function scoreEntries(payload) {
+      if (Array.isArray(payload)) return payload;
+      return Object.entries(payload).map(([name, score]) => ({ name, ...score }));
+    }
+
+    function scoreRole(entry) {
+      if (entry.role === 'baseline' || entry.role === 'tuned') return entry.role;
+      const identity = `${entry.name || ''} ${entry.model_id || ''}`.toLowerCase();
+      if (/baseline|frozen|(^|[_\s-])base([_\s-]|$)/.test(identity)) return 'baseline';
+      if (/tuned|adapter|voicebridge|lora/.test(identity)) return 'tuned';
+      return null;
+    }
+
+    async function loadScorecard(file) {
+      try {
+        const entries = scoreEntries(JSON.parse(await file.text())).filter(item => Number.isFinite(item.wer));
+        const baseline = entries.find(entry => scoreRole(entry) === 'baseline');
+        const tuned = entries.find(entry => scoreRole(entry) === 'tuned');
+        if (!baseline || !tuned) throw new Error('Scorecard names must identify baseline and tuned models');
+        byId('beforeWer').textContent = `${(baseline.wer * 100).toFixed(1)}%`;
+        byId('afterWer').textContent = `${(tuned.wer * 100).toFixed(1)}%`;
+        showToast('SCORECARD WER LOADED');
+      } catch (error) {
+        showToast(error.message.toUpperCase());
+      }
+    }
+
+    VoiceBridgeDiff.runSelfChecks();
+    renderPreset();
+    byId('preset').onchange = renderPreset;
+    byId('animateDiff').onclick = () => render(byId('beforeInput').value, byId('afterInput').value);
+    byId('toggleEdit').onclick = () => byId('editGrid').classList.toggle('open');
+    byId('scorecardFile').onchange = event => event.target.files[0] && loadScorecard(event.target.files[0]);
+  </script>
+</body>
+</html>

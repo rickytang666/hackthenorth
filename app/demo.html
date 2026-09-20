@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VoiceBridge comparison</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M7 16h6m6 0h6M13 10v12m6-12v12' stroke='%23355f82' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="static/report.css?v=7">
+</head>
+<body class="report-ui page-single">
+  <header class="single-header">
+    <a class="wordmark" href="demo.html" aria-label="VoiceBridge comparison">
+      <span class="wordmark-mark" aria-hidden="true"></span>
+      VoiceBridge
+    </a>
+    <div class="session-status"><i></i><span id="sessionStatus">Recorded comparison ready</span></div>
+  </header>
+
+  <main class="single-main">
+    <section class="source-bar" aria-labelledby="sourceTitle">
+      <div class="source-copy">
+        <span class="section-label">Source recording</span>
+        <strong id="sourceTitle">Choose the M02 evaluation recording</strong>
+        <span id="sourceMeta">The file is verified locally and never uploaded</span>
+      </div>
+      <div class="source-wave" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <label class="source-picker" for="sourceFile">
+        Select recording
+        <input id="sourceFile" type="file" accept="audio/*">
+      </label>
+    </section>
+
+    <section class="comparison-section" aria-labelledby="comparisonTitle">
+      <div class="section-heading">
+        <div>
+          <span class="section-label">One recording, two paths</span>
+          <h1 id="comparisonTitle">Transcription comparison</h1>
+        </div>
+        <p>Recorded ASR evidence for this fixture, with returned speech generated live.</p>
+      </div>
+
+      <div class="comparison-panes">
+        <article class="model-pane baseline-pane" id="baselinePane">
+          <div class="pane-head">
+            <div><span>Original model</span><strong>Frozen baseline</strong></div>
+            <span class="model-state" id="baselineState">Ready</span>
+          </div>
+          <button class="pipeline-trigger" id="runBaseline" type="button" disabled>
+            <span class="play-symbol">▶</span>
+            <span><small>Input recording</small><strong>Replay baseline result</strong></span>
+          </button>
+          <div class="transcript-block">
+            <span>Returned transcript</span>
+            <div class="transcript-copy" id="baselineTranscript">Run this path to compare</div>
+          </div>
+          <div class="returned-audio">
+            <div><span>Returned speech</span><strong>Generic real-time TTS</strong></div>
+            <button id="playBaselineReturn" type="button" disabled>Play response</button>
+          </div>
+          <dl class="pane-metrics">
+            <div><dt>Clip result</dt><dd>Incorrect</dd></div>
+            <div><dt>Aggregate WER</dt><dd>56.7%</dd></div>
+          </dl>
+        </article>
+
+        <article class="model-pane tuned-pane" id="tunedPane">
+          <div class="pane-head">
+            <div><span>New model</span><strong>VoiceBridge tuned</strong></div>
+            <span class="model-state" id="tunedState">Ready</span>
+          </div>
+          <button class="pipeline-trigger" id="runTuned" type="button" disabled>
+            <span class="play-symbol">▶</span>
+            <span><small>Input recording</small><strong>Replay VoiceBridge result</strong></span>
+          </button>
+          <div class="transcript-block">
+            <span>Returned transcript</span>
+            <div class="transcript-copy" id="tunedTranscript">Run this path to compare</div>
+          </div>
+          <div class="returned-audio">
+            <div><span>Returned speech</span><strong>Live speaker-voice TTS</strong></div>
+            <button id="playTunedReturn" type="button" disabled>Play response</button>
+          </div>
+          <dl class="pane-metrics">
+            <div><dt>Clip confidence</dt><dd>94%</dd></div>
+            <div><dt>Aggregate WER</dt><dd>34.8%</dd></div>
+          </dl>
+        </article>
+      </div>
+
+      <dl class="evidence-strip" aria-label="Evaluation summary">
+        <div><dt>Relative error reduction</dt><dd>38.6%</dd></div>
+        <div><dt>Sealed test clips</dt><dd>388</dd></div>
+        <div><dt>First partial range</dt><dd>0.88-1.76 s</dd></div>
+        <div><dt>End-to-end range</dt><dd>3.73-5.56 s</dd></div>
+      </dl>
+    </section>
+
+    <section class="outcome-grid">
+      <article class="clarification-panel" aria-labelledby="clarificationTitle">
+        <div class="clarification-copy">
+          <span class="section-label">Low-confidence behavior</span>
+          <h2 id="clarificationTitle">Ask instead of guessing</h2>
+          <p>Critical term disagreement detected: <strong>not</strong>.</p>
+        </div>
+        <div class="clarification-options" id="clarificationOptions">
+          <button type="button" data-choice="Do not give her the insulin."><span>1</span> Do not give her the insulin.</button>
+          <button type="button" data-choice="Do give her the insulin."><span>2</span> Do give her the insulin.</button>
+        </div>
+      </article>
+    </section>
+
+    <p class="honesty-note">One sealed speaker is not proof of generalization. The aggregate result covers 388 selected test clips.</p>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="static/single-page.js?v=4"></script>
+</body>
+</html>
