@@ -3,201 +3,261 @@
 <title>VoiceBridge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  :root {
-    --bg:#fbfbfa; --fg:#1a1a18; --muted:#6b6b66; --line:#e4e4e0;
-    --accent:#2f6f4f; --warn:#a6601a; --card:#fff; --tail:#a0a09a;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg:#16161a; --fg:#ecece8; --muted:#9a9a94; --line:#2c2c33;
-      --accent:#6fbf8f; --warn:#d9a05b; --card:#1e1e24; --tail:#6a6a72;
-    }
-  }
-  * { box-sizing:border-box }
-  body { margin:0; padding:24px 16px; background:var(--bg); color:var(--fg);
-    font:16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif }
-  main { max-width:760px; margin:0 auto }
-  h1 { font-size:20px; margin:0 0 2px; letter-spacing:-.01em }
-  .sub { color:var(--muted); font-size:14px; margin:0 0 20px }
-  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap }
-  button { font:inherit; padding:10px 18px; border-radius:8px; border:1px solid var(--line);
-    background:var(--card); color:var(--fg); cursor:pointer }
-  button.primary { background:var(--accent); border-color:var(--accent); color:#fff }
-  button:disabled { opacity:.45; cursor:not-allowed }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:10px;
-    padding:16px; margin-top:14px }
-  .label { font-size:12px; text-transform:uppercase; letter-spacing:.06em;
-    color:var(--muted); margin-bottom:8px }
-  #transcript { font-size:26px; line-height:1.35; min-height:2.6em; word-break:break-word }
-  #transcript .tail { color:var(--tail) }
-  #transcript .empty { color:var(--muted); font-size:16px }
-  .meter { height:6px; background:var(--line); border-radius:3px; overflow:hidden; margin-top:10px }
-  .meter > i { display:block; height:100%; width:0; background:var(--accent); transition:width .15s }
-  .meter.low > i { background:var(--warn) }
-  .stats { display:flex; gap:22px; flex-wrap:wrap; font-size:14px; color:var(--muted);
-    font-variant-numeric:tabular-nums }
-  .stats b { color:var(--fg); font-weight:600 }
-  #clarify { display:none; border-color:var(--warn) }
-  #clarify.show { display:block }
-  #choices button { display:block; width:100%; text-align:left; margin-top:8px }
-  .dot { width:8px; height:8px; border-radius:50%; background:var(--muted); display:inline-block }
-  .dot.on { background:var(--accent) }
-  .dot.err { background:var(--warn) }
-  input[type=text] { font:inherit; padding:8px 10px; border-radius:8px; border:1px solid var(--line);
-    background:var(--bg); color:var(--fg); min-width:min(320px, 100%) }
-  .hint { color:var(--muted); font-size:13px }
+  body { margin: 0 auto; padding: 20px; max-width: 820px; font-family: system-ui, sans-serif;
+         font-size: 15px; line-height: 1.5 }
+  h1 { font-size: 17px; margin: 0 0 16px; font-weight: 600 }
+  fieldset { border: 1px solid #ccc; margin: 0 0 14px; padding: 10px 12px }
+  legend { font-size: 12px; color: #555; padding: 0 4px }
+  #clips { display: flex; flex-wrap: wrap; gap: 6px }
+  #clips button { padding: 4px; background: #fff; border: 1px solid #ccc; cursor: pointer;
+                  font: inherit; font-size: 12px; color: #555; line-height: 1 }
+  #clips button[aria-pressed="true"] { border-color: #000; color: #000 }
+  #clips canvas { display: block }
+  #transcript { font-size: 24px; line-height: 1.3; min-height: 2.6em }
+  #transcript .tail { color: #999 }
+  .was { color: #777; margin-top: 8px }
+  .was s { color: #777 }
+  #clarify[hidden] { display: none }
+  #choices button { display: block; width: 100%; text-align: left; margin-top: 6px;
+                    padding: 6px 8px; font: inherit; background: #fff; border: 1px solid #666;
+                    cursor: pointer }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap }
+  button, input { font: inherit }
+  button { padding: 5px 12px }
+  input[type=text], input[type=password] { padding: 4px 6px; border: 1px solid #ccc;
+                                           min-width: min(340px, 100%) }
+  label { font-size: 12px; color: #555 }
+  #stats { font-size: 13px; color: #555; font-variant-numeric: tabular-nums }
+  #status { font-size: 13px; color: #555 }
+  .note { font-size: 12px; color: #777; margin: 0 }
 </style>
-<link rel="stylesheet" href="static/report.css?v=3">
 
-<body class="report-ui page-index">
-<main>
-  <h1>VoiceBridge</h1>
-  <p class="sub">Speak, see the recovered words, confirm when it asks, hear it back in your voice.</p>
+<body>
+<h1>VoiceBridge</h1>
 
-  <div class="row">
-    <button id="talk" class="primary">Start speaking</button>
-    <input type="file" id="file" accept="audio/*" hidden>
-    <button id="pick">Use a recording</button>
-    <span class="row" style="gap:6px"><span class="dot" id="dot"></span>
-      <span class="hint" id="status">idle</span></span>
-  </div>
-
-  <div class="row" style="margin-top:12px">
-    <input type="text" id="url" value="wss://model-qk542geq.api.baseten.co/environments/production/websocket" spellcheck="false">
-    <span class="hint">ASR_WS_URL. Live Baseten H100. Fallback: <code>ws://127.0.0.1:8765</code> (mock) or <code>:8766</code> (local model).</span>
-  </div>
+<fieldset>
+  <legend>Clip</legend>
+  <div id="clips"></div>
+  <p class="note" id="caption"></p>
   <div class="row" style="margin-top:8px">
-    <input type="password" id="apiKey" placeholder="Baseten API key (this browser only)" spellcheck="false">
-    <span class="hint">Kept in sessionStorage. Leave blank for a local endpoint.</span>
+    <button id="run" disabled>Recover speech</button>
+    <button id="original" disabled>Play original</button>
+    <span id="status">pick a clip</span>
   </div>
-  <div class="row" style="margin-top:8px">
-    <input type="text" id="voiceUrl" value="http://127.0.0.1:8770" spellcheck="false">
-    <span class="hint">Voice renderer, Protocol 2. Separate service.</span>
-  </div>
+</fieldset>
 
-  <div class="card">
-    <div class="label">Recovered text</div>
-    <div id="transcript"><span class="empty">Nothing yet.</span></div>
-    <div class="meter" id="meter"><i id="conf"></i></div>
-  </div>
+<fieldset>
+  <legend>Recovered text</legend>
+  <div id="transcript"></div>
+  <p class="was" id="was"></p>
+</fieldset>
 
-  <div class="card" id="clarify">
-    <div class="label" id="clarifyLabel">Not sure. Which did you mean?</div>
-    <div id="choices"></div>
-  </div>
+<fieldset id="clarify" hidden>
+  <legend>Low confidence</legend>
+  <div>Not sure. Which did you mean?</div>
+  <div id="choices"></div>
+</fieldset>
 
-  <div class="card">
-    <div class="label">Latency</div>
-    <div class="stats">
-      <span>first partial <b id="tfp">-</b></span>
-      <span>final <b id="tfin">-</b></span>
-      <span>first audio <b id="taud">-</b></span>
-      <span>model <b id="model">-</b></span>
-    </div>
-  </div>
-</main>
+<fieldset>
+  <legend>Timing</legend>
+  <div id="stats">first partial - &middot; final - &middot; spoken - &middot; model -</div>
+</fieldset>
+
+<fieldset>
+  <legend>Endpoints</legend>
+  <div class="row"><label for="url">ASR</label>
+    <input type="text" id="url" spellcheck="false"
+           value="wss://model-qk542geq.api.baseten.co/environments/production/websocket"></div>
+  <div class="row" style="margin-top:6px"><label for="apiKey">Key</label>
+    <input type="password" id="apiKey" placeholder="Baseten API key, this browser only"
+           spellcheck="false"></div>
+  <div class="row" style="margin-top:6px"><label for="voiceUrl">Voice</label>
+    <input type="text" id="voiceUrl" value="http://127.0.0.1:8770" spellcheck="false"></div>
+</fieldset>
 
 <script>
-const SAMPLE_RATE = 16000, FRAME = 320;          // 320 samples = 20 ms
-const CLARIFY_BELOW = 0.879;   // calibrated on F04; matches contract/confidence.py
+const SAMPLE_RATE = 16000, FRAME = 320;        // 320 samples = 20 ms
+const CLARIFY_BELOW = 0.879;                   // calibrated on F04; see contract/confidence.py
 const $ = id => document.getElementById(id);
-let ws, ctx, node, stream, seq = 0, began = 0, sawPartial = false;
 
-const setStatus = (text, state) => {
-  $('status').textContent = text;
-  $('dot').className = 'dot' + (state ? ' ' + state : '');
-};
+let clips = [], current = null, ws = null, began = 0, sawPartial = false;
+let voiceId = null, enrolling = null;
+
+const setStatus = t => { $('status').textContent = t; };
+
+// One AudioContext for the page. Browsers cap how many you may create, and the
+// old code leaked two per utterance.
+let audioCtx = null;
+const ac = () => (audioCtx ??= new AudioContext({ sampleRate: SAMPLE_RATE }));
+
+function drawWave(canvas, channel) {
+  const w = canvas.width, h = canvas.height, ctx = canvas.getContext('2d');
+  const step = Math.floor(channel.length / w) || 1;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#888';
+  for (let x = 0; x < w; x++) {
+    let peak = 0;
+    for (let i = x * step; i < (x + 1) * step && i < channel.length; i++) {
+      const v = Math.abs(channel[i]);
+      if (v > peak) peak = v;
+    }
+    const bar = Math.max(1, peak * h);
+    ctx.fillRect(x, (h - bar) / 2, 1, bar);
+  }
+}
+
+async function loadClips() {
+  clips = await (await fetch('clips/manifest.json')).json();
+  const box = $('clips');
+  for (const [i, clip] of clips.entries()) {
+    const b = document.createElement('button');
+    b.setAttribute('aria-pressed', 'false');
+    b.title = `${clip.duration_s}s`;
+    const c = document.createElement('canvas');
+    c.width = 96; c.height = 28;
+    b.append(c, document.createTextNode(`${i + 1} · ${clip.duration_s}s`));
+    b.onclick = () => select(i);
+    box.append(b);
+    const buf = await ac().decodeAudioData(await (await fetch(clip.wav)).arrayBuffer());
+    clip.buffer = buf;
+    drawWave(c, buf.getChannelData(0));
+  }
+  setStatus('pick a clip');
+}
+
+async function select(i) {
+  current = clips[i];
+  [...$('clips').children].forEach((b, j) =>
+    b.setAttribute('aria-pressed', String(j === i)));
+  $('caption').textContent =
+    `M02, sealed test speaker. Frozen baseline scores 0.567 WER over all 388 clips, tuned 0.348.`;
+  $('run').disabled = $('original').disabled = false;
+  $('transcript').textContent = '';
+  $('was').textContent = '';
+  $('clarify').hidden = true;
+  setStatus('ready');
+  enrolling = enroll(current);        // start the clone now so beat 5 is not waiting on it
+}
+
+function play(buffer) {
+  const src = ac().createBufferSource();
+  src.buffer = buffer;
+  src.connect(ac().destination);
+  src.start();
+  return src;
+}
+
+// Protocol 2, step 1. The renderer needs a reference of this speaker before it
+// can synthesize as them; without it /v1/synthesize answers 409.
+async function enroll(clip) {
+  const base = $('voiceUrl').value.replace(/\/$/, '');
+  const bytes = new Uint8Array(await (await fetch(clip.wav)).arrayBuffer());
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000)
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  const r = await fetch(base + '/v1/enroll', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ wavs_b64: [btoa(bin)] }),
+  });
+  if (!r.ok) throw new Error(`enroll ${r.status}`);
+  voiceId = (await r.json()).voice_id;
+  return voiceId;
+}
+
+async function speak(text) {
+  const base = $('voiceUrl').value.replace(/\/$/, '');
+  try {
+    const id = await enrolling;
+    const r = await fetch(base + '/v1/synthesize', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice_id: id }),
+    });
+    if (!r.ok) throw new Error(`synthesize ${r.status} ${await r.text()}`);
+    const buf = await ac().decodeAudioData(await r.arrayBuffer());
+    stat('spoken', Math.round(performance.now() - began) + ' ms');
+    play(buf);
+  } catch (e) {
+    stat('spoken', 'failed');
+    setStatus('voice renderer: ' + e.message);
+  }
+}
+
+const timings = { 'first partial': '-', 'final': '-', 'spoken': '-', 'model': '-' };
+function stat(key, value) {
+  timings[key] = value;
+  $('stats').textContent = Object.entries(timings)
+    .map(([k, v]) => `${k} ${v}`).join(' · ');
+}
 
 function render(text, stableLen) {
   const el = $('transcript');
-  if (!text) { el.innerHTML = '<span class="empty">Nothing yet.</span>'; return; }
+  el.textContent = '';
   const cut = Math.max(0, Math.min(stableLen ?? text.length, text.length));
-  el.textContent = text.slice(0, cut);
+  el.append(document.createTextNode(text.slice(0, cut)));
   if (cut < text.length) {
     const s = document.createElement('span');
-    s.className = 'tail';                          // past stable_prefix_len, may still change
+    s.className = 'tail';           // past stable_prefix_len, still revisable
     s.textContent = text.slice(cut);
     el.append(s);
   }
 }
 
-function setConfidence(value) {
-  $('conf').style.width = Math.round((value ?? 0) * 100) + '%';
-  $('meter').classList.toggle('low', (value ?? 1) < CLARIFY_BELOW);
+function showBaseline() {
+  $('was').textContent = `Frozen baseline heard: "${current.baseline}"`;
 }
 
-function confirm(text) {
+function accept(text) {
   render(text, text.length);
-  $('clarify').classList.remove('show');
+  $('clarify').hidden = true;
+  showBaseline();
   speak(text);
 }
 
 function showClarify(candidates) {
   const box = $('choices');
   box.textContent = '';
-  $('clarifyLabel').textContent = candidates.length > 1
-    ? 'Not sure. Which did you mean?' : 'Not sure. Did you say this?';
-  candidates.slice(0, 3).forEach(c => {
+  for (const c of candidates.slice(0, 3)) {
     const b = document.createElement('button');
     b.textContent = c.text;
-    b.onclick = () => confirm(c.text);
+    b.onclick = () => accept(c.text);
     box.append(b);
-  });
-  $('clarify').classList.add('show');
-}
-
-// Protocol 2. Absent a renderer, the demo still runs and says so.
-async function speak(text) {
-  const base = $('voiceUrl').value.replace(/\/$/, '');
-  try {
-    const r = await fetch(base + '/v1/synthesize',
-      { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ text }) });
-    if (!r.ok) throw new Error(r.status);
-    const buf = await r.arrayBuffer();
-    $('taud').textContent = Math.round(performance.now() - began) + ' ms';
-    await new AudioContext().decodeAudioData(buf).then(b => {
-      const c = new AudioContext(), src = c.createBufferSource();
-      src.buffer = b; src.connect(c.destination); src.start();
-    });
-  } catch {
-    $('taud').textContent = 'no renderer';
   }
+  $('clarify').hidden = false;
 }
 
 function connect() {
   return new Promise((resolve, reject) => {
-    const url = $('url').value;
-    const key = $('apiKey').value.trim();
+    const url = $('url').value, key = $('apiKey').value.trim();
     if (key) try { sessionStorage.setItem('bt_key', key); } catch {}
     // A browser cannot set an Authorization header on a WebSocket, so Baseten
-    // takes the key as a subprotocol. Local endpoints need neither.
+    // takes the key as a subprotocol instead.
     ws = key && /baseten\.co/.test(url)
       ? new WebSocket(url, ['Authorization', `Api-Key ${key}`])
       : new WebSocket(url);
-    ws.onopen = () => { setStatus('listening', 'on'); resolve(); };
-    ws.onerror = () => { setStatus('connection failed', 'err'); reject(new Error('ws')); };
-    ws.onclose = () => setStatus('idle');
+    ws.onopen = () => { setStatus('streaming'); resolve(); };
+    ws.onerror = () => { setStatus('connection failed'); reject(new Error('ws')); };
     ws.onmessage = e => {
       const m = JSON.parse(e.data);
       if (m.type === 'partial') {
-        if (!sawPartial) { sawPartial = true; $('tfp').textContent = Math.round(performance.now()-began)+' ms'; }
-        render(m.text, m.stable_prefix_len);
-        setConfidence(m.confidence);
-      } else if (m.type === 'final') {
-        render(m.text, m.text.length);
-        setConfidence(m.confidence);
-        $('tfin').textContent = Math.round(performance.now()-began)+' ms';
-        $('model').textContent = m.model_id ?? '-';
-        stop();
-        // Weak evidence asks instead of guessing. This is the product's claim.
-        if ((m.confidence ?? 1) < CLARIFY_BELOW) {
-          showClarify(m.candidates && m.candidates.length ? m.candidates : [{text: m.text}]);
-        } else {
-          speak(m.text);
+        if (!sawPartial) {
+          sawPartial = true;
+          stat('first partial', Math.round(performance.now() - began) + ' ms');
         }
+        render(m.text, m.stable_prefix_len);
+      } else if (m.type === 'final') {
+        stat('final', Math.round(performance.now() - began) + ' ms');
+        stat('model', m.model_id ?? '-');
+        setStatus(`confidence ${(m.confidence ?? 0).toFixed(3)}`);
+        if ((m.confidence ?? 1) < CLARIFY_BELOW) {
+          render(m.text, m.text.length);
+          showBaseline();
+          showClarify(m.candidates?.length ? m.candidates : [{ text: m.text }]);
+        } else {
+          accept(m.text);
+        }
+        ws.close();
       } else if (m.type === 'error') {
-        setStatus('error: ' + m.message, 'err');
+        setStatus('error: ' + m.message);
       }
     };
   });
@@ -213,60 +273,34 @@ function sendPcm(f32) {
   const bytes = new Uint8Array(pcm.buffer);
   let bin = '';
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  ws.send(JSON.stringify({ type:'audio', seq: seq++, pcm16_b64: btoa(bin) }));
+  ws.send(JSON.stringify({ type: 'audio', pcm16_b64: btoa(bin) }));
 }
 
-function reset() {
-  seq = 0; sawPartial = false; began = performance.now();
-  $('clarify').classList.remove('show'); render('', 0); setConfidence(0);
-  $('tfp').textContent = $('tfin').textContent = $('taud').textContent = '-';
-}
-
-async function start() {
-  reset();
-  try { await connect(); } catch { return; }
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio:{ channelCount:1, sampleRate:SAMPLE_RATE } });
-  } catch (e) { setStatus('microphone denied', 'err'); ws.close(); return; }
-  ctx = new AudioContext({ sampleRate: SAMPLE_RATE });
-  const src = ctx.createMediaStreamSource(stream);
-  node = ctx.createScriptProcessor(4096, 1, 1);
-  node.onaudioprocess = e => {
-    const d = e.inputBuffer.getChannelData(0);
-    for (let o = 0; o < d.length; o += FRAME) sendPcm(d.subarray(o, o + FRAME));
-  };
-  src.connect(node); node.connect(ctx.destination);
-  $('talk').textContent = 'Stop';
-  $('talk').onclick = () => { try { ws.send(JSON.stringify({type:'end'})); } catch {} stop(); };
-}
-
-function stop() {
-  try { node && node.disconnect(); } catch {}
-  try { ctx && ctx.close(); } catch {}
-  try { stream && stream.getTracks().forEach(t => t.stop()); } catch {}
-  node = ctx = stream = null;
-  $('talk').textContent = 'Start speaking';
-  $('talk').onclick = start;
-}
-
-// Booth insurance: the venue microphone and the venue wifi both fail; a file does not.
-async function playFile(file) {
-  reset();
-  try { await connect(); } catch { return; }
-  setStatus('replaying ' + file.name, 'on');
-  const decoded = await new AudioContext({ sampleRate: SAMPLE_RATE })
-    .decodeAudioData(await file.arrayBuffer());
-  const d = decoded.getChannelData(0);
+async function run() {
+  if (!current) return;
+  $('run').disabled = true;
+  sawPartial = false;
+  $('transcript').textContent = '';
+  $('was').textContent = '';
+  $('clarify').hidden = true;
+  for (const k of Object.keys(timings)) timings[k] = '-';
+  stat('model', '-');
+  try { await connect(); } catch { $('run').disabled = false; return; }
+  began = performance.now();
+  const d = current.buffer.getChannelData(0);
   for (let o = 0; o < d.length; o += FRAME) {
     sendPcm(d.subarray(o, o + FRAME));
-    await new Promise(r => setTimeout(r, 20));   // real time, so the latency numbers mean something
+    await new Promise(r => setTimeout(r, 20));   // real time, so the timings mean something
   }
-  ws.send(JSON.stringify({ type:'end' }));
+  ws.send(JSON.stringify({ type: 'end' }));
+  $('run').disabled = false;
 }
 
+// Deliberately a separate button. Synthesis lands a second after the clip ends,
+// so the room hears only the recovered voice unless someone asks for the original.
+$('original').onclick = () => current && play(current.buffer);
+$('run').onclick = run;
 try { const k = sessionStorage.getItem('bt_key'); if (k) $('apiKey').value = k; } catch {}
-$('talk').onclick = start;
-$('pick').onclick = () => $('file').click();
-$('file').onchange = e => e.target.files[0] && playFile(e.target.files[0]);
+loadClips();
 </script>
 </body>
