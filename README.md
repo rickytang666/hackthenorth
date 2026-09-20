@@ -1,6 +1,10 @@
-<h1><img src="app/logo.png" width="24" alt="" align="absmiddle"> VoiceBridge</h1>
+<div align="center">
+<img src="app/logo-white.png" width="150" alt="VoiceBridge logo">
+<h1>VoiceBridge</h1>
+<p>Speech recovery for dysarthric speakers, spoken back in the speaker's own voice.</p>
+</div>
 
-Speech recovery for dysarthric speakers, spoken back in the speaker's own voice.
+---
 
 ## The problem
 
