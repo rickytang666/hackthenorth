@@ -83,7 +83,9 @@ def resolve(kind, rows):
         choice = _choices.get((kind, rows))
     if choice is None:
         if kind == "down_next_norm" and 2 <= rows <= 32:
-            return ("addnorm",)
+            return ("fused", 16)
+        if kind == "down_residual" and 2 <= rows <= 32:
+            return ("splitk",)
         if kind == "rope_attention":
             if rows == 8:
                 return ("sglang", 8)

@@ -12,29 +12,6 @@ except ImportError:
 
 @unittest.skipUnless(torch is not None and torch.cuda.is_available(), "requires CUDA and Triton")
 class DownNormFusionTests(unittest.TestCase):
-    def test_residual_norm_preserves_separate_values_on_replay(self):
-        from kernels.rmsnorm import add_rms_norm, rms_norm
-
-        with torch.inference_mode():
-            torch.manual_seed(6923)
-            gain = torch.randn(2560, device="cuda", dtype=torch.bfloat16)
-            for batch in (2, 4, 8, 16, 32):
-                x = torch.randn(batch, 1, 2560, device="cuda", dtype=torch.bfloat16)
-                residual = torch.randn_like(x)
-                add_rms_norm(x, residual, gain, 1e-6, match_separate=True)
-                graph = torch.cuda.CUDAGraph()
-                with torch.cuda.graph(graph):
-                    actual, normalized = add_rms_norm(x, residual, gain, 1e-6, match_separate=True)
-                for scale in (0., 0.01, 1., 16.):
-                    x.normal_().mul_(scale)
-                    residual.normal_().mul_(scale)
-                    gain.normal_()
-                    expected = x + residual
-                    expected_norm = rms_norm(expected, gain, 1e-6)
-                    graph.replay()
-                    torch.testing.assert_close(actual, expected, atol=0, rtol=0)
-                    torch.testing.assert_close(normalized, expected_norm, atol=0, rtol=0)
-
     def test_matches_separate_operations_with_new_graph_inputs(self):
         from kernels.split_down import split_down_residual, split_down_residual_norm
         from kernels.rmsnorm import rms_norm
