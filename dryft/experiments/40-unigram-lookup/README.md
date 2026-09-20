@@ -29,3 +29,12 @@ results remain in the gpu-interpreter worktree under
 Local checks: 36 unittest cases, 10 pass and 26 skip because CUDA/Torch
 are unavailable locally. Tests include exhaustive incremental history
 matching at widths three and seven and prompt isolation.
+
+## Official result and rollback
+
+Run `f54151ea-748c-494e-a1d6-7a5706561599` passed correctness but scored
+975.6932 tok/s, down 1.52% from the 990.7545 baseline. Public B1 improved
+1.274%; unchanged B4/B16 paths moved -1.501%/-0.557%. This single run
+cannot isolate policy effects from execution-environment variation. The
+local gain did not establish an official gain; restore the exact engine
+from `15fb7d3` and retain this experiment as evidence.

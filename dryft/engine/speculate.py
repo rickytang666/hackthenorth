@@ -34,11 +34,11 @@ class PromptLookup:
 
 
 class BackoffPromptLookup:
-    """Prefer the longest history match, falling back from four tokens to one."""
+    """Prefer the longest history match, falling back from four tokens to two."""
 
     def __init__(self, prompt, draft_length=DRAFT_TOKENS):
         self.matchers = [PromptLookup(prompt, draft_length, ngram)
-                         for ngram in (4, 3, 2, 1)]
+                         for ngram in (4, 3, 2)]
 
     def append(self, token):
         for matcher in self.matchers:
