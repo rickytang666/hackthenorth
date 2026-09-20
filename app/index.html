@@ -31,9 +31,43 @@
   input[type=text], input[type=password] { padding: 4px 6px; border: 1px solid #ccc;
                                            min-width: min(340px, 100%) }
   label { font-size: 12px; color: #555 }
-  #stats { font-size: 13px; color: #555; font-variant-numeric: tabular-nums }
   #status { font-size: 13px; color: #555 }
-  .note { font-size: 12px; color: #777; margin: 0 }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace }
+
+  /* speaker chips */
+  .chips { display: flex; gap: 5px; flex-wrap: wrap; align-items: center;
+           font-size: 11px; margin: 8px 0 0 }
+  .chip { border: 1px solid #ddd; padding: 2px 6px; color: #666; white-space: nowrap }
+  .chip b { color: #000; font-weight: 600; font-variant-numeric: tabular-nums }
+  .chip .arrow { color: #aaa; padding: 0 3px }
+
+  /* confidence */
+  #confWrap[hidden] { display: none }
+  #confWrap { display: inline-flex; align-items: center; gap: 6px; font-size: 13px;
+              color: #555; font-variant-numeric: tabular-nums }
+  .bar { position: relative; display: inline-block; width: 90px; height: 6px;
+         background: #eee }
+  .bar i { display: block; height: 100%; background: #666 }
+  .bar u { position: absolute; top: -2px; width: 1px; height: 10px; background: #000 }
+
+  /* latency waterfall */
+  #fall { display: flex; height: 14px; width: 100%; background: #f4f4f4 }
+  #fall span { height: 100%; border-right: 1px solid #fff }
+  #fall span:last-child { border-right: 0 }
+  #legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 7px;
+            font-size: 11px; color: #666; font-variant-numeric: tabular-nums }
+  #legend b { color: #000; font-weight: 600 }
+  #legend i { display: inline-block; width: 8px; height: 8px; margin-right: 5px }
+  #modelRow { margin-top: 9px; font-size: 11px; color: #666;
+              display: flex; align-items: center; gap: 5px }
+  #modelRow img { width: 13px; height: 13px; display: none }
+
+  /* endpoints are config, not content */
+  details.quiet { font-size: 11px; color: #888 }
+  details.quiet summary { cursor: pointer; color: #999 }
+  details.quiet input { font-size: 11px; color: #666; border: 1px solid #eee;
+                        padding: 3px 5px; min-width: 260px }
+  details.quiet .row { margin-top: 5px }
 </style>
 
 <body>
@@ -42,11 +76,13 @@
 <fieldset>
   <legend>Clip</legend>
   <div id="clips"></div>
-  <p class="note" id="caption"></p>
+  <div class="chips" id="caption"></div>
   <div class="row" style="margin-top:8px">
     <button id="run" disabled>Recover speech</button>
     <button id="original" disabled>Play original</button>
     <span id="status">pick a clip</span>
+    <span id="confWrap" hidden>confidence <b id="confVal"></b><span class="bar">
+      <i id="confFill"></i><u id="confTick"></u></span></span>
   </div>
 </fieldset>
 
@@ -64,17 +100,20 @@
 </fieldset>
 
 <fieldset>
-  <legend>Timing</legend>
-  <div id="stats">first partial - &middot; final - &middot; spoken - &middot; model -</div>
+  <legend>Latency</legend>
+  <div id="fall"></div>
+  <div id="legend"></div>
+  <div id="modelRow"><img id="modelLogo" alt=""><span id="model" class="mono">-</span></div>
 </fieldset>
 
-<fieldset>
-  <legend>Endpoints</legend>
+<details class="quiet">
+  <summary>Endpoints</summary>
   <div class="row"><label for="url">ASR</label>
-    <input type="text" id="url" value="ws://127.0.0.1:8765" spellcheck="false"></div>
-  <div class="row" style="margin-top:6px"><label for="voiceUrl">Voice</label>
-    <input type="text" id="voiceUrl" value="http://127.0.0.1:8770" spellcheck="false"></div>
-</fieldset>
+    <input type="text" id="url" class="mono" value="ws://127.0.0.1:8765" spellcheck="false"></div>
+  <div class="row"><label for="voiceUrl">Voice</label>
+    <input type="text" id="voiceUrl" class="mono" value="http://127.0.0.1:8770"
+           spellcheck="false"></div>
+</details>
 
 <script>
 const SAMPLE_RATE = 16000, FRAME = 320;        // 320 samples = 20 ms
@@ -148,14 +187,33 @@ async function select(i) {
   current = clips[i];
   [...$('clips').children].forEach((b, j) =>
     b.setAttribute('aria-pressed', String(j === i)));
-  $('caption').textContent =
-    `M02, sealed test speaker. Frozen baseline scores 0.567 WER over all 388 clips, tuned 0.348.`;
+  showChips();
   $('run').disabled = $('original').disabled = false;
   $('transcript').textContent = '';
   $('reference').textContent = $('baseline').textContent = '';
   $('clarify').hidden = true;
   setStatus('ready');
   enrolling = enroll(current);        // start the clone now so beat 5 is not waiting on it
+}
+
+// The sealed-test aggregate, so the seven clips read as a sample of a measured
+// population rather than a lucky handful. Numbers are from docs/RESULTS.md.
+const SEALED = { speaker: 'M02', clips: 388, baseline: 0.567, tuned: 0.348 };
+
+function showChips() {
+  const box = $('caption');
+  box.textContent = '';
+  const chip = html => {
+    const el = document.createElement('span');
+    el.className = 'chip';
+    el.innerHTML = html;
+    box.append(el);
+  };
+  chip(`speaker <b>${SEALED.speaker}</b>`);
+  chip('sealed test, never trained on');
+  chip(`<b>${SEALED.clips}</b> clips`);
+  chip(`WER <b>${SEALED.baseline.toFixed(3)}</b>`
+       + `<span class="arrow">\u2192</span><b>${SEALED.tuned.toFixed(3)}</b>`);
 }
 
 function play(buffer) {
@@ -196,19 +254,67 @@ async function speak(text) {
     });
     if (!r.ok) throw new Error(`synthesize ${r.status} ${await r.text()}`);
     const buf = await ac().decodeAudioData(await r.arrayBuffer());
-    stat('spoken', Math.round(performance.now() - asked) + ' ms');
+    stat('synth', performance.now() - asked);
     play(buf);
   } catch (e) {
-    stat('spoken', 'failed');
+    stat('synth', 0);
     setStatus('voice renderer: ' + e.message);
   }
 }
 
-const timings = { 'first partial': '-', 'final': '-', 'spoken': '-', 'model': '-' };
+function showConfidence(value) {
+  $('confVal').textContent = value.toFixed(3);
+  $('confFill').style.width = Math.round(value * 100) + '%';
+  $('confTick').style.left = (CLARIFY_BELOW * 100) + '%';   // the accept threshold
+  $('confWrap').hidden = false;
+}
+
+// A waterfall rather than a row of numbers: the point is which stage costs what,
+// and three bare millisecond figures do not show that at a glance.
+const STAGES = [
+  { key: 'capture', label: 'audio to first partial', shade: '#c9c9c9' },
+  { key: 'decode', label: 'partial to final', shade: '#8a8a8a' },
+  { key: 'synth', label: 'synthesis', shade: '#3a3a3a' },
+];
+const timings = {};
+
+function drawLatency() {
+  const total = STAGES.reduce((sum, s) => sum + (timings[s.key] || 0), 0) || 0;
+  const fall = $('fall'), legend = $('legend');
+  fall.textContent = '';
+  legend.textContent = '';
+  for (const stage of STAGES) {
+    const ms = timings[stage.key];
+    if (!ms) continue;
+    const seg = document.createElement('span');
+    seg.style.width = (100 * ms / total) + '%';
+    seg.style.background = stage.shade;
+    seg.title = `${stage.label} ${Math.round(ms)} ms`;
+    fall.append(seg);
+    const item = document.createElement('span');
+    item.innerHTML = `<i style="background:${stage.shade}"></i>${stage.label} `
+                   + `<b>${Math.round(ms)} ms</b>`;
+    legend.append(item);
+  }
+  if (total) {
+    const sum = document.createElement('span');
+    sum.innerHTML = `total <b>${Math.round(total)} ms</b>`;
+    legend.append(sum);
+  }
+}
+
 function stat(key, value) {
   timings[key] = value;
-  $('stats').textContent = Object.entries(timings)
-    .map(([k, v]) => `${k} ${v}`).join(' · ');
+  drawLatency();
+}
+
+const COHERE_LOGO = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAF5UlEQVR42tVZfWwTZRy+MUGCX6AMo6KQCNGIINiP8WFMw3bXTex2V2xoi8KMYcYgfxjGxobBmhgDsrtWIpARTTR+QRONKEYJ0b8B2ex1i4FMuvWuMPkYiBM3YPT1ea/t2Ec72m4t7Zs8eZuuvXt+7/1+z+/5dQwz+ipYyJumGlaa5xmt3AaDwB4wWLmAwcr2GgSOZBA3jAJ31shzhww898YSm3nOUzbbJCaVtYDj7jJWljoNgvkbXOxihgmPDp4LgMN7i3nT7KTIL6tgHwbxH/Dly0D4tpK/iesI4tdlL5Y+lpi5yzWhWCh9Dh/+M0dIjwBS+YhRKHkgLv8o+dZcJR+DXuA+oykeJ21y9+SHwMp1Gyo5y5CC1Qvmg3lBPpZKArvHVGWarEmlsdLsjBZs3gQAZfpNZzU/xGg6L3Df5pDaJIvu4pXsXEZrUrdb59OqA/MNg8U8j4l02DwjH+3WWgBoWAfyNICLkRSi3iYfA7CaWxZB+hm9wPblYQBhqFCTzmKZwhh4Npx3AfDcRX0FW6E1sbzTfxQvtRK6at3EWAC+PCLfr+e5fTqLafqAjcDQ8HGekL+Get2zyFZeNMTEGYUym6apuUv8Kg65w2hlXx9Im8FrMV82G70gV12oHzL/to5f/njCGcZkMk1GVe/KMS/UAXe8vthaPjPuqQ9fusggE7qdug4/1oODPKHn2dqEE1eiZbPZCnGRzZpByj75CwaB3Y8A1hZXlDzIpLvocIBa+Ch7xNlL2HfoKkvnF68uv5fOJcxYV3Q2+JRWfoaIX0Lnb8FeM9+5YhqTibVU4GZAtt7BTc6Om+1FblOhMFayQrz8bt/ZfmfzjsCCVndohdyoOHyisqrVE2SbJXVOU/XxiSkHQX8Fg9PTGyNz8vW0DZfAHsOJVy21vjCLqt3w+wR3/z3NL6lv+tzKMdmtqn5J6ZYl9R/sl7Gf94nBTlkM/uh3q+XpPQ6Xa4KeLzNBi/eBzKlIwXH/jWh8WvGzeJ89H/3c1yjK5SB9x+DLEYYUnNh+/h7ZE3jCLwXflSUlBJBkgCAONnsCC7w2b2EagTATNE3mWQ6Fvk4vlG5BW98GrRaBbbTZ0PcNfFmJNmjHWfL29pmyFFwri8pXIHQuWeIDcCthfP+PVrdqHZdaodJLT5juo32uZWdXEUi/j5ufQLr0pEx8JLplj1KR8IbEZZlCNttnkzqnGftbpM7egL0KWETqbUUkSblr23XubtkTXIMbXhgH0sMRPC6dmj+S/CbnQhDeTTY7OkmdgwxDD/AL/r6OuKqmjkZey3NJ/QCP/UoGyFP0y42du443nZlyk3yNwwKCKnAjDvnB+JfUOvaSOtt9iQKActQjbXozRD6KYNfvH6pzGUKYAlJrLwGxs7cgPhwiqa4eodHNYsdiHz2hjJKPwOcObmDIRsd0pMUhEAqnGMB14OXB5OkjRdr8nA3yUfzE4PQrkBLXUiQfg4/UrxnorH53aAmaUFfWAhCVLgYk9qdJnuIC2eQoGwhAUqszn/uDofYjAHtoDAH04fvrNREgpADF68KFw1lMoT6kkKN/DAFAsZwNNACvlxT6JHVbFskTpGs7MwbyBPUTxgFsifkcnxTcmuUn8CUTbVDpBgElstfEasAndbwKCb2SFQmlUu0OvUQDODqGAHpIrXP1QANzdz6LIj6dpdOXW8XTj1L70JBGD4jCHiQNq56OBeD1egtx4e+yQP6qLIbqCeqOIfWOJ0GmI80nsJe4hnr+FjHwDG7wV4YDOHwE9jzigWAHSN2qrSBzNTXyzgCpeWVGXC/U2OHIoJFra/OcGfrfemrM8CT2JxVErZZup0i9vTihlXa1TWr1hDZq3n080wYn39IYmBV/DqBB1Dm2RtMpnIA8LIfze+B5cotBhg7qVCX8buUwbtw7JrVBwVKHe1JSHxl1CNHSSasJrbCPRlTG3g/iCl5/jp0lrtfuJyn8htOys70ILb/MLyqfwGqchA3uS8Lj9PpEpR1D/ReyR11J1UYr2DjrfyycgZT01/eFAAAAAElFTkSuQmCC';
+function showModel(id) {
+  $('model').textContent = id || '-';
+  const logo = $('modelLogo');
+  const isCohere = /cohere/i.test(id || '');
+  if (isCohere) logo.src = COHERE_LOGO;
+  logo.style.display = isCohere ? 'inline' : 'none';
 }
 
 function render(text, stableLen) {
@@ -275,13 +381,14 @@ function connect() {
       if (m.type === 'partial') {
         if (!sawPartial) {
           sawPartial = true;
-          stat('first partial', Math.round(performance.now() - began) + ' ms');
+          stat('capture', performance.now() - began);
         }
         render(m.text, m.stable_prefix_len);
       } else if (m.type === 'final') {
-        stat('final', Math.round(performance.now() - began) + ' ms');
-        stat('model', m.model_id ?? '-');
-        setStatus(`confidence ${(m.confidence ?? 0).toFixed(3)}`);
+        stat('decode', performance.now() - began - (timings.capture || 0));
+        showModel(m.model_id);
+        setStatus('done');
+        showConfidence(m.confidence ?? 0);
         if ((m.confidence ?? 1) < CLARIFY_BELOW) {
           render(m.text, m.text.length);
           showComparison();
@@ -314,8 +421,10 @@ async function run() {
   $('transcript').textContent = '';
   $('reference').textContent = $('baseline').textContent = '';
   $('clarify').hidden = true;
-  for (const k of Object.keys(timings)) timings[k] = '-';
-  stat('model', '-');
+  for (const k of Object.keys(timings)) delete timings[k];
+  drawLatency();
+  showModel('');
+  $('confWrap').hidden = true;
   try { await connect(); } catch { $('run').disabled = false; return; }
   began = performance.now();
   // The room hears the distorted original while the text resolves against it.
