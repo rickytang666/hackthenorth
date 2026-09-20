@@ -4,7 +4,7 @@
 # because of files living outside git.
 set -euo pipefail
 
-BRANCH="${1:-feat/cohere-lora}"
+BRANCH="${1:-main}"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 echo "clean clone of $BRANCH into $TMP"
