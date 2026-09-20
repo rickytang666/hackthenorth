@@ -11,6 +11,12 @@
         font-size: 12px; color: #888 }
   .by img { width: 14px; height: 14px; border-radius: 2px }
   .by b { color: #444; font-weight: 600 }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px }
+  .tabs { display: flex; gap: 4px; flex-shrink: 0 }
+  .tabs a { font-size: 12px; padding: 5px 11px; border: 1px solid #e0e0e0;
+            border-radius: 5px; text-decoration: none; color: #777; background: #fff }
+  .tabs a:hover { border-color: #aaa; color: #333 }
+  .tabs a[aria-current] { background: #1b1b1b; border-color: #1b1b1b; color: #fff }
   .card { background: #fff; border: 1px solid #e6e6e6; border-radius: 6px;
           margin: 0 0 12px; padding: 13px 15px }
   .card h2 { font-size: 10px; font-weight: 600; text-transform: uppercase;
@@ -93,8 +99,13 @@
 </style>
 
 <body>
-<h1>VoiceBridge</h1>
-<p class="by">Trained and powered by <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAzElEQVR42u3ZsQnCQBSA4YeFUSGHIhaCXbosIFikEyzsLASHsHIBncANMkEmcCDHOPP6eJFgwjP+xd+FkC+BezlOls+z/+UEAAAAfwAYuMiLyNdzt6wbQBsPr8WXNQAAAAB8cNG8OLSSAoab1dvMDzIFhL4QAAAAANQ3y/d+fEwbpYDpfVuZ3rcTQN1bNDHIAAAA0GOA/lVOyiWxSSaWUSYxAAAAbAMWj1NwUx+Vm/eqRrvEBsD8IAMAAEDPAaHjKXfN7AM4pQQAAECwFwWMbBsS2YwXAAAAAElFTkSuQmCC" alt=""><b>Baseten</b></p>
+<div class="top">
+  <div>
+    <h1>VoiceBridge</h1>
+    <p class="by">Trained and powered by <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAzElEQVR42u3ZsQnCQBSA4YeFUSGHIhaCXbosIFikEyzsLASHsHIBncANMkEmcCDHOPP6eJFgwjP+xd+FkC+BezlOls+z/+UEAAAAfwAYuMiLyNdzt6wbQBsPr8WXNQAAAAB8cNG8OLSSAoab1dvMDzIFhL4QAAAAANQ3y/d+fEwbpYDpfVuZ3rcTQN1bNDHIAAAA0GOA/lVOyiWxSSaWUSYxAAAAbAMWj1NwUx+Vm/eqRrvEBsD8IAMAAEDPAaHjKXfN7AM4pQQAAECwFwWMbBsS2YwXAAAAAElFTkSuQmCC" alt=""><b>Baseten</b></p>
+  </div>
+  <nav class="tabs"><a href="index.html" aria-current="page">Demo</a><a href="benchmarks.html">Benchmarks</a></nav>
+</div>
 
 <section class="card">
   <h2>Clip</h2>

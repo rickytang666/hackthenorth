@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Benchmarks · VoiceBridge</title>
+<style>
+  body { margin: 0 auto; padding: 32px 20px 64px; max-width: 820px;
+         font-family: system-ui, sans-serif; font-size: 15px; line-height: 1.5;
+         color: #1b1b1b; background: #fafafa }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px }
+  h1 { font-size: 19px; margin: 0; font-weight: 600; letter-spacing: -0.01em }
+  .by { display: flex; align-items: center; gap: 6px; margin: 5px 0 20px;
+        font-size: 12px; color: #888 }
+  .by img { width: 14px; height: 14px; border-radius: 2px }
+  .by b { color: #444; font-weight: 600 }
+  .tabs { display: flex; gap: 4px; flex-shrink: 0 }
+  .tabs a { font-size: 12px; padding: 5px 11px; border: 1px solid #e0e0e0;
+            border-radius: 5px; text-decoration: none; color: #777; background: #fff }
+  .tabs a:hover { border-color: #aaa; color: #333 }
+  .tabs a[aria-current] { background: #1b1b1b; border-color: #1b1b1b; color: #fff }
+  .lede { font-size: 17px; line-height: 1.5; color: #444; margin: 0 0 24px; max-width: 640px }
+  .lede b { color: #1b1b1b; font-weight: 600 }
+  .card { background: #fff; border: 1px solid #e6e6e6; border-radius: 6px; padding: 4px 0 0 }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums }
+  caption { text-align: left; padding: 13px 16px 4px; font-size: 10px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.07em; color: #999 }
+  th, td { padding: 11px 16px; border-bottom: 1px solid #f0f0f0; text-align: right }
+  th:first-child, td:first-child { text-align: left }
+  thead th { font-size: 12px; font-weight: 600; color: #777; border-bottom: 1px solid #e0e0e0 }
+  thead th span { display: block; font-weight: 400; font-size: 11px; color: #aaa; margin-top: 2px }
+  tbody th { font-weight: 400; font-size: 14px }
+  tbody th span { display: block; font-size: 11px; color: #999 }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0 }
+  td { font-size: 16px; color: #555 }
+  td.win { color: #1b1b1b; font-weight: 600; background: #f4f4f2 }
+  .notes { font-size: 12px; line-height: 1.7; color: #888; margin: 14px 0 0 }
+  .notes b { color: #555; font-weight: 600 }
+  .facts { display: flex; flex-wrap: wrap; gap: 28px; margin: 22px 0 0;
+           padding-top: 18px; border-top: 1px solid #e6e6e6 }
+  .facts dt { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em;
+              color: #999; margin-bottom: 3px }
+  .facts dd { margin: 0; font-size: 17px }
+  @media (max-width: 620px) { .top { flex-direction: column } th, td { padding: 9px 11px } }
+</style>
+</head>
+<body>
+<div class="top">
+  <div>
+    <h1>VoiceBridge</h1>
+    <p class="by">Trained and powered by <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAzElEQVR42u3ZsQnCQBSA4YeFUSGHIhaCXbosIFikEyzsLASHsHIBncANMkEmcCDHOPP6eJFgwjP+xd+FkC+BezlOls+z/+UEAAAAfwAYuMiLyNdzt6wbQBsPr8WXNQAAAAB8cNG8OLSSAoab1dvMDzIFhL4QAAAAANQ3y/d+fEwbpYDpfVuZ3rcTQN1bNDHIAAAA0GOA/lVOyiWxSSaWUSYxAAAAbAMWj1NwUx+Vm/eqRrvEBsD8IAMAAEDPAaHjKXfN7AM4pQQAAECwFwWMbBsS2YwXAAAAAElFTkSuQmCC" alt=""><b>Baseten</b></p>
+  </div>
+  <nav class="tabs"><a href="index.html">Demo</a><a href="benchmarks.html" aria-current="page">Benchmarks</a></nav>
+</div>
+
+<p class="lede">Adapting Cohere Transcribe to dysarthric speech with LoRA.
+<b>38.6% lower word error rate</b> on a speaker held out from training and from
+every model-selection decision.</p>
+
+<div class="card">
+<table>
+  <caption>Sealed test &middot; speaker M02 &middot; 388 clips &middot; decoded once</caption>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>Frozen<span>Cohere Transcribe 2.07B</span></th>
+      <th>Tuned<span>+ LoRA, 0.166% of weights</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><th>Word error rate<span>All utterances</span></th>
+        <td>56.68%</td><td class="win">34.81%</td></tr>
+    <tr><th>Isolated words<span>Single-word clips</span></th>
+        <td>101.69%</td><td class="win">46.28%</td></tr>
+    <tr><th>Sentences<span>Full-sentence clips</span></th>
+        <td>36.34%</td><td class="win">29.62%</td></tr>
+    <tr><th>Critical errors<span>Negation, yes/no, numbers, medications</span></th>
+        <td>40.00%</td><td class="win">28.57%</td></tr>
+    <tr><th>Exact transcripts<span>Whole clip correct</span></th>
+        <td>98 / 388</td><td class="win">198 / 388</td></tr>
+    <tr><th>Tail latency<span>Per clip, p95</span></th>
+        <td class="win">154 ms</td><td>216 ms</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="notes"><b>Lower is better on every row except exact transcripts.</b>
+Shading marks the better result, so the frozen model wins on latency: LoRA adds
+matrix multiplications. At 39x real time that does not matter, and it is not
+presented as a win. Word error rate exceeds 100% on isolated words when the
+model emits more words than were spoken.</p>
+
+<p class="notes"><b>M02 was held out from training and from tuning</b>, then
+decoded exactly once. All eight dysarthric speakers improved and critical errors
+worsened in none, with the largest gain, 70.9%, on the most impaired speaker.
+Per-speaker tables, the adapter capacity sweep and the live end-to-end timings
+are in <a href="https://github.com/rickytang666/hackthenorth/blob/main/docs/RESULTS.md">docs/RESULTS.md</a>.</p>
+
+<dl class="facts">
+  <div><dt>Method</dt><dd>LoRA, rank 8</dd></div>
+  <div><dt>Trainable</dt><dd>0.166%</dd></div>
+  <div><dt>Training time</dt><dd>10.6 min, one H100</dd></div>
+  <div><dt>Training data</dt><dd>4.06 hours</dd></div>
+</dl>
+</body>
+</html>
