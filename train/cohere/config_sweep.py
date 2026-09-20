@@ -22,11 +22,11 @@ workspace = definitions.Workspace(
 )
 
 runtime = definitions.Runtime(
-    start_commands=["/bin/bash ./train/cohere/severity.sh"],
+    start_commands=["/bin/bash ./train/cohere/sweep.sh"],
     environment_variables={
         "VOICEBRIDGE_DATA": "/tmp/voicebridge-data",
         "HF_TOKEN": definitions.SecretReference(name="hf_token"),
-        "EVAL_MANIFEST": os.environ.get("EVAL_MANIFEST", "torgo_dys_dev.jsonl"),
+        "SWEEP_STEPS": os.environ.get("SWEEP_STEPS", "900"),
         # The adapter travels in the workspace: 13.7 MB, cheaper than wiring
         # cross-job checkpoint mounts for a file this small.
         "ADAPTER_PATH": "./checkpoints/cohere/best",
@@ -47,4 +47,4 @@ job = definitions.TrainingJob(
     workspace=workspace,
 )
 
-training_project = definitions.TrainingProject(name="voicebridge-per-speaker-t34", job=job)
+training_project = definitions.TrainingProject(name="voicebridge-sweep-t34", job=job)
