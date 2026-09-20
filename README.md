@@ -113,6 +113,46 @@ cd serve/voice && uv run --no-sync python server.py           # voice renderer
 
 `uv run python scripts/e2e_check.py` drives the same chain without a browser.
 
+### Running without Baseten
+
+The same adapter serves locally on an Apple Silicon GPU. Needs **24 GB** of
+unified memory: the 2.07B weights take about 4 GB in bfloat16, and the voice
+renderer adds 2 GB more. A 16 GB machine runs out.
+
+Set up a fresh machine:
+
+```bash
+git clone https://github.com/rickytang666/hackthenorth && cd hackthenorth
+uv sync && source env.sh
+
+hf auth login                                      # accept the licence first at
+hf download CohereLabs/cohere-transcribe-03-2026   # huggingface.co/CohereLabs/cohere-transcribe-03-2026
+
+cd serve/voice && ./fetch_openvoice.sh && uv sync && cd ../..
+```
+
+The LoRA adapter is committed at `serve/asr_cohere/packages/best`, so there is
+nothing to transfer. The demo clips are not, because they are TORGO audio: either
+rebuild them with the dataset steps above, or copy `app/clips/` from a machine
+that has them, about 1.5 MB.
+
+Then three processes instead of two:
+
+```bash
+uv run python -m serve.local_runner --module serve.asr_cohere.model.model --port 8766
+ASR_WS_URL=ws://127.0.0.1:8766 uv run python -m app.serve
+cd serve/voice && uv run --no-sync python server.py
+```
+
+Loading the model takes about 50 seconds. Check it with
+`uv run python scripts/e2e_check.py --asr ws://127.0.0.1:8766`, which needs no
+API key against a local endpoint.
+
+Local decoding is close to but not identical with the H100: bfloat16 accumulates
+in a different order on Metal, so a low-confidence clip can reorder its
+candidates. Six of the seven demo clips return the identical transcript; the
+seventh, at 0.74 confidence, promotes a different beam to the top.
+
 Built with the [TORGO database](https://huggingface.co/datasets/abnerh/TORGO-database),
 downloaded separately under its own terms. Base model Apache 2.0; OpenVoice V2
 and MeloTTS MIT.

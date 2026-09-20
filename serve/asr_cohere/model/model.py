@@ -158,7 +158,10 @@ class Model:
         self._model = self._processor = self._prompt = None
         self.model_id = MODEL_ID
         self._ready = False
-        self._device = "cuda" if torch.cuda.is_available() else "cpu"
+        # MPS is allowed so the demo survives losing the GPU host; CPU is not,
+        # because it passes a smoke test and then misses every latency number.
+        self._device = ("cuda" if torch.cuda.is_available()
+                        else "mps" if torch.backends.mps.is_available() else "cpu")
         # Truss bundles packages/ at the container filesystem root (verified:
         # /packages/best), not next to model/, so the local and deployed paths
         # differ and both are searched. A missing adapter must be loud: silently
@@ -180,7 +183,8 @@ class Model:
             os.environ["HF_TOKEN"] = token
             os.environ["HUGGING_FACE_HUB_TOKEN"] = token
         from transformers import AutoProcessor
-        dtype = torch.bfloat16 if self._device == "cuda" else torch.float32
+        # bfloat16 on MPS too: fp16 overflows this model's -1e9 attention mask.
+        dtype = torch.float32 if self._device == "cpu" else torch.bfloat16
         self._processor = AutoProcessor.from_pretrained(MODEL_ID, trust_remote_code=True)
         if self._adapter is None:
             raise RuntimeError(
@@ -196,12 +200,10 @@ class Model:
             [prompt_ids(self._processor.tokenizer, "en", punctuation=False)],
             dtype=torch.long, device=self._device,
         )
-        if self._device != "cuda":
-            # Refuse rather than silently serving a CPU model: it would pass a
-            # smoke test and then miss every latency number on stage.
+        if self._device == "cpu":
             raise RuntimeError(
-                "CUDA unavailable. torch fell back to CPU, which usually means "
-                "the torch build does not match the base image driver."
+                "Neither CUDA nor MPS is available. Refusing to serve on CPU: it "
+                "would pass a smoke test and then miss every latency number."
             )
 
         # Warm once so the first real request is not reported as steady state.
