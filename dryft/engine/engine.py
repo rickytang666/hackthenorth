@@ -8,7 +8,7 @@ from attention import GroupedAttention
 from kernels.fused import swiglu
 from kernels.gateup import LEGACY_CONFIG, gate_up_swiglu
 from kernels.rmsnorm import rms_norm
-from speculate import DRAFT_TOKENS, BackoffPromptLookup as PromptLookup
+from speculate import DraftGovernor, BackoffPromptLookup as PromptLookup
 from fused_layer import install as install_fused_projections
 from kernels.tile import tile_projection
 from projections import Projection, probe_point, resolve
@@ -165,16 +165,21 @@ class Engine:
                 yield from stream_decode(state, tokens, max_new_tokens)
                 return
             yield tokens
-            lookup = PromptLookup(input_ids[0]) if state.verify_graph is not None else None
+            lookup = (PromptLookup(input_ids[0], draft_length=state.draft_tokens)
+                      if state.verify_graph is not None else None)
             if lookup is not None:
                 lookup.append(tokens[0])
+            governor = DraftGovernor()
             emitted = 1
             while emitted < max_new_tokens:
                 proposal = None
-                if lookup is not None and max_new_tokens - emitted > DRAFT_TOKENS:
+                if (lookup is not None
+                        and max_new_tokens - emitted > state.draft_tokens
+                        and governor.should_draft()):
                     proposal = lookup.propose()
                 if proposal is not None:
                     verified = state.verify(tokens[0], proposal, shape[1] + emitted - 1)
+                    governor.record(len(verified))
                     for token in verified:
                         tokens = [token]
                         lookup.append(token)

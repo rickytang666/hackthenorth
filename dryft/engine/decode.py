@@ -2,7 +2,7 @@
 
 import torch
 
-from speculate import DRAFT_TOKENS, verified_tokens
+from speculate import draft_width, verified_tokens
 
 
 def stream_decode(state, first_tokens, output_length):
@@ -114,9 +114,10 @@ class DecodeState:
         self.position_causality = omit_unused_masks and uses_position_causality(model)
         self.graph = None
         self.verify_graph = None
+        self.draft_tokens = draft_width(output_length)
         if output_length > 1:
             self.capture(model)
-        if speculative and batch_size == 1 and output_length > DRAFT_TOKENS + 1:
+        if speculative and batch_size == 1 and self.draft_tokens >= 1:
             self.capture_verifier(model)
 
     def step(self, model):
@@ -200,7 +201,7 @@ class DecodeState:
     def capture_verifier(self, model):
         from projections import calibrate
 
-        length = DRAFT_TOKENS + 1
+        length = self.draft_tokens + 1
         self.verify_input = torch.zeros((1, length), dtype=torch.int64, device=model.device)
         self.verify_offsets = torch.arange(length, device=model.device)
         self.position.fill_(self.shape[1])
