@@ -28,6 +28,25 @@ class PromptLookup:
         return self.tokens[start:start + self.draft_length]
 
 
+class BackoffPromptLookup:
+    """Prefer the longest history match, falling back from four tokens to two."""
+
+    def __init__(self, prompt, draft_length=DRAFT_TOKENS):
+        self.matchers = [PromptLookup(prompt, draft_length, ngram)
+                         for ngram in (4, 3, 2)]
+
+    def append(self, token):
+        for matcher in self.matchers:
+            matcher.append(token)
+
+    def propose(self):
+        for matcher in self.matchers:
+            proposal = matcher.propose()
+            if proposal is not None:
+                return proposal
+        return None
+
+
 def verified_tokens(proposal, predictions):
     """Accept matching target argmaxes, then emit one target correction/bonus.
 

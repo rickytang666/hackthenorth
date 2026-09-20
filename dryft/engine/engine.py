@@ -8,7 +8,7 @@ from attention import GroupedAttention
 from kernels.fused import swiglu
 from kernels.gateup import LEGACY_CONFIG, gate_up_swiglu
 from kernels.rmsnorm import rms_norm
-from speculate import DRAFT_TOKENS, PromptLookup
+from speculate import DRAFT_TOKENS, BackoffPromptLookup as PromptLookup
 from fused_layer import install as install_fused_projections
 from kernels.tile import tile_projection
 from projections import Projection, probe_point, resolve
