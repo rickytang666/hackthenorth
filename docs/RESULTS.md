@@ -103,6 +103,24 @@ each offering three genuine alternatives with the model's best guess first.
 **Cold start is 33 seconds** at `min_replica: 0`. Warm the endpoint before
 demoing.
 
+## Why Cohere and not Parakeet
+
+Both lanes were built. NVIDIA NeMo Parakeet (0.6B and 1.1B) was adapted with
+dim-32 encoder adapters, with and without unfreezing the last two encoder
+blocks. Its arms were scored on held-out *prompts* from speakers already in
+training, on sets of 19 to 55 clips and with different step budgets, so those
+numbers are not comparable to the tables above and are not reproduced here.
+
+One axis is genuinely matched. F04, identical 244 clips and 637 reference words,
+neither lane trained on it:
+
+| | Frozen | Adapted |
+|---|---:|---:|
+| Cohere Transcribe 2.07B | 0.1099 | **0.0330** |
+| NeMo Parakeet, best arm | 0.1523 | 0.0785 |
+
+Cohere starts better and improves further, so it is the shipped lane.
+
 ## Training
 
 | | |
