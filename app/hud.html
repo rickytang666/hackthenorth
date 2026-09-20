@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VoiceBridge latency HUD</title>
+  <style>
+    :root { --ink:#070806; --paper:#f1f0e8; --acid:#d7ff3f; --signal:#ff5a36; --cyan:#43d9ff; --muted:#8f9488; --line:rgba(241,240,232,.17); --panel:#10120e; --display:"Avenir Next Condensed","DIN Condensed","Franklin Gothic Condensed",sans-serif; --body:"Avenir Next","Gill Sans",sans-serif }
+    * { box-sizing:border-box }
+    html,body { width:100%; min-height:100%; margin:0 }
+    body { color:var(--paper); background:radial-gradient(circle at 82% 8%,rgba(67,217,255,.09),transparent 30%),radial-gradient(circle at 8% 88%,rgba(215,255,63,.07),transparent 30%),var(--ink); font-family:var(--body) }
+    button { font:inherit }
+    .grain { position:fixed; inset:0; pointer-events:none; opacity:.18; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E") }
+    header { height:76px; padding:0 4vw; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between }
+    .wordmark { font:800 18px/1 var(--display); letter-spacing:.18em }
+    .wordmark i { display:inline-block; width:14px; height:14px; margin-right:10px; border:4px solid var(--acid); border-top-color:transparent; border-radius:50%; transform:rotate(-28deg); vertical-align:-2px }
+    .mode { color:var(--muted); font:800 10px/1 var(--display); letter-spacing:.15em }
+    .mode strong { color:var(--cyan) }
+    main { min-height:calc(100vh - 132px); padding:clamp(26px,5vh,58px) 4vw; display:grid; grid-template-columns:minmax(260px,.7fr) minmax(520px,1.3fr); gap:clamp(28px,5vw,80px); align-items:center }
+    .eyebrow { margin:0 0 14px; color:var(--cyan); font:800 11px/1 var(--display); letter-spacing:.18em }
+    h1 { margin:0; max-width:660px; font:900 clamp(52px,7vw,112px)/.82 var(--display); letter-spacing:-.055em; text-transform:uppercase }
+    h1 em { color:var(--acid); font-style:normal }
+    .lede { max-width:510px; margin:22px 0 0; color:var(--muted); font-size:clamp(16px,1.5vw,22px); line-height:1.35 }
+    .controls { margin-top:32px; display:flex; flex-wrap:wrap; gap:9px }
+    .controls button { min-height:44px; padding:0 16px; border:1px solid var(--line); background:transparent; color:var(--paper); font:800 9px/1 var(--display); letter-spacing:.13em; cursor:pointer }
+    .controls button:hover,.controls button:focus-visible { border-color:var(--acid); outline:none }
+    .controls button.active { background:var(--acid); border-color:var(--acid); color:var(--ink) }
+    .fixture-note { margin:13px 0 0; color:var(--muted); font:800 8px/1.4 var(--display); letter-spacing:.11em }
+    #hud { min-width:0 }
+    .latency-hud { --budget-used:0%; --budget-ratio:0; position:relative; padding:clamp(26px,3.3vw,50px); border:1px solid var(--line); background:linear-gradient(145deg,rgba(255,255,255,.03),transparent 30%),rgba(11,13,10,.92); box-shadow:0 28px 90px rgba(0,0,0,.35); overflow:hidden }
+    .latency-hud::after { content:""; position:absolute; top:0; right:0; width:8px; height:100%; background:var(--acid); transform:scaleY(var(--budget-ratio)); transform-origin:bottom; transition:transform .25s ease }
+    .latency-hud.is-over::after { background:var(--signal) }
+    .latency-hud__topline { display:flex; justify-content:space-between; gap:12px; color:var(--cyan); font:800 9px/1 var(--display); letter-spacing:.16em }
+    .latency-hud__state { color:var(--muted) }
+    .latency-hud.is-complete:not(.is-over) .latency-hud__state { color:var(--acid) }
+    .latency-hud.is-over .latency-hud__state { color:var(--signal) }
+    .latency-hud__headline { margin:30px 0 28px; display:grid; grid-template-columns:auto 1fr auto; align-items:end; gap:12px }
+    .latency-hud__headline > strong { font:900 clamp(76px,11vw,168px)/.65 var(--display); letter-spacing:-.07em }
+    .latency-hud__headline > span { max-width:80px; color:var(--muted); font:800 9px/1.15 var(--display); letter-spacing:.12em }
+    .latency-hud__headline > b { padding:7px 9px; border:1px solid var(--acid); color:var(--acid); font:900 9px/1 var(--display); letter-spacing:.12em }
+    .latency-hud.is-over .latency-hud__headline > b { border-color:var(--signal); color:var(--signal) }
+    .latency-hud__rail { position:relative; height:26px; border:1px solid var(--line); background:rgba(255,255,255,.03); overflow:hidden }
+    .latency-hud__segments { position:absolute; inset:0 }
+    .latency-hud__segments span { position:absolute; top:0; bottom:0; background:hsl(calc(76 + var(--stage-index) * 34) 92% 61%); border-right:1px solid var(--ink); transition:left .3s ease,width .3s ease }
+    .latency-hud__segments span.active { min-width:8px; animation:pulse .6s ease-in-out infinite alternate }
+    .latency-hud__limit { position:absolute; right:0; top:-5px; bottom:-5px; width:2px; background:var(--signal) }
+    .latency-hud__stages { margin-top:18px; display:grid; grid-template-columns:repeat(4,1fr); gap:8px }
+    .latency-hud__stage { min-width:0; padding-top:11px; border-top:1px solid var(--line); display:grid; gap:7px; color:var(--muted); font:800 8px/1 var(--display); letter-spacing:.11em }
+    .latency-hud__stage strong { color:var(--paper); font:900 clamp(16px,2vw,28px)/1 var(--display); letter-spacing:-.02em }
+    .latency-hud__stage.active { border-color:var(--cyan); color:var(--cyan) }
+    .latency-hud__stage.done { border-color:var(--acid) }
+    .latency-hud.is-over .latency-hud__stage.done { border-color:var(--signal) }
+    footer { height:56px; padding:0 4vw; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; color:var(--muted); font:800 9px/1 var(--display); letter-spacing:.13em }
+    footer strong { color:var(--acid) }
+    @keyframes pulse { to { opacity:.36 } }
+    @media (max-width:900px) { main { grid-template-columns:1fr; align-items:start } h1 { max-width:none } }
+    @media (max-width:560px) { .latency-hud__headline { grid-template-columns:auto 1fr } .latency-hud__headline > b { grid-column:1/-1; justify-self:start } .latency-hud__stages { grid-template-columns:repeat(2,1fr) } footer { gap:12px } }
+    @media (prefers-reduced-motion:reduce) { * { animation-duration:.01ms!important; transition-duration:.01ms!important } }
+  </style>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <header><div class="wordmark"><i></i>VOICEBRIDGE</div><div class="mode">INFERENCE ON <strong>BASETEN</strong></div></header>
+  <main>
+    <section>
+      <p class="eyebrow">EVERY MILLISECOND HAS AN OWNER</p>
+      <h1>Fast enough<br>to feel <em>human.</em></h1>
+      <p class="lede">The live path exposes its full latency budget instead of hiding behind a spinner. Capture, recognize, verify, then speak.</p>
+      <div class="controls" aria-label="Latency fixture controls">
+        <button class="active" data-fixture="rehearsal">REHEARSAL</button>
+        <button data-fixture="local">LOCAL FAST</button>
+        <button data-fixture="miss">BUDGET MISS</button>
+        <button id="run">RUN AGAIN</button>
+      </div>
+      <p class="fixture-note">HARNESS VALUES ARE LABELED SIMULATIONS FOR BOOTH REHEARSAL, NOT LIVE BENCHMARK CLAIMS.</p>
+    </section>
+    <div id="hud"></div>
+  </main>
+  <footer><span>LIVE OVERLAY CONTRACT · <strong>CAPTURE → ASR → VERIFY → SYNTH</strong></span><span id="summary">READY</span></footer>
+  <script src="static/hud.js"></script>
+  <script>
+    const fixtures={
+      rehearsal:{capture:220,asr:780,verify:8,synth:196},
+      local:{capture:115,asr:292,verify:5,synth:196},
+      miss:{capture:340,asr:1320,verify:11,synth:240},
+    };
+    const stageOrder=['capture','asr','verify','synth'];
+    const hud=VoiceBridgeLatencyHud.mount(document.getElementById('hud'),{budgetMs:1500,provider:'Baseten'});
+    let selected='rehearsal';
+    let runToken=0;
+
+    async function simulate() {
+      const token=++runToken;
+      hud.reset();
+      document.getElementById('summary').textContent='SIMULATED LIVE RUN';
+      for (const stage of stageOrder) {
+        if (token!==runToken) return;
+        hud.begin(stage);
+        await new Promise(resolve=>setTimeout(resolve,Math.max(180,fixtures[selected][stage]*.32)));
+        if (token!==runToken) return;
+        hud.record(stage,fixtures[selected][stage]);
+      }
+      const result=hud.finish();
+      document.getElementById('summary').textContent=`${Math.round(result.totalMs)} MS TOTAL · ${result.totalMs<=result.budgetMs?'WITHIN BUDGET':'OVER BUDGET'}`;
+    }
+
+    document.querySelectorAll('[data-fixture]').forEach(button=>{
+      button.onclick=()=>{
+        selected=button.dataset.fixture;
+        document.querySelectorAll('[data-fixture]').forEach(candidate=>candidate.classList.toggle('active',candidate===button));
+        simulate();
+      };
+    });
+    document.getElementById('run').onclick=simulate;
+    simulate();
+  </script>
+</body>
+</html>
