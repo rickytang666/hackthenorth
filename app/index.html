@@ -3,19 +3,30 @@
 <title>VoiceBridge</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  body { margin: 0 auto; padding: 20px; max-width: 820px; font-family: system-ui, sans-serif;
-         font-size: 15px; line-height: 1.5 }
-  h1 { font-size: 17px; margin: 0 0 16px; font-weight: 600 }
-  fieldset { border: 1px solid #ccc; margin: 0 0 14px; padding: 10px 12px }
-  legend { font-size: 12px; color: #555; padding: 0 4px }
-  #clips { display: flex; flex-wrap: wrap; gap: 6px }
-  #clips button { padding: 4px; background: #fff; border: 1px solid #ccc; cursor: pointer;
-                  font: inherit; font-size: 12px; color: #555; line-height: 1 }
-  #clips button[aria-pressed="true"] { border-color: #000; color: #000 }
+  body { margin: 0 auto; padding: 32px 20px 64px; max-width: 820px;
+         font-family: system-ui, sans-serif; font-size: 15px; line-height: 1.5;
+         color: #1b1b1b; background: #fafafa }
+  h1 { font-size: 19px; margin: 0; font-weight: 600; letter-spacing: -0.01em }
+  .by { display: flex; align-items: center; gap: 6px; margin: 5px 0 20px;
+        font-size: 12px; color: #888 }
+  .by img { width: 14px; height: 14px; border-radius: 2px }
+  .by b { color: #444; font-weight: 600 }
+  .card { background: #fff; border: 1px solid #e6e6e6; border-radius: 6px;
+          margin: 0 0 12px; padding: 13px 15px }
+  .card h2 { font-size: 10px; font-weight: 600; text-transform: uppercase;
+             letter-spacing: 0.07em; color: #999; margin: 0 0 10px }
+  .muted { color: #bbb }
+  #clips { display: flex; flex-wrap: wrap; gap: 5px }
+  #clips button { padding: 5px 5px 4px; font-size: 11px; color: #777; line-height: 1;
+                  border-radius: 5px }
+  #clips button[aria-pressed="true"] { border-color: #1b1b1b; color: #1b1b1b;
+                                       background: #f2f2f2 }
   #clips canvas { display: block }
   #viewer { display: none; margin-top: 10px }
   #viewer video { display: block; width: 100%; max-width: 360px; background: #000 }
-  #transcript { font-size: 26px; line-height: 1.3; min-height: 1.3em }
+  #transcript { font-size: 26px; line-height: 1.3; min-height: 1.3em;
+                letter-spacing: -0.01em }
+  #transcript .muted { font-size: 15px; letter-spacing: 0 }
   #transcript .tail { color: #999 }
   .line { margin-top: 10px; font-size: 14px }
   .line .k { display: inline-block; min-width: 116px; color: #777 }
@@ -23,13 +34,17 @@
   #baseline, #baseline .k { color: #aaa }
   #clarify[hidden] { display: none }
   #choices button { display: block; width: 100%; text-align: left; margin-top: 6px;
-                    padding: 6px 8px; font: inherit; background: #fff; border: 1px solid #ccc;
-                    cursor: pointer; color: #555 }
-  #choices button:first-child { border-color: #000; color: #000; font-size: 17px;
-                                padding: 9px 10px }
+                    padding: 7px 10px; color: #666 }
+  #choices button:first-child { border-color: #1b1b1b; color: #1b1b1b; font-size: 17px;
+                                padding: 10px 12px; margin-top: 8px }
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap }
   button, input { font: inherit }
-  button { padding: 5px 12px }
+  button { padding: 6px 13px; border: 1px solid #d0d0d0; background: #fff;
+           border-radius: 5px; cursor: pointer; transition: background .12s, border-color .12s }
+  button:hover:not(:disabled) { border-color: #999; background: #f6f6f6 }
+  button:disabled { opacity: .4; cursor: default }
+  #run { background: #1b1b1b; border-color: #1b1b1b; color: #fff; font-weight: 500 }
+  #run:hover:not(:disabled) { background: #333; border-color: #333 }
   input[type=text], input[type=password] { padding: 4px 6px; border: 1px solid #ccc;
                                            min-width: min(340px, 100%) }
   label { font-size: 12px; color: #555 }
@@ -39,7 +54,8 @@
   /* speaker chips */
   .chips { display: flex; gap: 5px; flex-wrap: wrap; align-items: center;
            font-size: 11px; margin: 8px 0 0 }
-  .chip { border: 1px solid #ddd; padding: 2px 6px; color: #666; white-space: nowrap }
+  .chip { border: 1px solid #e6e6e6; background: #fbfbfb; border-radius: 4px;
+          padding: 2px 7px; color: #666; white-space: nowrap }
   .chip b { color: #000; font-weight: 600; font-variant-numeric: tabular-nums }
   .chip .arrow { color: #aaa; padding: 0 3px }
 
@@ -48,12 +64,15 @@
   #confWrap { display: inline-flex; align-items: center; gap: 6px; font-size: 13px;
               color: #555; font-variant-numeric: tabular-nums }
   .bar { position: relative; display: inline-block; width: 90px; height: 6px;
-         background: #eee }
-  .bar i { display: block; height: 100%; background: #666 }
+         background: #e8e8e8; border-radius: 3px; overflow: hidden }
+  .bar i { display: block; height: 100%; background: #1b1b1b; transition: width .2s }
   .bar u { position: absolute; top: -2px; width: 1px; height: 10px; background: #000 }
 
   /* latency waterfall */
-  #fall { display: flex; height: 14px; width: 100%; background: #f4f4f4 }
+  #fall { display: flex; height: 13px; width: 100%; background: #f2f2f2;
+          border-radius: 3px; overflow: hidden }
+  #fall:empty { display: none }
+  #legend:empty::after { content: 'Nothing measured yet.'; color: #bbb; font-size: 12px }
   #fall span { height: 100%; border-right: 1px solid #fff }
   #fall span:last-child { border-right: 0 }
   #legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 7px;
@@ -62,6 +81,7 @@
   #legend i { display: inline-block; width: 8px; height: 8px; margin-right: 5px }
   #modelRow { margin-top: 9px; font-size: 11px; color: #666;
               display: flex; align-items: center; gap: 5px }
+  #modelRow[hidden] { display: none }
   #modelRow img { width: 13px; height: 13px; display: none }
 
   /* endpoints are config, not content */
@@ -74,9 +94,10 @@
 
 <body>
 <h1>VoiceBridge</h1>
+<p class="by">Trained and powered by <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAzElEQVR42u3ZsQnCQBSA4YeFUSGHIhaCXbosIFikEyzsLASHsHIBncANMkEmcCDHOPP6eJFgwjP+xd+FkC+BezlOls+z/+UEAAAAfwAYuMiLyNdzt6wbQBsPr8WXNQAAAAB8cNG8OLSSAoab1dvMDzIFhL4QAAAAANQ3y/d+fEwbpYDpfVuZ3rcTQN1bNDHIAAAA0GOA/lVOyiWxSSaWUSYxAAAAbAMWj1NwUx+Vm/eqRrvEBsD8IAMAAEDPAaHjKXfN7AM4pQQAAECwFwWMbBsS2YwXAAAAAElFTkSuQmCC" alt=""><b>Baseten</b></p>
 
-<fieldset>
-  <legend>Clip</legend>
+<section class="card">
+  <h2>Clip</h2>
   <div id="clips"></div>
   <div id="viewer"><video id="video" playsinline preload="auto"></video></div>
   <div class="chips" id="caption"></div>
@@ -87,27 +108,27 @@
     <span id="confWrap" hidden>confidence <b id="confVal"></b><span class="bar">
       <i id="confFill"></i><u id="confTick"></u></span></span>
   </div>
-</fieldset>
+</section>
 
-<fieldset>
-  <legend>Recovered text</legend>
-  <div id="transcript"></div>
+<section class="card">
+  <h2>Recovered text</h2>
+  <div id="transcript"><span class="muted">Pick a clip and press Recover speech.</span></div>
   <p class="line" id="reference"></p>
   <p class="line" id="baseline"></p>
-</fieldset>
+</section>
 
-<fieldset id="clarify" hidden>
-  <legend>Confirm</legend>
+<section class="card" id="clarify" hidden>
+  <h2>Confirm</h2>
   <div id="clarifyLabel"></div>
   <div id="choices"></div>
-</fieldset>
+</section>
 
-<fieldset>
-  <legend>Latency</legend>
+<section class="card">
+  <h2>Latency</h2>
   <div id="fall"></div>
   <div id="legend"></div>
-  <div id="modelRow"><img id="modelLogo" alt=""><span id="model" class="mono">-</span></div>
-</fieldset>
+  <div id="modelRow" hidden><img id="modelLogo" alt=""><span id="model" class="mono">-</span></div>
+</section>
 
 <details class="quiet">
   <summary>Endpoints</summary>
@@ -171,7 +192,7 @@ async function loadClips() {
     b.setAttribute('aria-pressed', 'false');
     b.title = `${clip.duration_s}s`;
     const c = document.createElement('canvas');
-    c.width = 96; c.height = 28;
+    c.width = 84; c.height = 26;
     b.append(c, document.createTextNode(
       `${clip.video ? '▶' : i + 1} · ${clip.duration_s}s`));
     b.onclick = () => select(i);
@@ -202,7 +223,7 @@ async function select(i) {
     viewer.style.display = 'none';
   }
   $('run').disabled = $('original').disabled = false;
-  $('transcript').textContent = '';
+  clearTranscript('Ready. Press Recover speech.');
   $('reference').textContent = $('baseline').textContent = '';
   $('clarify').hidden = true;
   setStatus('ready');
@@ -340,11 +361,16 @@ function stat(key, value) {
 
 const COHERE_LOGO = 'data:image/png;base64,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';
 function showModel(id) {
+  $('modelRow').hidden = !id;
   $('model').textContent = id || '-';
   const logo = $('modelLogo');
   const isCohere = /cohere/i.test(id || '');
   if (isCohere) logo.src = COHERE_LOGO;
   logo.style.display = isCohere ? 'inline' : 'none';
+}
+
+function clearTranscript(message) {
+  $('transcript').innerHTML = `<span class="muted">${message}</span>`;
 }
 
 function render(text, stableLen) {
@@ -448,7 +474,7 @@ async function run() {
   if (!current) return;
   $('run').disabled = true;
   sawPartial = false;
-  $('transcript').textContent = '';
+  clearTranscript('Listening\u2026');
   $('reference').textContent = $('baseline').textContent = '';
   $('clarify').hidden = true;
   for (const k of Object.keys(timings)) delete timings[k];
