@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VoiceBridge confidence ribbon</title>
+  <style>
+    :root { --ink:#070806; --paper:#f1f0e8; --acid:#d7ff3f; --signal:#ff5a36; --cyan:#43d9ff; --muted:#8f9488; --line:rgba(241,240,232,.17); --display:"Avenir Next Condensed","DIN Condensed","Franklin Gothic Condensed",sans-serif; --body:"Avenir Next","Gill Sans",sans-serif }
+    * { box-sizing:border-box }
+    html,body { width:100%; min-height:100%; margin:0 }
+    body { color:var(--paper); background:radial-gradient(circle at 86% 12%,rgba(255,90,54,.09),transparent 32%),var(--ink); font-family:var(--body) }
+    button { font:inherit }
+    .grain { position:fixed; inset:0; pointer-events:none; opacity:.18; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E") }
+    header { height:76px; padding:0 4vw; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between }
+    .wordmark { font:800 18px/1 var(--display); letter-spacing:.18em }
+    .wordmark i { display:inline-block; width:14px; height:14px; margin-right:10px; border:4px solid var(--acid); border-top-color:transparent; border-radius:50%; transform:rotate(-28deg); vertical-align:-2px }
+    .live { display:flex; align-items:center; gap:8px; color:var(--muted); font:800 9px/1 var(--display); letter-spacing:.15em }
+    .live i { width:7px; height:7px; border-radius:50%; background:var(--signal); box-shadow:0 0 16px var(--signal); animation:blink .8s ease-in-out infinite alternate }
+    main { min-height:calc(100vh - 132px); padding:clamp(28px,5vh,60px) 4vw; display:grid; grid-template-rows:auto 1fr auto; gap:clamp(20px,4vh,42px) }
+    .intro { display:flex; justify-content:space-between; align-items:end; gap:30px }
+    .eyebrow { margin:0 0 10px; color:var(--signal); font:800 11px/1 var(--display); letter-spacing:.18em }
+    h1 { margin:0; font:900 clamp(48px,7.6vw,124px)/.82 var(--display); letter-spacing:-.055em; text-transform:uppercase }
+    h1 em { color:var(--acid); font-style:normal }
+    .legend { display:grid; gap:8px; min-width:180px }
+    .legend span { display:flex; justify-content:space-between; gap:24px; padding-top:7px; border-top:2px solid currentColor; font:800 8px/1 var(--display); letter-spacing:.12em }
+    .legend .stable { color:var(--acid) } .legend .watch { color:var(--cyan) } .legend .unstable { color:var(--signal) }
+    .meter-shell { position:relative; min-height:300px; border:1px solid var(--line); background:linear-gradient(135deg,rgba(255,255,255,.025),transparent 35%),rgba(12,14,11,.9); overflow:hidden }
+    .meter-shell::before { content:"MICROPHONE SIGNAL / TOKEN CONFIDENCE"; position:absolute; z-index:1; top:20px; left:22px; color:var(--muted); font:800 8px/1 var(--display); letter-spacing:.14em }
+    #meter { display:block; width:100%; height:100%; min-height:300px }
+    .status { position:absolute; z-index:1; right:20px; top:17px; display:flex; align-items:center; gap:8px; color:var(--acid); font:800 9px/1 var(--display); letter-spacing:.12em }
+    .status::before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor }
+    .controls { display:flex; align-items:center; flex-wrap:wrap; gap:9px }
+    .controls button { min-height:44px; padding:0 16px; border:1px solid var(--line); background:transparent; color:var(--paper); font:800 9px/1 var(--display); letter-spacing:.13em; cursor:pointer }
+    .controls button:hover,.controls button:focus-visible { border-color:var(--acid); outline:none }
+    .controls button.active { background:var(--acid); border-color:var(--acid); color:var(--ink) }
+    .message { margin-left:auto; color:var(--muted); font:800 9px/1 var(--display); letter-spacing:.1em }
+    footer { height:56px; padding:0 4vw; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; color:var(--muted); font:800 9px/1 var(--display); letter-spacing:.13em }
+    footer strong { color:var(--signal) }
+    @keyframes blink { to { opacity:.28 } }
+    @media (max-width:700px) { .intro { align-items:start; flex-direction:column } .legend { width:100%; grid-template-columns:repeat(3,1fr) } .message { width:100%; margin:4px 0 0 } }
+    @media (prefers-reduced-motion:reduce) { * { animation-duration:.01ms!important; transition-duration:.01ms!important } }
+  </style>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <header><div class="wordmark"><i></i>VOICEBRIDGE</div><div class="live"><i></i>STREAMING SIGNAL</div></header>
+  <main>
+    <div class="intro">
+      <div><p class="eyebrow">UNCERTAINTY YOU CAN SEE</p><h1>Watch the<br><em>words settle.</em></h1></div>
+      <div class="legend"><span class="stable">STABLE <b>82%+</b></span><span class="watch">WATCH <b>62%+</b></span><span class="unstable">UNSTABLE <b>&lt;62%</b></span></div>
+    </div>
+    <div class="meter-shell"><canvas id="meter" aria-label="Live microphone waveform colored by token confidence"></canvas><div class="status" id="status">FIXTURE LIVE</div></div>
+    <div class="controls">
+      <button class="active" id="fixture">REPLAY FIXTURE</button>
+      <button id="mic">USE MY MICROPHONE</button>
+      <button id="uncertain">FORCE UNSTABLE TAIL</button>
+      <span class="message" id="message">NO AUDIO LEAVES THIS PAGE</span>
+    </div>
+  </main>
+  <footer><span>THE TAIL STAYS COLORED UNTIL THE MODEL COMMITS</span><strong>CONFIDENCE IS A SIGNAL, NOT A VERDICT</strong></footer>
+  <script src="static/meter.js"></script>
+  <script>
+    const canvas=document.getElementById('meter');
+    const meter=VoiceBridgeMeter.mount(canvas);
+    const stable=[
+      {text:'please',confidence:.97},{text:'do',confidence:.95},{text:'not',confidence:.91},
+      {text:'give',confidence:.88},{text:'the',confidence:.86},{text:'insulin',confidence:.84},
+    ];
+    const unstable=[
+      {text:'please',confidence:.97},{text:'do',confidence:.95},{text:'not',confidence:.91},
+      {text:'give',confidence:.71},{text:'the',confidence:.58},{text:'insulin',confidence:.39},
+    ];
+    let tick=0;
+    let fixtureTimer;
+
+    function startFixture(tokens=stable) {
+      meter.disconnect();
+      clearInterval(fixtureTimer);
+      document.querySelectorAll('button').forEach(button=>button.classList.remove('active'));
+      document.getElementById('fixture').classList.add('active');
+      document.getElementById('status').textContent='FIXTURE LIVE';
+      document.getElementById('message').textContent='SIMULATED AUDIO · NO NETWORK';
+      meter.setTokens(tokens);
+      fixtureTimer=setInterval(()=>{
+        tick+=.31;
+        const envelope=.28+Math.sin(tick*.22)*.17;
+        meter.pushSample(Math.sin(tick*2.1)*envelope+Math.sin(tick*5.7)*.08);
+      },24);
+    }
+
+    document.getElementById('fixture').onclick=()=>startFixture(stable);
+    document.getElementById('uncertain').onclick=()=>{
+      startFixture(unstable);
+      document.getElementById('uncertain').classList.add('active');
+      document.getElementById('fixture').classList.remove('active');
+      document.getElementById('status').textContent='TAIL UNSTABLE';
+      document.getElementById('message').textContent='LOW-CONFIDENCE WORDS STAY VISIBLE';
+    };
+    document.getElementById('mic').onclick=async()=>{
+      try {
+        clearInterval(fixtureTimer);
+        const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+        await meter.connect(stream);
+        meter.setTokens(unstable);
+        document.querySelectorAll('button').forEach(button=>button.classList.remove('active'));
+        document.getElementById('mic').classList.add('active');
+        document.getElementById('status').textContent='MIC LIVE';
+        document.getElementById('message').textContent='LOCAL AUDIO ONLY · STOP BY REPLAYING FIXTURE';
+      } catch (error) {
+        document.getElementById('message').textContent='MICROPHONE UNAVAILABLE · FIXTURE STILL READY';
+        startFixture(stable);
+      }
+    };
+    startFixture(unstable);
+  </script>
+</body>
+</html>
