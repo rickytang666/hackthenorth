@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="description" content="VoiceBridge speech model evaluations: Cohere Transcribe and NeMo Parakeet, with matched-protocol comparisons and highlighted best results.">
+<title>Model evaluations · VoiceBridge</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--paper:#f8f7f3;--surface:#fffefa;--ink:#252722;--muted:#666960;--rule:#dedfd6;--clay:#b7725c;--win:#f0ddd2;--band:#efefe8}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:28px}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-underline-offset:4px;text-decoration-thickness:1px}
+a:hover{color:#8f4f39}
+a:focus-visible,summary:focus-visible,.table-scroll:focus-visible{outline:2px solid var(--clay);outline-offset:5px}
+.shell{max-width:1200px;margin:auto;padding:0 44px}
+.masthead{display:flex;justify-content:space-between;align-items:center;padding:28px 0 23px;border-bottom:1px solid var(--rule)}
+.wordmark{font-size:19px;font-weight:700;letter-spacing:-.7px;display:flex;gap:10px;align-items:center}
+.mark{display:flex;align-items:center;gap:3px;height:24px}
+.mark i{display:block;width:3px;background:var(--ink);border-radius:2px;height:10px}.mark i:nth-child(2){height:20px}.mark i:nth-child(3){height:14px}.mark i:nth-child(4){height:24px}
+.meta,.eyebrow{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+.hero{padding:52px 0 30px;max-width:780px}
+.eyebrow{margin:0 0 14px}
+h1{font:normal clamp(38px,5vw,60px)/1.08 Georgia,'Times New Roman',serif;letter-spacing:-2px;margin:0 0 20px}
+.dek{font:20px/1.5 Georgia,'Times New Roman',serif;margin:0;color:#56594f;max-width:690px}
+.dek strong{color:var(--ink);font-weight:normal}
+nav{display:flex;gap:28px;border-bottom:1px solid var(--rule);padding:0 0 15px;margin:0 0 40px;font-size:13px;flex-wrap:wrap}
+nav a{text-decoration:none}nav a:first-child{font-weight:700}
+section{margin:0 0 56px;scroll-margin-top:28px}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;margin-bottom:22px}
+h2{font-size:23px;line-height:1.3;letter-spacing:-.6px;margin:0 0 7px;font-weight:600}
+.section-description{color:var(--muted);font-size:14px;margin:0;max-width:730px}
+.legend{display:flex;gap:8px;align-items:center;white-space:nowrap;color:var(--muted);font-size:12px;margin:0 0 3px}
+.swatch{width:14px;height:14px;border:1px solid #d6b9aa;background:var(--win);border-radius:2px}
+.table-scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--rule);border-radius:9px;isolation:isolate}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:620px;font-variant-numeric:tabular-nums}
+th,td{padding:17px 22px;vertical-align:middle;text-align:center;border-bottom:1px solid var(--rule)}
+thead th{font:normal 21px/1.2 Georgia,'Times New Roman',serif;padding-top:25px;padding-bottom:25px;width:29%}
+thead th span{display:block;font:11px/1.5 Arial,Helvetica,sans-serif;color:var(--muted);margin-top:8px;letter-spacing:.05px}
+th:first-child{text-align:left;width:42%}
+thead .metric-heading{font:500 14px/1.4 Arial,Helvetica,sans-serif;color:var(--muted)}
+thead .metric-heading span{font-size:11px}
+tbody th{font-weight:500;font-size:14px;line-height:1.4}
+tbody th span{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:3px}
+td{font-size:18px;line-height:1.4}td strong{font-weight:600}
+td.winner{background:var(--win)}
+.featured{border-left:1px solid var(--clay);border-right:1px solid var(--clay)}
+thead .featured{border-top:1px solid var(--clay);border-radius:7px 7px 0 0}
+tbody:last-child tr:last-child td.featured{border-bottom:1px solid var(--clay)}
+.group th{background:var(--band);color:#616558;font-size:10px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;padding:10px 22px}
+tbody:last-child tr:last-child>*{border-bottom:0}
+.wide{min-width:1000px;table-layout:fixed}
+.wide th:first-child{width:24%}.wide thead th{font-size:17px;width:auto;padding:24px 10px}.wide td{font-size:16px;padding:17px 12px}.wide thead th span{font-size:10px}
+.wide tbody th{padding-left:22px}
+.wide .group th{width:auto}
+abbr[title]{text-decoration:none;color:#868a7d;font-size:12px}
+.notes{font-size:12px;line-height:1.65;color:var(--muted);margin:14px 0 0;max-width:930px}
+.notes p{margin:0 0 7px}.notes strong{font-weight:600;color:#4b4f44}
+.training{display:flex;gap:0;flex-wrap:wrap;border-bottom:1px solid var(--rule);padding:24px 0;margin:0 0 24px}
+.training div{padding-right:40px}.training dt{color:var(--muted);font-size:10px;letter-spacing:.9px;text-transform:uppercase;margin-bottom:4px}.training dd{margin:0;font:20px/1.4 Georgia,'Times New Roman',serif}
+details{border-top:1px solid var(--rule);padding-top:16px;margin-top:24px}
+summary{cursor:pointer;color:#4b4f44;font-size:13px;font-weight:600;padding:0 0 16px}
+.details-intro{font-size:13px;color:var(--muted);margin:0 0 16px}
+footer{border-top:1px solid var(--rule);padding:24px 0 36px;font-size:11px;line-height:1.7;color:var(--muted)}
+footer p{margin:0 0 8px}footer .footer-line{display:flex;justify-content:space-between;gap:20px;margin-top:20px;text-transform:uppercase;font-size:10px;letter-spacing:1px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:760px){.shell{padding:0 20px}.masthead{padding:22px 0}.meta{font-size:9px;letter-spacing:.7px}.hero{padding-top:38px}.dek{font-size:18px}h1{letter-spacing:-1.4px}.section-head{display:block}.legend{margin-top:16px}.training{gap:16px 24px}.training div{padding-right:0}.training dd{font-size:18px}nav{gap:18px}.table-scroll{border-radius:6px}th:first-child{position:sticky;left:0;z-index:1;background:var(--surface)}.group th:first-child{position:static;background:var(--band)}.wide th:first-child{width:215px}.wide{min-width:1000px}footer .footer-line{display:block}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{body{background:#fff}.shell{max-width:none;padding:0}.masthead{padding-top:0}.hero{padding-top:24px}nav{display:none}section{margin-bottom:30px}.table-scroll{overflow:visible}table,.wide{min-width:0;font-size:10px}.wide th:first-child{width:20%}th,td,.wide td{padding:9px 6px;font-size:11px}thead th,.wide thead th{font-size:12px;padding:14px 6px}tbody th{font-size:11px}.group th{padding:7px 6px}.winner{print-color-adjust:exact;-webkit-print-color-adjust:exact}tr{break-inside:avoid}thead{display:table-header-group}.legend{white-space:normal}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="masthead"><div class="wordmark"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>VoiceBridge</div><div class="meta">Research / September 2026</div></header>
+<main>
+<header class="hero"><p class="eyebrow">Speech recognition · Model evaluations</p><h1>Model comparison</h1><p class="dek">Adapting speech recognition to dysarthric speech.<br><strong>38.6% lower word error rate</strong> on a speaker held out from training and model selection.</p></header>
+<nav aria-label="Evaluation sections"><a href="#cohere">Cohere Transcribe</a><a href="#parakeet">NeMo Parakeet</a><a href="#capacity">Adapter capacity</a><a href="#methodology">Methodology</a></nav>
+<section id="cohere" aria-labelledby="cohere-title">
+<div class="section-head"><div><h2 id="cohere-title">Cohere Transcribe</h2><p class="section-description">Frozen baseline and LoRA adaptation. Same H100, evaluator and text normalizer.</p></div><p class="legend"><span class="swatch" aria-hidden="true"></span>Best in each row, including ties</p></div>
+<div class="table-scroll" role="region" aria-label="Cohere Transcribe baseline versus LoRA adaptation" tabindex="0"><table id="cohere-table" class=""><caption class="sr-only">Cohere Transcribe baseline versus LoRA adaptation</caption><thead>
+<tr><th scope="col" class="metric-heading">Benchmark <span>Evaluation / metric</span></th><th scope="col">Cohere Transcribe<span>2.07B · Frozen baseline</span></th><th scope="col" class="featured">Cohere Transcribe<span>2.07B · LoRA tuned</span></th></tr></thead>
+<tbody>
+<tr class="group"><th colspan="3" scope="rowgroup">Sealed test · M02 · 388 clips</th></tr>
+<tr data-direction="min"><th scope="row">Word error rate<span>All utterances ↓</span></th><td class="" data-value="56.68">56.68%</td><td class="winner featured" data-value="34.81"><strong>34.81%</strong><span class="sr-only"> (best in row)</span></td></tr>
+<tr data-direction="min"><th scope="row">Isolated-word WER<span>Single-word utterances ↓</span></th><td class="" data-value="101.69">101.69%</td><td class="winner featured" data-value="46.28"><strong>46.28%</strong><span class="sr-only"> (best in row)</span></td></tr>
+<tr data-direction="min"><th scope="row">Sentence WER<span>Full sentences ↓</span></th><td class="" data-value="36.34">36.34%</td><td class="winner featured" data-value="29.62"><strong>29.62%</strong><span class="sr-only"> (best in row)</span></td></tr>
+<tr data-direction="min"><th scope="row">Critical error rate<span>Safety-relevant words ↓</span></th><td class="" data-value="40">40.00%</td><td class="winner featured" data-value="28.57"><strong>28.57%</strong><span class="sr-only"> (best in row)</span></td></tr>
+<tr data-direction="max"><th scope="row">Exact transcripts<span>Correct clips / total ↑</span></th><td class="" data-value="98">98 / 388</td><td class="winner featured" data-value="198"><strong>198 / 388</strong><span class="sr-only"> (best in row)</span></td></tr>
+<tr data-direction="min"><th scope="row">Median latency<span>Per-clip decode · p50 ↓</span></th><td class="winner" data-value="52"><strong>52 ms</strong><span class="sr-only"> (best in row)</span></td><td class="featured" data-value="70">70 ms</td></tr>
+<tr data-direction="min"><th scope="row">Tail latency<span>Per-clip decode · p95 ↓</span></th><td class="winner" data-value="154"><strong>154 ms</strong><span class="sr-only"> (best in row)</span></td><td class="featured" data-value="216">216 ms</td></tr></tbody>
+<tbody>
+<tr class="group"><th colspan="3" scope="rowgroup">Validation · F04 · 244 clips</th></tr>
+<tr data-direction="min"><th scope="row">Word error rate<span>Checkpoint-selection speaker ↓</span></th><td class="" data-value="10.99">10.99%</td><td class="winner featured" data-value="3.3"><strong>3.30%</strong><span class="sr-only"> (best in row)</span></td></tr></tbody>
+<tbody>
+<tr class="group"><th colspan="3" scope="rowgroup">Out-of-domain diagnostic · one 11.8-second clip</th></tr>
+<tr data-direction="min"><th scope="row">Word error rate<span>Spontaneous clinical interview ↓</span></th><td class="winner" data-value="65.4"><strong>65.4%</strong><span class="sr-only"> (best in row)</span></td><td class="featured" data-value="73.1">73.1%</td></tr></tbody>
+</table></div>
+<div class="notes"><p><strong>Reading the table.</strong> ↓ Lower is better. ↑ Higher is better. WER and critical errors are percentages; WER can exceed 100% when insertions increase the error count. Shading follows the metric direction, so the baseline wins on latency.</p><p><strong>Evaluation boundaries.</strong> M02 was held out from training and tuning, then decoded once. F04 selected the checkpoint and is not an independent test. The interview is a single out-of-domain diagnostic, not an aggregate benchmark.</p></div>
+<dl class="training"><div><dt>Method</dt><dd>Supervised LoRA</dd></div><div><dt>Trainable parameters</dt><dd>0.166%</dd></div><div><dt>Training time</dt><dd>10.6 min / H100</dd></div><div><dt>Training data</dt><dd>4.06 hours</dd></div></dl>
+<details><summary>Additional speaker results</summary><p class="details-intro">These six speakers are represented in training. Their scores are descriptive and do not measure generalization to new speakers.</p><div class="table-scroll" role="region" aria-label="Cohere word error rate on speakers represented in training" tabindex="0"><table id="speaker-table" class=""><caption class="sr-only">Cohere word error rate on speakers represented in training</caption><thead>
+<tr><th scope="col" class="metric-heading">Benchmark <span>Evaluation / metric</span></th><th scope="col">Cohere Transcribe<span>2.07B · Frozen baseline</span></th><th scope="col" class="featured">Cohere Transcribe<span>2.07B · LoRA tuned</span></th></tr></thead>
+<tbody>
+<tr data-direction="min"><th scope="row">M03<span>406 clips · WER ↓</span></th><td class="" data-value="7.4">7.40%</td><td class="winner featured" data-value="1.48"><strong>1.48%</strong><span class="sr-only"> (best in row)</span></td></tr>
+<tr data-direction="min"><th scope="row">F03<span>546 clips · WER ↓</span></th><td class="" data-value="30.82">30.82%</td><td class="winner featured" data-value="12.62"><strong>12.62%</strong><span class="sr-only"> (best in row)</span></td></tr>
+<tr data-direction="min"><th scope="row">M05<span>470 clips · WER ↓</span></th><td class="" data-value="39.18">39.18%</td><td class="winner featured" data-value="14.8"><strong>14.80%</strong><span class="sr-only"> (best in row)</span></td></tr>
+<tr data-direction="min"><th scope="row">F01<span>118 clips · WER ↓</span></th><td class="" data-value="65.96">65.96%</td><td class="winner featured" data-value="29.43"><strong>29.43%</strong><span class="sr-only"> (best in row)</span></td></tr>
+<tr data-direction="min"><th scope="row">M01<span>371 clips · WER ↓</span></th><td class="" data-value="66.74">66.74%</td><td class="winner featured" data-value="29.27"><strong>29.27%</strong><span class="sr-only"> (best in row)</span></td></tr>
+<tr data-direction="min"><th scope="row">M04<span>277 clips · WER ↓</span></th><td class="" data-value="112.68">112.68%</td><td class="winner featured" data-value="32.76"><strong>32.76%</strong><span class="sr-only"> (best in row)</span></td></tr></tbody>
+</table></div></details>
+</section>
+<section id="parakeet" aria-labelledby="parakeet-title">
+<div class="section-head"><div><h2 id="parakeet-title">NeMo Parakeet</h2><p class="section-description">Word error rate (%) ↓ · Frozen models, dim-32 adapters, and adapters with the final two encoder blocks unfrozen.</p></div></div>
+<div class="table-scroll" role="region" aria-label="NeMo Parakeet adaptation comparison: word error rate, lower is better" tabindex="0"><table id="parakeet-table" class="wide"><caption class="sr-only">NeMo Parakeet adaptation comparison: word error rate, lower is better</caption><thead>
+<tr><th scope="col" class="metric-heading">Benchmark <span>Evaluation / metric</span></th><th scope="col">Parakeet 0.6B<span>Frozen</span></th><th scope="col">Parakeet 0.6B<span>Adapter only</span></th><th scope="col">Parakeet 0.6B<span>Adapter + 2 blocks</span></th><th scope="col">Parakeet 1.1B<span>Frozen</span></th><th scope="col">Parakeet 1.1B<span>Adapter only</span></th><th scope="col">Parakeet 1.1B<span>Adapter + 2 blocks</span></th></tr></thead>
+<tbody>
+<tr class="group"><th colspan="7" scope="rowgroup">Held-out prompts · known speakers</th></tr>
+<tr data-direction="min"><th scope="row">F01<span>19 clips · 36 reference words</span></th><td class="" data-value="69.44">69.44%</td><td class="" data-value="50">50.00%</td><td class="" data-value="44.44">44.44%</td><td class="" data-value="77.78">77.78%</td><td class="winner" data-value="36.11"><strong>36.11%</strong><span class="sr-only"> (best in row)</span></td><td class="" data-value="44.44">44.44%</td></tr>
+<tr data-direction="min"><th scope="row">M01<span>55 clips · 135 reference words</span></th><td class="" data-value="82.22">82.22%</td><td class="" data-value="46.67">46.67%</td><td class="" data-value="42.22">42.22%</td><td class="" data-value="77.04">77.04%</td><td class="winner" data-value="37.04"><strong>37.04%</strong><span class="sr-only"> (best in row)</span></td><td class="" data-value="41.48">41.48%</td></tr></tbody>
+<tbody>
+<tr class="group"><th colspan="7" scope="rowgroup">Development · used for selection or regression checks</th></tr>
+<tr data-direction="min"><th scope="row">F01<span>18 clips · 44 reference words</span></th><td class="" data-value="72.73">72.73%</td><td class="" data-value="45.45">45.45%</td><td class="" data-value="45.45">45.45%</td><td class="" data-value="61.36">61.36%</td><td class="" data-value="25">25.00%</td><td class="winner" data-value="22.73"><strong>22.73%</strong><span class="sr-only"> (best in row)</span></td></tr>
+<tr data-direction="min"><th scope="row">F04<span>244 clips · 637 reference words</span></th><td class="" data-value="15.23">15.23%</td><td class="" data-value="9.58">9.58%</td><td class="" data-value="9.58">9.58%</td><td class="" data-value="16.48">16.48%</td><td class="" data-value="8.32">8.32%</td><td class="winner" data-value="7.85"><strong>7.85%</strong><span class="sr-only"> (best in row)</span></td></tr>
+<tr data-direction="min"><th scope="row">M01<span>51 clips · 130 reference words</span></th><td class="" data-value="64.62">64.62%</td><td class="winner" data-value="43.08"><strong>43.08%</strong><span class="sr-only"> (best in row)</span></td><td class="" data-value="46.15">46.15%</td><td class="" data-value="63.85">63.85%</td><td class="" data-value="43.85">43.85%</td><td class="" data-value="43.85">43.85%</td></tr>
+<tr data-direction="min"><th scope="row">M04<span>51 clips · 122 reference words</span></th><td class="" data-value="76.23">76.23%</td><td class="" data-value="59.02">59.02%</td><td class="" data-value="59.84">59.84%</td><td class="" data-value="74.59">74.59%</td><td class="winner" data-value="48.36"><strong>48.36%</strong><span class="sr-only"> (best in row)</span></td><td class="" data-value="49.18">49.18%</td></tr></tbody>
+<tbody>
+<tr class="group"><th colspan="7" scope="rowgroup">Smoke diagnostics · small, previously inspected samples</th></tr>
+<tr data-direction="min"><th scope="row">F01<span>4 clips · 23 reference words</span></th><td class="" data-value="47.83">47.83%</td><td class="" data-value="34.78">34.78%</td><td class="" data-value="34.78">34.78%</td><td class="" data-value="47.83">47.83%</td><td class="winner" data-value="26.09"><strong>26.09%</strong><span class="sr-only"> (best in row)</span></td><td class="" data-value="39.13">39.13%</td></tr>
+<tr data-direction="min"><th scope="row">M01<span>4 clips · 21 reference words</span></th><td class="winner" data-value="33.33"><strong>33.33%</strong><span class="sr-only"> (best in row)</span></td><td class="" data-value="38.1">38.10%</td><td class="" data-value="38.1">38.10%</td><td class="" data-value=""><abbr title="Not reported for this evaluation">N/R</abbr></td><td class="" data-value=""><abbr title="Not reported for this evaluation">N/R</abbr></td><td class="" data-value=""><abbr title="Not reported for this evaluation">N/R</abbr></td></tr>
+<tr data-direction="min"><th scope="row">M04<span>2 clips · 7 reference words</span></th><td class="" data-value="100">100.00%</td><td class="" data-value="85.71">85.71%</td><td class="winner" data-value="71.43"><strong>71.43%</strong><span class="sr-only"> (best in row)</span></td><td class="" data-value=""><abbr title="Not reported for this evaluation">N/R</abbr></td><td class="" data-value=""><abbr title="Not reported for this evaluation">N/R</abbr></td><td class="" data-value=""><abbr title="Not reported for this evaluation">N/R</abbr></td></tr></tbody>
+</table></div>
+<div class="notes"><p><strong>Matched prompt splits, different training budgets.</strong> The 0.6B arms ran for 600 steps. The selected 1.1B partial checkpoint is step 800; that run stopped at 1,050. These are observed system results, not an equal-compute model-size ablation.</p><p><strong>Held-out prompts are not held-out speakers.</strong> F01 and M01 test utterances come from known speakers. This set has now been inspected. Development scores informed checkpoint selection or regression checks; smoke sets are diagnostic only. N/R means not reported.</p><p><strong>Selection and evaluation differ.</strong> The 1.1B adapter-only model leads on the reported held-out prompts, although the project selected adapter + 2 blocks using development results. These prompt subsets must not be directly ranked against Cohere’s full-speaker scores.</p></div>
+</section>
+<section id="capacity" aria-labelledby="capacity-title">
+<div class="section-head"><div><h2 id="capacity-title">How much adaptation is enough?</h2><p class="section-description">Cohere LoRA capacity study. Four fresh 900-step runs, evaluated on F04.</p></div></div>
+<div class="table-scroll" role="region" aria-label="Cohere LoRA capacity study, four fresh training runs" tabindex="0"><table id="sweep-table" class="wide"><caption class="sr-only">Cohere LoRA capacity study, four fresh training runs</caption><thead>
+<tr><th scope="col" class="metric-heading">Benchmark <span>Evaluation / metric</span></th><th scope="col" class="featured">Rank 8<span>6 encoder blocks</span></th><th scope="col">Rank 8<span>16 encoder blocks</span></th><th scope="col">Rank 32<span>6 encoder blocks</span></th><th scope="col">Rank 32<span>16 encoder blocks</span></th></tr></thead>
+<tbody>
+<tr data-direction="min"><th scope="row">F04 word error rate<span>Validation ↓</span></th><td class="winner featured" data-value="3.61"><strong>3.61%</strong><span class="sr-only"> (best in row)</span></td><td class="" data-value="3.77">3.77%</td><td class="" data-value="4.08">4.08%</td><td class="" data-value="4.08">4.08%</td></tr>
+<tr data-direction="min"><th scope="row">Development loss<span>Validation ↓</span></th><td class="winner featured" data-value="0.1387"><strong>0.1387</strong><span class="sr-only"> (best in row)</span></td><td class="" data-value="0.1399">0.1399</td><td class="" data-value="0.1513">0.1513</td><td class="" data-value="0.1446">0.1446</td></tr>
+<tr><th scope="row">Trainable parameters<span>Share of base model · configuration</span></th><td class="featured">0.166%</td><td>0.304%</td><td>0.659%</td><td>1.204%</td></tr></tbody>
+</table></div>
+<div class="notes"><p>The smallest tested configuration has the lowest WER and development loss in this sweep. Its <strong>3.61% WER</strong> is a fresh rerun; the <strong>3.30%</strong> result above belongs to the original selected checkpoint. No multi-seed uncertainty estimate is available.</p></div>
+</section>
+<section id="methodology" aria-labelledby="method-title"><h2 id="method-title">Methodology &amp; scope</h2><div class="notes"><p>Cohere uses supervised audio/transcript fine-tuning with rank-8 LoRA (alpha 16, dropout 0.05), targeting the final six encoder blocks and all eight decoder layers. Base weights remain frozen. Training ran for 1,200 steps; validation loss selected step 900.</p><p>Parakeet uses supervised speech adaptation with dim-32 encoder adapters and greedy decoding. The partial arms also update the final two encoder blocks. Different model architectures use different training implementations; each table compares results within its stated evaluation protocol.</p><p>TORGO contains read prompts and isolated words. Small held-out sets and training-speaker results do not establish performance on spontaneous speech. The reported out-of-domain clip did not improve after adaptation.</p></div></section>
+</main>
+<footer><p><strong>Data sources:</strong> <a href="https://github.com/rickytang666/hackthenorth/blob/28fa00e/docs/RESULTS.md">Cohere results</a> · <a href="https://github.com/rickytang666/hackthenorth/blob/28fa00e/train/parakeet/focused/RESULTS.md">Parakeet 0.6B results</a> · <a href="https://github.com/rickytang666/hackthenorth/blob/28fa00e/train/parakeet/HANDOFF_1B.md">Parakeet 1.1B results</a>. Snapshot: 20 September 2026. Decimal WERs are converted to percentages; original precision is preserved.</p><p><strong>Table design references:</strong> <a href="https://www.anthropic.com/news/claude-opus-4-6">Claude Opus 4.6</a> · <a href="https://www.kimi.com/en/blog/kimi-k2-5">Kimi K2.5</a> · <a href="https://openai.com/index/introducing-gpt-5-for-developers/">GPT-5</a> · <a href="https://api-docs.deepseek.com/news/news251201/">DeepSeek V3.2</a>.</p><div class="footer-line"><span>VoiceBridge / Evaluation report</span><span>TORGO · Speech recognition</span></div></footer>
+</div>
+</body>
+</html>
