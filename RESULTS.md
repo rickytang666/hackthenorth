@@ -91,6 +91,32 @@ English, which is exactly the failure the clarification step exists to catch.
 The encoder is targeted because it holds 91.8% of the parameters and dysarthria
 is an acoustic problem. Adapting the decoder alone would touch 7% of the model.
 
+## Capacity sweep: is the adapter the right size?
+
+Job `qv55jj3`, four configs trained from scratch for 900 steps each and scored
+on F04, the validation speaker. The shipped config was re-run inside the same
+job so the comparison is against a number measured on the same box, not a
+remembered one. M02 was not decoded.
+
+| Rank | Enc blocks | Trainable | % of model | F04 WER | Words | Sentences | Dev loss |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| **8** | **6** | 3,424,256 | **0.166%** | **0.0361** | 0.0909 | 0.0152 | 0.1387 |
+| 32 | 6 | 13,697,024 | 0.659% | 0.0408 | 0.1193 | 0.0108 | 0.1513 |
+| 8 | 16 | 6,291,456 | 0.304% | 0.0377 | 0.0909 | 0.0174 | 0.1399 |
+| 32 | 16 | 25,165,824 | 1.204% | 0.0408 | 0.1080 | 0.0152 | 0.1446 |
+
+**The smallest adapter wins, and every increase in capacity costs accuracy.**
+WER and dev loss agree, which makes it unlikely to be noise. At 7.3x the
+parameters the model is 13% worse.
+
+The binding constraint is data, not capacity: 4.06 hours across 6 speakers is
+what caps this, and rank 8 on 6 encoder blocks is already the right size for it.
+The original run's dev loss bottoming at step 900 of 1200 was the same signal.
+
+Practical consequence: the configuration is chosen by measurement rather than
+inherited, and there is no accuracy left on the table from a bigger adapter.
+More speakers would help; more parameters will not.
+
 ## Data
 
 TORGO, `abnerh/TORGO-database`. Split by speaker before any sampling, frozen
