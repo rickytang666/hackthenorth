@@ -1,10 +1,9 @@
 """Baseten job that times OpenVoice synthesis on the serving GPU.
 
-The experimental contract requires the same hardware and the same evaluator for
-every number in the promotion table, so the baseline and the adapter are decoded
-in a single job rather than wherever is convenient.
+Whether chunked streaming TTS gets built is decided by this number, so it has
+to be measured on the hardware the renderer is served on, not on a laptop.
 
-    ADAPTER_JOB_ID=qkeeyeq uv run truss train push train/cohere/config_eval.py --team 34
+    uv run truss train push train/cohere/config_tts.py --team 34
 """
 
 import os

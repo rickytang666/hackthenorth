@@ -1,10 +1,9 @@
-"""Baseten job that decodes frozen and tuned Cohere on one box.
+"""Baseten job that decodes every dysarthric speaker, base against tuned.
 
-The experimental contract requires the same hardware and the same evaluator for
-every number in the promotion table, so the baseline and the adapter are decoded
-in a single job rather than wherever is convenient.
+Inference only, no training. Runs on the H100 because holding two 2B models at
+once exhausts a 24 GB Mac, and because every row must come off one box.
 
-    ADAPTER_JOB_ID=qkeeyeq uv run truss train push train/cohere/config_eval.py --team 34
+    uv run truss train push train/cohere/config_severity.py --team 34
 """
 
 import os

@@ -1,10 +1,9 @@
-"""Baseten job that decodes frozen and tuned Cohere on one box.
+"""Baseten job sweeping LoRA rank and encoder depth against the shipped config.
 
-The experimental contract requires the same hardware and the same evaluator for
-every number in the promotion table, so the baseline and the adapter are decoded
-in a single job rather than wherever is convenient.
+Each config is trained from scratch and scored on F04 inside one job, so the
+comparison is against a number measured on the same box, not a remembered one.
 
-    ADAPTER_JOB_ID=qkeeyeq uv run truss train push train/cohere/config_eval.py --team 34
+    uv run truss train push train/cohere/config_sweep.py --team 34
 """
 
 import os

@@ -1,10 +1,9 @@
 """Baseten job running leave-one-speaker-out over all eight dysarthric speakers.
 
-The experimental contract requires the same hardware and the same evaluator for
-every number in the promotion table, so the baseline and the adapter are decoded
-in a single job rather than wherever is convenient.
+Retrains one adapter per held-out speaker, so every row is a generalization
+number rather than a speaker the adapter already saw.
 
-    ADAPTER_JOB_ID=qkeeyeq uv run truss train push train/cohere/config_eval.py --team 34
+    uv run truss train push train/cohere/config_loso.py --team 34
 """
 
 import os
