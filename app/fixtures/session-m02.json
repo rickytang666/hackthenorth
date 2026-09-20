@@ -1,0 +1,17 @@
+{
+  "fixture": "M02 booth recovery 01",
+  "recorded": true,
+  "source": "1_M02_2_headMic_0233.wav",
+  "duration_ms": 3500,
+  "baseline": "who were killed",
+  "tuned": "wicked",
+  "first_partial_ms": 184,
+  "final_ms": 612,
+  "waveform": [0.02,0.04,0.08,0.18,0.36,0.58,0.44,0.21,-0.08,-0.32,-0.61,-0.48,-0.16,0.12,0.38,0.67,0.52,0.19,-0.15,-0.43,-0.72,-0.56,-0.24,0.09,0.31,0.55,0.42,0.16,-0.12,-0.36,-0.48,-0.33,-0.11,0.07,0.22,0.36,0.29,0.1,-0.06,-0.2,-0.26,-0.18,-0.05,0.03,0.11,0.15,0.09,0.02],
+  "events": [
+    {"at_ms": 0, "type": "start", "label": "RECORDED M02 SIGNAL"},
+    {"at_ms": 184, "type": "partial", "text": "wick", "stable_prefix_len": 2, "confidence": 0.58},
+    {"at_ms": 372, "type": "partial", "text": "wicked", "stable_prefix_len": 4, "confidence": 0.76},
+    {"at_ms": 612, "type": "final", "text": "wicked", "stable_prefix_len": 6, "confidence": 0.94}
+  ]
+}
