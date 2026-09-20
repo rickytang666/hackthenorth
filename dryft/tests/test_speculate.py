@@ -39,6 +39,12 @@ class SpeculationTests(unittest.TestCase):
         self.assertEqual(first.propose(), [10, 11, 12])
         self.assertIsNone(BackoffPromptLookup([1, 8, 9]).propose())
 
+    def test_backoff_uses_one_token_only_after_longer_matches_fail(self):
+        history = [9, 10, 11, 12, 13, 14, 15, 16, 99, 9]
+        self.assertEqual(BackoffPromptLookup(history).propose(),
+                         [10, 11, 12, 13, 14, 15, 16])
+        self.assertIsNone(BackoffPromptLookup([99, 9]).propose())
+
     def test_backoff_matches_naive_history_search_after_every_append(self):
         import random
 
@@ -48,7 +54,7 @@ class SpeculationTests(unittest.TestCase):
             lookup = BackoffPromptLookup(history, draft_length=width)
             for _ in range(200):
                 expected = None
-                for ngram in (4, 3, 2):
+                for ngram in (4, 3, 2, 1):
                     if len(history) < ngram:
                         continue
                     matches = [i for i in range(len(history) - ngram - width + 1)

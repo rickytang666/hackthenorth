@@ -1,0 +1,1112 @@
+{
+  "baseline": "15fb7d3",
+  "exit_code": 0,
+  "cases": [
+    {
+      "seed": 3500,
+      "shape": [
+        1,
+        128,
+        64
+      ],
+      "prompt_kinds": [
+        "literature_continuation"
+      ],
+      "diagnostic_copy": false,
+      "summaries": {
+        "current7": {
+          "tps": 380.2738140207493,
+          "speedup": 1.0,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 13.0,
+          "accepted_per_verification": 1.7692307692307692,
+          "emitted_per_verification": 2.769230769230769
+        },
+        "full_unigram": {
+          "tps": 389.6970742767478,
+          "speedup": 1.0247801976064654,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 29.0,
+          "accepted_per_verification": 0.896551724137931,
+          "emitted_per_verification": 1.896551724137931
+        }
+      },
+      "samples": {
+        "current7": [
+          {
+            "seconds": 0.16890225099999867,
+            "ttft_seconds": 0.005377234000000897,
+            "tpot_seconds": 0.002595635190476155,
+            "verify_calls": 13,
+            "proposed_tokens": 91,
+            "accepted_draft_tokens": 23,
+            "verified_emitted_tokens": 36,
+            "accepted_histogram": [
+              5,
+              3,
+              0,
+              2,
+              2,
+              0,
+              1,
+              0
+            ]
+          },
+          {
+            "seconds": 0.1682997819999983,
+            "ttft_seconds": 0.005399027999999362,
+            "tpot_seconds": 0.002585726253968237,
+            "verify_calls": 13,
+            "proposed_tokens": 91,
+            "accepted_draft_tokens": 23,
+            "verified_emitted_tokens": 36,
+            "accepted_histogram": [
+              5,
+              3,
+              0,
+              2,
+              2,
+              0,
+              1,
+              0
+            ]
+          },
+          {
+            "seconds": 0.16751828499999988,
+            "ttft_seconds": 0.005326972999995405,
+            "tpot_seconds": 0.002574465269841341,
+            "verify_calls": 13,
+            "proposed_tokens": 91,
+            "accepted_draft_tokens": 23,
+            "verified_emitted_tokens": 36,
+            "accepted_histogram": [
+              5,
+              3,
+              0,
+              2,
+              2,
+              0,
+              1,
+              0
+            ]
+          }
+        ],
+        "full_unigram": [
+          {
+            "seconds": 0.16423012700000328,
+            "ttft_seconds": 0.005353569000000391,
+            "tpot_seconds": 0.0025218501269841727,
+            "verify_calls": 29,
+            "proposed_tokens": 203,
+            "accepted_draft_tokens": 26,
+            "verified_emitted_tokens": 55,
+            "accepted_histogram": [
+              19,
+              5,
+              0,
+              2,
+              2,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "seconds": 0.1650923320000004,
+            "ttft_seconds": 0.005318025999997644,
+            "tpot_seconds": 0.002536100095238139,
+            "verify_calls": 29,
+            "proposed_tokens": 203,
+            "accepted_draft_tokens": 26,
+            "verified_emitted_tokens": 55,
+            "accepted_histogram": [
+              19,
+              5,
+              0,
+              2,
+              2,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "seconds": 0.16419834500000263,
+            "ttft_seconds": 0.00538950500000368,
+            "tpot_seconds": 0.0025207752380952213,
+            "verify_calls": 29,
+            "proposed_tokens": 203,
+            "accepted_draft_tokens": 26,
+            "verified_emitted_tokens": 55,
+            "accepted_histogram": [
+              19,
+              5,
+              0,
+              2,
+              2,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "seed": 3501,
+      "shape": [
+        1,
+        128,
+        64
+      ],
+      "prompt_kinds": [
+        "wiki_instruction"
+      ],
+      "diagnostic_copy": false,
+      "summaries": {
+        "current7": {
+          "tps": 293.05431241509496,
+          "speedup": 1.0,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 4.0,
+          "accepted_per_verification": 1.0,
+          "emitted_per_verification": 2.0
+        },
+        "full_unigram": {
+          "tps": 300.3304122571782,
+          "speedup": 1.0248285028878095,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 16.0,
+          "accepted_per_verification": 0.4375,
+          "emitted_per_verification": 1.4375
+        }
+      },
+      "samples": {
+        "current7": [
+          {
+            "seconds": 0.21868675799999693,
+            "ttft_seconds": 0.005362554000001296,
+            "tpot_seconds": 0.0033860984761904067,
+            "verify_calls": 4,
+            "proposed_tokens": 28,
+            "accepted_draft_tokens": 4,
+            "verified_emitted_tokens": 8,
+            "accepted_histogram": [
+              2,
+              1,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "seconds": 0.217953425999994,
+            "ttft_seconds": 0.005355842000000166,
+            "tpot_seconds": 0.0033745648253967276,
+            "verify_calls": 4,
+            "proposed_tokens": 28,
+            "accepted_draft_tokens": 4,
+            "verified_emitted_tokens": 8,
+            "accepted_histogram": [
+              2,
+              1,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "seconds": 0.21838955199999788,
+            "ttft_seconds": 0.005381952000000467,
+            "tpot_seconds": 0.003381073015872975,
+            "verify_calls": 4,
+            "proposed_tokens": 28,
+            "accepted_draft_tokens": 4,
+            "verified_emitted_tokens": 8,
+            "accepted_histogram": [
+              2,
+              1,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "full_unigram": [
+          {
+            "seconds": 0.21181934399999847,
+            "ttft_seconds": 0.005360761999995134,
+            "tpot_seconds": 0.003277120349206402,
+            "verify_calls": 16,
+            "proposed_tokens": 112,
+            "accepted_draft_tokens": 7,
+            "verified_emitted_tokens": 23,
+            "accepted_histogram": [
+              12,
+              2,
+              1,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "seconds": 0.21309863199999768,
+            "ttft_seconds": 0.005368464999996547,
+            "tpot_seconds": 0.0032973042380952562,
+            "verify_calls": 16,
+            "proposed_tokens": 112,
+            "accepted_draft_tokens": 7,
+            "verified_emitted_tokens": 23,
+            "accepted_histogram": [
+              12,
+              2,
+              1,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "seconds": 0.21332698100000158,
+            "ttft_seconds": 0.0053548280000015325,
+            "tpot_seconds": 0.0033011452857142866,
+            "verify_calls": 16,
+            "proposed_tokens": 112,
+            "accepted_draft_tokens": 7,
+            "verified_emitted_tokens": 23,
+            "accepted_histogram": [
+              12,
+              2,
+              1,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "seed": 3502,
+      "shape": [
+        1,
+        512,
+        32
+      ],
+      "prompt_kinds": [
+        "python_instruction"
+      ],
+      "diagnostic_copy": false,
+      "summaries": {
+        "current7": {
+          "tps": 262.91037197274625,
+          "speedup": 1.0,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 1.0,
+          "accepted_per_verification": 0.0,
+          "emitted_per_verification": 1.0
+        },
+        "full_unigram": {
+          "tps": 258.8422598847923,
+          "speedup": 0.9845266200133952,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 13.0,
+          "accepted_per_verification": 0.07692307692307693,
+          "emitted_per_verification": 1.0769230769230769
+        }
+      },
+      "samples": {
+        "current7": [
+          {
+            "seconds": 0.1213174689999974,
+            "ttft_seconds": 0.009316425999998046,
+            "tpot_seconds": 0.0036129368709677213,
+            "verify_calls": 1,
+            "proposed_tokens": 7,
+            "accepted_draft_tokens": 0,
+            "verified_emitted_tokens": 1,
+            "accepted_histogram": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "seconds": 0.1217144829999981,
+            "ttft_seconds": 0.009239905999997688,
+            "tpot_seconds": 0.0036282121612903357,
+            "verify_calls": 1,
+            "proposed_tokens": 7,
+            "accepted_draft_tokens": 0,
+            "verified_emitted_tokens": 1,
+            "accepted_histogram": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "seconds": 0.12196292299999811,
+            "ttft_seconds": 0.009373171000000013,
+            "tpot_seconds": 0.0036319274838709065,
+            "verify_calls": 1,
+            "proposed_tokens": 7,
+            "accepted_draft_tokens": 0,
+            "verified_emitted_tokens": 1,
+            "accepted_histogram": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "full_unigram": [
+          {
+            "seconds": 0.12362741700000157,
+            "ttft_seconds": 0.009371150999996303,
+            "tpot_seconds": 0.00368568600000017,
+            "verify_calls": 13,
+            "proposed_tokens": 91,
+            "accepted_draft_tokens": 1,
+            "verified_emitted_tokens": 14,
+            "accepted_histogram": [
+              12,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "seconds": 0.12401095800000661,
+            "ttft_seconds": 0.009244916000000103,
+            "tpot_seconds": 0.003702130387096984,
+            "verify_calls": 13,
+            "proposed_tokens": 91,
+            "accepted_draft_tokens": 1,
+            "verified_emitted_tokens": 14,
+            "accepted_histogram": [
+              12,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "seconds": 0.1232140099999981,
+            "ttft_seconds": 0.009273438999997552,
+            "tpot_seconds": 0.003675502290322598,
+            "verify_calls": 13,
+            "proposed_tokens": 91,
+            "accepted_draft_tokens": 1,
+            "verified_emitted_tokens": 14,
+            "accepted_histogram": [
+              12,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "seed": 3503,
+      "shape": [
+        1,
+        512,
+        32
+      ],
+      "prompt_kinds": [
+        "literature_instruction"
+      ],
+      "diagnostic_copy": false,
+      "summaries": {
+        "current7": {
+          "tps": 294.63701249485473,
+          "speedup": 1.0,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 4.0,
+          "accepted_per_verification": 1.25,
+          "emitted_per_verification": 2.25
+        },
+        "full_unigram": {
+          "tps": 307.354374512842,
+          "speedup": 1.0431628121338263,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 10.0,
+          "accepted_per_verification": 0.7,
+          "emitted_per_verification": 1.7
+        }
+      },
+      "samples": {
+        "current7": [
+          {
+            "seconds": 0.10839064800000386,
+            "ttft_seconds": 0.009323064000000159,
+            "tpot_seconds": 0.0031957285161291517,
+            "verify_calls": 4,
+            "proposed_tokens": 28,
+            "accepted_draft_tokens": 5,
+            "verified_emitted_tokens": 9,
+            "accepted_histogram": [
+              2,
+              0,
+              1,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "seconds": 0.1090068319999915,
+            "ttft_seconds": 0.009408805999996162,
+            "tpot_seconds": 0.0032128395483869464,
+            "verify_calls": 4,
+            "proposed_tokens": 28,
+            "accepted_draft_tokens": 5,
+            "verified_emitted_tokens": 9,
+            "accepted_histogram": [
+              2,
+              0,
+              1,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "seconds": 0.10860821500000384,
+            "ttft_seconds": 0.00936591299999634,
+            "tpot_seconds": 0.0032013645806454032,
+            "verify_calls": 4,
+            "proposed_tokens": 28,
+            "accepted_draft_tokens": 5,
+            "verified_emitted_tokens": 9,
+            "accepted_histogram": [
+              2,
+              0,
+              1,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "full_unigram": [
+          {
+            "seconds": 0.10389566799999983,
+            "ttft_seconds": 0.009237268999996218,
+            "tpot_seconds": 0.0030534967419356004,
+            "verify_calls": 10,
+            "proposed_tokens": 70,
+            "accepted_draft_tokens": 7,
+            "verified_emitted_tokens": 17,
+            "accepted_histogram": [
+              7,
+              1,
+              0,
+              2,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "seconds": 0.10460111399999761,
+            "ttft_seconds": 0.009399532999999849,
+            "tpot_seconds": 0.0030710187419354116,
+            "verify_calls": 10,
+            "proposed_tokens": 70,
+            "accepted_draft_tokens": 7,
+            "verified_emitted_tokens": 17,
+            "accepted_histogram": [
+              7,
+              1,
+              0,
+              2,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "seconds": 0.10411434700000655,
+            "ttft_seconds": 0.009251614999996605,
+            "tpot_seconds": 0.0030600881290325788,
+            "verify_calls": 10,
+            "proposed_tokens": 70,
+            "accepted_draft_tokens": 7,
+            "verified_emitted_tokens": 17,
+            "accepted_histogram": [
+              7,
+              1,
+              0,
+              2,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "seed": 3504,
+      "shape": [
+        1,
+        2048,
+        64
+      ],
+      "prompt_kinds": [
+        "wiki_continuation"
+      ],
+      "diagnostic_copy": false,
+      "summaries": {
+        "current7": {
+          "tps": 315.7808364550773,
+          "speedup": 1.0,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 21.0,
+          "accepted_per_verification": 1.0,
+          "emitted_per_verification": 2.0
+        },
+        "full_unigram": {
+          "tps": 328.8412133527568,
+          "speedup": 1.041358991395089,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 34.0,
+          "accepted_per_verification": 0.7352941176470589,
+          "emitted_per_verification": 1.7352941176470589
+        }
+      },
+      "samples": {
+        "current7": [
+          {
+            "seconds": 0.20319353200000023,
+            "ttft_seconds": 0.03173762900000554,
+            "tpot_seconds": 0.0027215222698411855,
+            "verify_calls": 21,
+            "proposed_tokens": 147,
+            "accepted_draft_tokens": 21,
+            "verified_emitted_tokens": 42,
+            "accepted_histogram": [
+              15,
+              1,
+              1,
+              2,
+              0,
+              1,
+              0,
+              1
+            ]
+          },
+          {
+            "seconds": 0.2026722100000029,
+            "ttft_seconds": 0.031198287999998797,
+            "tpot_seconds": 0.002721808285714351,
+            "verify_calls": 21,
+            "proposed_tokens": 147,
+            "accepted_draft_tokens": 21,
+            "verified_emitted_tokens": 42,
+            "accepted_histogram": [
+              15,
+              1,
+              1,
+              2,
+              0,
+              1,
+              0,
+              1
+            ]
+          },
+          {
+            "seconds": 0.20195003999999983,
+            "ttft_seconds": 0.03128007999998772,
+            "tpot_seconds": 0.0027090469841271766,
+            "verify_calls": 21,
+            "proposed_tokens": 147,
+            "accepted_draft_tokens": 21,
+            "verified_emitted_tokens": 42,
+            "accepted_histogram": [
+              15,
+              1,
+              1,
+              2,
+              0,
+              1,
+              0,
+              1
+            ]
+          }
+        ],
+        "full_unigram": [
+          {
+            "seconds": 0.19518056500000114,
+            "ttft_seconds": 0.03203247900000861,
+            "tpot_seconds": 0.00258965215873004,
+            "verify_calls": 34,
+            "proposed_tokens": 238,
+            "accepted_draft_tokens": 25,
+            "verified_emitted_tokens": 59,
+            "accepted_histogram": [
+              26,
+              3,
+              0,
+              3,
+              0,
+              0,
+              1,
+              1
+            ]
+          },
+          {
+            "seconds": 0.19462280700000179,
+            "ttft_seconds": 0.031137077000011004,
+            "tpot_seconds": 0.002595011587301441,
+            "verify_calls": 34,
+            "proposed_tokens": 238,
+            "accepted_draft_tokens": 25,
+            "verified_emitted_tokens": 59,
+            "accepted_histogram": [
+              26,
+              3,
+              0,
+              3,
+              0,
+              0,
+              1,
+              1
+            ]
+          },
+          {
+            "seconds": 0.19448840299999404,
+            "ttft_seconds": 0.031220290000007367,
+            "tpot_seconds": 0.0025915573492061375,
+            "verify_calls": 34,
+            "proposed_tokens": 238,
+            "accepted_draft_tokens": 25,
+            "verified_emitted_tokens": 59,
+            "accepted_histogram": [
+              26,
+              3,
+              0,
+              3,
+              0,
+              0,
+              1,
+              1
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "seed": 3505,
+      "shape": [
+        1,
+        2048,
+        64
+      ],
+      "prompt_kinds": [
+        "python_continuation"
+      ],
+      "diagnostic_copy": false,
+      "summaries": {
+        "current7": {
+          "tps": 401.41514644845023,
+          "speedup": 1.0,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 10.0,
+          "accepted_per_verification": 3.1,
+          "emitted_per_verification": 4.1
+        },
+        "full_unigram": {
+          "tps": 414.18560322164353,
+          "speedup": 1.0318135897117506,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 20.0,
+          "accepted_per_verification": 1.7,
+          "emitted_per_verification": 2.7
+        }
+      },
+      "samples": {
+        "current7": [
+          {
+            "seconds": 0.15942225199999882,
+            "ttft_seconds": 0.031814588999992566,
+            "tpot_seconds": 0.0020255184603175597,
+            "verify_calls": 10,
+            "proposed_tokens": 70,
+            "accepted_draft_tokens": 31,
+            "verified_emitted_tokens": 41,
+            "accepted_histogram": [
+              5,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              4
+            ]
+          },
+          {
+            "seconds": 0.1594359369999978,
+            "ttft_seconds": 0.0317956439999989,
+            "tpot_seconds": 0.0020260363968253796,
+            "verify_calls": 10,
+            "proposed_tokens": 70,
+            "accepted_draft_tokens": 31,
+            "verified_emitted_tokens": 41,
+            "accepted_histogram": [
+              5,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              4
+            ]
+          },
+          {
+            "seconds": 0.15960006000000249,
+            "ttft_seconds": 0.031422777000003066,
+            "tpot_seconds": 0.0020345600476190384,
+            "verify_calls": 10,
+            "proposed_tokens": 70,
+            "accepted_draft_tokens": 31,
+            "verified_emitted_tokens": 41,
+            "accepted_histogram": [
+              5,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "full_unigram": [
+          {
+            "seconds": 0.15308249099999216,
+            "ttft_seconds": 0.031244563000001335,
+            "tpot_seconds": 0.0019339353650792194,
+            "verify_calls": 20,
+            "proposed_tokens": 140,
+            "accepted_draft_tokens": 34,
+            "verified_emitted_tokens": 54,
+            "accepted_histogram": [
+              12,
+              3,
+              0,
+              1,
+              0,
+              0,
+              0,
+              4
+            ]
+          },
+          {
+            "seconds": 0.1545200980000061,
+            "ttft_seconds": 0.03177192600000467,
+            "tpot_seconds": 0.0019483836825397052,
+            "verify_calls": 20,
+            "proposed_tokens": 140,
+            "accepted_draft_tokens": 34,
+            "verified_emitted_tokens": 54,
+            "accepted_histogram": [
+              12,
+              3,
+              0,
+              1,
+              0,
+              0,
+              0,
+              4
+            ]
+          },
+          {
+            "seconds": 0.1549467140000047,
+            "ttft_seconds": 0.03173952699999916,
+            "tpot_seconds": 0.001955669634920723,
+            "verify_calls": 20,
+            "proposed_tokens": 140,
+            "accepted_draft_tokens": 34,
+            "verified_emitted_tokens": 54,
+            "accepted_histogram": [
+              12,
+              3,
+              0,
+              1,
+              0,
+              0,
+              0,
+              4
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "seed": 3510,
+      "shape": [
+        1,
+        512,
+        64
+      ],
+      "prompt_kinds": [
+        "wiki_copy_instruction"
+      ],
+      "diagnostic_copy": true,
+      "summaries": {
+        "current7": {
+          "tps": 988.7372934898295,
+          "speedup": 1.0,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 10.0,
+          "accepted_per_verification": 5.4,
+          "emitted_per_verification": 6.4
+        },
+        "full_unigram": {
+          "tps": 1037.0233876966718,
+          "speedup": 1.0488361211059536,
+          "deterministic": true,
+          "identical_to_baseline": true,
+          "verify_calls_per_generation": 11.0,
+          "accepted_per_verification": 5.0,
+          "emitted_per_verification": 6.0
+        }
+      },
+      "samples": {
+        "current7": [
+          {
+            "seconds": 0.0648006459999948,
+            "ttft_seconds": 0.009401549999992653,
+            "tpot_seconds": 0.0008793507301587642,
+            "verify_calls": 10,
+            "proposed_tokens": 70,
+            "accepted_draft_tokens": 54,
+            "verified_emitted_tokens": 64,
+            "accepted_histogram": [
+              1,
+              1,
+              0,
+              0,
+              1,
+              0,
+              0,
+              7
+            ]
+          },
+          {
+            "seconds": 0.06407812400000523,
+            "ttft_seconds": 0.00917074900000614,
+            "tpot_seconds": 0.0008715456349206205,
+            "verify_calls": 10,
+            "proposed_tokens": 70,
+            "accepted_draft_tokens": 54,
+            "verified_emitted_tokens": 64,
+            "accepted_histogram": [
+              1,
+              1,
+              0,
+              0,
+              1,
+              0,
+              0,
+              7
+            ]
+          },
+          {
+            "seconds": 0.0647290240000018,
+            "ttft_seconds": 0.009404046000000221,
+            "tpot_seconds": 0.000878174253968279,
+            "verify_calls": 10,
+            "proposed_tokens": 70,
+            "accepted_draft_tokens": 54,
+            "verified_emitted_tokens": 64,
+            "accepted_histogram": [
+              1,
+              1,
+              0,
+              0,
+              1,
+              0,
+              0,
+              7
+            ]
+          }
+        ],
+        "full_unigram": [
+          {
+            "seconds": 0.061733811999999944,
+            "ttft_seconds": 0.00942347699999857,
+            "tpot_seconds": 0.0008303227777777996,
+            "verify_calls": 11,
+            "proposed_tokens": 77,
+            "accepted_draft_tokens": 55,
+            "verified_emitted_tokens": 66,
+            "accepted_histogram": [
+              2,
+              0,
+              1,
+              0,
+              1,
+              0,
+              0,
+              7
+            ]
+          },
+          {
+            "seconds": 0.061619949000004226,
+            "ttft_seconds": 0.009400330000005397,
+            "tpot_seconds": 0.0008288828412698227,
+            "verify_calls": 11,
+            "proposed_tokens": 77,
+            "accepted_draft_tokens": 55,
+            "verified_emitted_tokens": 66,
+            "accepted_histogram": [
+              2,
+              0,
+              1,
+              0,
+              1,
+              0,
+              0,
+              7
+            ]
+          },
+          {
+            "seconds": 0.06171509800000763,
+            "ttft_seconds": 0.009392974000007825,
+            "tpot_seconds": 0.0008305099047619017,
+            "verify_calls": 11,
+            "proposed_tokens": 77,
+            "accepted_draft_tokens": 55,
+            "verified_emitted_tokens": 66,
+            "accepted_histogram": [
+              2,
+              0,
+              1,
+              0,
+              1,
+              0,
+              0,
+              7
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "kind": "complete",
+    "completed_general_cases": 6,
+    "correctness_passed": {
+      "current7": true,
+      "unigram": true,
+      "unigram_fixed": true,
+      "full_unigram": true
+    },
+    "correctness": {
+      "current7": {
+        "checked": 384,
+        "failed": 0,
+        "worst": 0.0
+      },
+      "unigram": {
+        "checked": 384,
+        "failed": 0,
+        "worst": 0.0
+      },
+      "unigram_fixed": {
+        "checked": 384,
+        "failed": 0,
+        "worst": 0.0
+      },
+      "full_unigram": {
+        "checked": 384,
+        "failed": 0,
+        "worst": 0.0
+      }
+    },
+    "unique_checked_positions": 384,
+    "general_geomean_speedup": {
+      "current7": 1.0,
+      "unigram": 1.0337991661796775,
+      "unigram_fixed": 1.0317188260435073,
+      "full_unigram": 1.0248898665590924
+    },
+    "peak_memory_gib": 24.564922332763672,
+    "elapsed": 106.302901554,
+    "scope": "Six fresh general prompts, one separate copy diagnostic, three paired trials, frozen B4/B8 calibration, native own-prefix verification; not official scoring or startup validation"
+  }
+}
