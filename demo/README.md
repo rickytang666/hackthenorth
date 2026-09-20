@@ -2,10 +2,16 @@
 
 Everything beat 2 and beat 3 need, on disk, so the demo survives dead wifi.
 
-`clips/` holds four M02 recordings in presentation order with `cue_card.json`
-giving what was said, what the frozen baseline heard, and what the tuned model
-produces. M02 is the sealed test speaker: decoded exactly once, on 2026-09-19 at
-18:33, job `wd66me3`. Do not re-decode it.
+The demo's own clips now live in `app/clips/`, chosen by `demo/curate_clips.py`
+and listed in `app/clips/manifest.json`: seven M02 sentences where the tuned
+model matches the reference exactly and the frozen baseline does not. Three sit
+below the 0.879 accept threshold, so the clarification card fires on those and
+nowhere else. The WAVs are gitignored; re-run the script to rebuild them.
+
+`clips/` here is the older four-clip fallback bundle with `cue_card.json`.
+
+M02 is the sealed test speaker: decoded exactly once, on 2026-09-19 at 18:33,
+job `wd66me3`. Do not re-decode it.
 
 Sealed results over all 388 test clips:
 
