@@ -10,7 +10,9 @@
          font-family: system-ui, sans-serif; font-size: 15px; line-height: 1.5;
          color: #1b1b1b; background: #fafafa }
   .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px }
-  h1 { font-size: 19px; margin: 0; font-weight: 600; letter-spacing: -0.01em }
+  h1 { font-size: 19px; margin: 0; font-weight: 600; letter-spacing: -0.01em;
+       display: flex; align-items: center; gap: 8px }
+  h1 .logo { width: 19px; height: 19px }
   .by { display: flex; align-items: center; gap: 6px; margin: 5px 0 20px;
         font-size: 12px; color: #888 }
   .by img { width: 14px; height: 14px; border-radius: 2px }
@@ -37,7 +39,7 @@
 <body>
 <div class="top">
   <div>
-    <h1>VoiceBridge</h1>
+    <h1><img class="logo" src="data:image/png;base64,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" alt="">VoiceBridge</h1>
     <p class="by">Trained and powered by <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAzElEQVR42u3ZsQnCQBSA4YeFUSGHIhaCXbosIFikEyzsLASHsHIBncANMkEmcCDHOPP6eJFgwjP+xd+FkC+BezlOls+z/+UEAAAAfwAYuMiLyNdzt6wbQBsPr8WXNQAAAAB8cNG8OLSSAoab1dvMDzIFhL4QAAAAANQ3y/d+fEwbpYDpfVuZ3rcTQN1bNDHIAAAA0GOA/lVOyiWxSSaWUSYxAAAAbAMWj1NwUx+Vm/eqRrvEBsD8IAMAAEDPAaHjKXfN7AM4pQQAAECwFwWMbBsS2YwXAAAAAElFTkSuQmCC" alt=""><b>Baseten</b></p>
   </div>
   <nav class="tabs"><a href="index.html">Demo</a><a href="architecture.html" aria-current="page">Architecture</a><a href="benchmarks.html">Benchmarks</a></nav>
@@ -48,40 +50,19 @@
 
 <h2>How it works</h2>
 
-<div class="step"><b>1. Capture</b><span>The browser reads the microphone or a clip
-with the Web Audio API and sends 20 ms PCM frames over a WebSocket. Frames are
-paced against the wall clock, so what you hear and what you read stay in step.</span></div>
+<div class="step"><b>1. Capture</b><span>Browser sends 20 ms PCM frames over a WebSocket.</span></div>
+<div class="step"><b>2. Recover</b><span>LoRA-adapted Cohere Transcribe returns a revised transcript every 400 ms.</span></div>
+<div class="step"><b>3. Score</b><span>Above <code>0.879</code> confidence, accept. Below, ask.</span></div>
+<div class="step"><b>4. Speak</b><span>MeloTTS generates the sentence, OpenVoice V2 repaints it in the speaker's voice.</span></div>
 
-<div class="step"><b>2. Recover</b><span>Cohere Transcribe, adapted with LoRA,
-runs on a Baseten H100 behind a WebSocket endpoint and returns a revised
-transcript roughly every 400 ms. Only the shared prefix with the previous
-hypothesis is treated as settled; the rest is shown greyed because later audio
-can still change it.</span></div>
+<h2>Offline, once</h2>
+<p>TORGO dysarthric speech adapted two candidate recognizers. Cohere won the only
+matched comparison, so it is the one the live path calls.</p>
 
-<div class="step"><b>3. Score</b><span>Neither candidate model ships a usable
-confidence signal, so we compute one from token log-probabilities. Above
-<code>0.879</code> the transcript is accepted. Below it the system asks,
-offering beam-search alternatives with the model's own best guess first.</span></div>
-
-<div class="step"><b>4. Speak</b><span>The confirmed sentence goes to the voice
-renderer: MeloTTS generates the speech, then OpenVoice V2 repaints it with a
-voice print taken from the speaker's own recordings. Audio arrives about a
-second after the sentence ends.</span></div>
-
-<h2>Offline adaptation</h2>
-<p>The bottom band of the diagram is training, which happens once rather than per
-request. TORGO dysarthric speech was used to adapt two candidate recognizers,
-Cohere Transcribe and NVIDIA NeMo Parakeet. Both were scored with one evaluator
-and one text normalizer, and Cohere won on the only matched comparison, so it is
-the model the live path calls.</p>
-
-<h2>Two decisions worth knowing</h2>
-<p><b>Only the encoder is adapted.</b> Dysarthria is an acoustic problem, not a
-linguistic one, and the encoder holds 91.8% of this model's parameters. The
-adapter trains 3.4M weights, 0.166% of the model, in 10.6 minutes.</p>
-<p><b>Voice conversion, not voice cloning.</b> OpenVoice transfers timbre only
-and leaves articulation to MeloTTS. Cloning the full delivery from a dysarthric
-reference would reproduce the slurring, which is the thing the system exists to
-remove.</p>
+<h2>Two decisions</h2>
+<p><b>Only the encoder is adapted.</b> Dysarthria is acoustic, and the encoder is
+91.8% of the parameters. 3.4M weights trained, 0.166% of the model.</p>
+<p><b>Voice conversion, not cloning.</b> Cloning a dysarthric reference would
+reproduce the slurring. OpenVoice transfers timbre only.</p>
 </body>
 </html>

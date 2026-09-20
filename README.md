@@ -1,4 +1,4 @@
-# VoiceBridge
+<h1><img src="app/logo.png" width="24" alt="" align="absmiddle"> VoiceBridge</h1>
 
 Speech recovery for dysarthric speakers, spoken back in the speaker's own voice.
 

@@ -6,7 +6,9 @@
   body { margin: 0 auto; padding: 32px 20px 64px; max-width: 820px;
          font-family: system-ui, sans-serif; font-size: 15px; line-height: 1.5;
          color: #1b1b1b; background: #fafafa }
-  h1 { font-size: 19px; margin: 0; font-weight: 600; letter-spacing: -0.01em }
+  h1 { font-size: 19px; margin: 0; font-weight: 600; letter-spacing: -0.01em;
+       display: flex; align-items: center; gap: 8px }
+  h1 .logo { width: 19px; height: 19px }
   .by { display: flex; align-items: center; gap: 6px; margin: 5px 0 20px;
         font-size: 12px; color: #888 }
   .by img { width: 14px; height: 14px; border-radius: 2px }
@@ -101,7 +103,7 @@
 <body>
 <div class="top">
   <div>
-    <h1>VoiceBridge</h1>
+    <h1><img class="logo" src="data:image/png;base64,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" alt="">VoiceBridge</h1>
     <p class="by">Trained and powered by <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAzElEQVR42u3ZsQnCQBSA4YeFUSGHIhaCXbosIFikEyzsLASHsHIBncANMkEmcCDHOPP6eJFgwjP+xd+FkC+BezlOls+z/+UEAAAAfwAYuMiLyNdzt6wbQBsPr8WXNQAAAAB8cNG8OLSSAoab1dvMDzIFhL4QAAAAANQ3y/d+fEwbpYDpfVuZ3rcTQN1bNDHIAAAA0GOA/lVOyiWxSSaWUSYxAAAAbAMWj1NwUx+Vm/eqRrvEBsD8IAMAAEDPAaHjKXfN7AM4pQQAAECwFwWMbBsS2YwXAAAAAElFTkSuQmCC" alt=""><b>Baseten</b></p>
   </div>
   <nav class="tabs"><a href="index.html" aria-current="page">Demo</a><a href="architecture.html">Architecture</a><a href="benchmarks.html">Benchmarks</a></nav>
