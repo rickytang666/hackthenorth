@@ -1,0 +1,10 @@
+{
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "torch": "2.5.1+cu124",
+  "phases": {
+    "bench_normrope.py": {
+      "exit_code": 0,
+      "output": "{\"kind\": \"environment\", \"gpu\": \"NVIDIA H100 80GB HBM3\", \"torch\": \"2.5.1+cu124\"}\n{\"kind\": \"normrope_ab\", \"batch\": 1, \"tokens\": 512, \"row_us\": 29.48426604270935, \"tile_us\": 29.166932900746662, \"speedup\": 1.0108798941267687, \"row_tbps\": 0.3556391732733276, \"tile_tbps\": 0.3595084898258729, \"max_diff_q\": 0.0078125, \"max_diff_k\": 0.0, \"exact_fraction_q\": 0.9999971389770508, \"exact_fraction_k\": 1.0}\n{\"kind\": \"normrope_ab\", \"batch\": 4, \"tokens\": 2048, \"row_us\": 209.81280008951822, \"tile_us\": 82.20480283101399, \"speedup\": 2.5523180260017684, \"row_tbps\": 0.7996278583976705, \"tile_tbps\": 2.0409045970815636, \"max_diff_q\": 0.03125, \"max_diff_k\": 0.015625, \"exact_fraction_q\": 0.9999967813491821, \"exact_fraction_k\": 0.9999967813491821}\n{\"kind\": \"normrope_ab\", \"batch\": 16, \"tokens\": 512, \"row_us\": 204.06293869018555, \"tile_us\": 79.02666727701823, \"speedup\": 2.5822035234621254, \"row_tbps\": 0.8221588940984365, \"tile_tbps\": 2.122981593186707, \"max_diff_q\": 0.015625, \"max_diff_k\": 0.0078125, \"exact_fraction_q\": 0.9999973773956299, \"exact_fraction_k\": 0.9999972581863403}\n"
+    }
+  }
+}

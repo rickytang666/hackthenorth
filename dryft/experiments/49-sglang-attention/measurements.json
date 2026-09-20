@@ -1,0 +1,1213 @@
+{
+  "micro": {
+    "kind": "complete",
+    "records": [
+      {
+        "batch": 1,
+        "capacity": 547,
+        "length": 513,
+        "splits": 1,
+        "block": 32,
+        "baseline_us": 13.128000311553478,
+        "candidate_us": 25.141000747680664,
+        "speedup": 0.5221749302387885,
+        "max_error": 0.00390625,
+        "graph_checks": 4
+      },
+      {
+        "batch": 1,
+        "capacity": 547,
+        "length": 513,
+        "splits": 2,
+        "block": 32,
+        "baseline_us": 12.625000439584255,
+        "candidate_us": 17.736999318003654,
+        "speedup": 0.7117889679777714,
+        "max_error": 0.00390625,
+        "graph_checks": 4
+      },
+      {
+        "batch": 1,
+        "capacity": 547,
+        "length": 513,
+        "splits": 4,
+        "block": 32,
+        "baseline_us": 12.558500282466412,
+        "candidate_us": 14.918499626219273,
+        "speedup": 0.8418071922189038,
+        "max_error": 0.00390625,
+        "graph_checks": 4
+      },
+      {
+        "batch": 1,
+        "capacity": 547,
+        "length": 513,
+        "splits": 8,
+        "block": 32,
+        "baseline_us": 13.035500422120094,
+        "candidate_us": 13.76549992710352,
+        "speedup": 0.9469689071338342,
+        "max_error": 0.00390625,
+        "graph_checks": 4
+      },
+      {
+        "batch": 1,
+        "capacity": 547,
+        "length": 513,
+        "splits": 4,
+        "block": 64,
+        "baseline_us": 12.354499660432339,
+        "candidate_us": 13.944500125944614,
+        "speedup": 0.8859765175408489,
+        "max_error": 0.00390625,
+        "graph_checks": 4
+      },
+      {
+        "batch": 1,
+        "capacity": 547,
+        "length": 513,
+        "splits": 8,
+        "block": 64,
+        "baseline_us": 12.986999936401844,
+        "candidate_us": 12.980500236153603,
+        "speedup": 1.0005007280251141,
+        "max_error": 0.00390625,
+        "graph_checks": 4
+      },
+      {
+        "batch": 4,
+        "capacity": 2079,
+        "length": 2049,
+        "splits": 1,
+        "block": 32,
+        "baseline_us": 22.39849977195263,
+        "candidate_us": 79.4840008020401,
+        "speedup": 0.2817988468866521,
+        "max_error": 0.0078125,
+        "graph_checks": 4
+      },
+      {
+        "batch": 4,
+        "capacity": 2079,
+        "length": 2049,
+        "splits": 2,
+        "block": 32,
+        "baseline_us": 22.576499730348587,
+        "candidate_us": 46.13649845123291,
+        "speedup": 0.4893414213957382,
+        "max_error": 0.00390625,
+        "graph_checks": 4
+      },
+      {
+        "batch": 4,
+        "capacity": 2079,
+        "length": 2049,
+        "splits": 4,
+        "block": 32,
+        "baseline_us": 22.02950045466423,
+        "candidate_us": 29.0754996240139,
+        "speedup": 0.7576654138204294,
+        "max_error": 0.0078125,
+        "graph_checks": 4
+      },
+      {
+        "batch": 4,
+        "capacity": 2079,
+        "length": 2049,
+        "splits": 8,
+        "block": 32,
+        "baseline_us": 22.664500400424004,
+        "candidate_us": 23.245500400662422,
+        "speedup": 0.9750059155439019,
+        "max_error": 0.0078125,
+        "graph_checks": 4
+      },
+      {
+        "batch": 4,
+        "capacity": 2079,
+        "length": 2049,
+        "splits": 4,
+        "block": 64,
+        "baseline_us": 22.51099981367588,
+        "candidate_us": 23.678500205278397,
+        "speedup": 0.950693651140022,
+        "max_error": 0.00390625,
+        "graph_checks": 4
+      },
+      {
+        "batch": 4,
+        "capacity": 2079,
+        "length": 2049,
+        "splits": 8,
+        "block": 64,
+        "baseline_us": 22.152500227093697,
+        "candidate_us": 21.31900005042553,
+        "speedup": 1.039096588709447,
+        "max_error": 0.00390625,
+        "graph_checks": 4
+      },
+      {
+        "batch": 16,
+        "capacity": 639,
+        "length": 513,
+        "splits": 1,
+        "block": 32,
+        "baseline_us": 23.314999416470528,
+        "candidate_us": 30.439499765634537,
+        "speedup": 0.7659455508790128,
+        "max_error": 0.0078125,
+        "graph_checks": 4
+      },
+      {
+        "batch": 16,
+        "capacity": 639,
+        "length": 513,
+        "splits": 2,
+        "block": 32,
+        "baseline_us": 22.67800085246563,
+        "candidate_us": 21.61549963057041,
+        "speedup": 1.0491545992484272,
+        "max_error": 0.0078125,
+        "graph_checks": 4
+      },
+      {
+        "batch": 16,
+        "capacity": 639,
+        "length": 513,
+        "splits": 4,
+        "block": 32,
+        "baseline_us": 22.87849970161915,
+        "candidate_us": 20.340999588370323,
+        "speedup": 1.1247480539107628,
+        "max_error": 0.0078125,
+        "graph_checks": 4
+      },
+      {
+        "batch": 16,
+        "capacity": 639,
+        "length": 513,
+        "splits": 8,
+        "block": 32,
+        "baseline_us": 23.090999573469162,
+        "candidate_us": 23.881500586867332,
+        "speedup": 0.9668990225081219,
+        "max_error": 0.0078125,
+        "graph_checks": 4
+      },
+      {
+        "batch": 16,
+        "capacity": 639,
+        "length": 513,
+        "splits": 4,
+        "block": 64,
+        "baseline_us": 23.257000371813774,
+        "candidate_us": 18.1450005620718,
+        "speedup": 1.2817304850586504,
+        "max_error": 0.0078125,
+        "graph_checks": 4
+      },
+      {
+        "batch": 16,
+        "capacity": 639,
+        "length": 513,
+        "splits": 8,
+        "block": 64,
+        "baseline_us": 23.059500381350517,
+        "candidate_us": 22.19250053167343,
+        "speedup": 1.0390672447406137,
+        "max_error": 0.0078125,
+        "graph_checks": 4
+      },
+      {
+        "batch": 8,
+        "capacity": 1087,
+        "length": 1025,
+        "splits": 1,
+        "block": 32,
+        "baseline_us": 23.083500564098358,
+        "candidate_us": 47.57450148463249,
+        "speedup": 0.48520740824903413,
+        "max_error": 0.00390625,
+        "graph_checks": 4
+      },
+      {
+        "batch": 8,
+        "capacity": 1087,
+        "length": 1025,
+        "splits": 2,
+        "block": 32,
+        "baseline_us": 22.847000509500504,
+        "candidate_us": 30.206499621272087,
+        "speedup": 0.7563604123600981,
+        "max_error": 0.0078125,
+        "graph_checks": 4
+      },
+      {
+        "batch": 8,
+        "capacity": 1087,
+        "length": 1025,
+        "splits": 4,
+        "block": 32,
+        "baseline_us": 22.65300042927265,
+        "candidate_us": 23.048000410199165,
+        "speedup": 0.9828618546556551,
+        "max_error": 0.00390625,
+        "graph_checks": 4
+      },
+      {
+        "batch": 8,
+        "capacity": 1087,
+        "length": 1025,
+        "splits": 8,
+        "block": 32,
+        "baseline_us": 22.99549989402294,
+        "candidate_us": 20.805999636650085,
+        "speedup": 1.105234081303934,
+        "max_error": 0.0078125,
+        "graph_checks": 4
+      },
+      {
+        "batch": 8,
+        "capacity": 1087,
+        "length": 1025,
+        "splits": 4,
+        "block": 64,
+        "baseline_us": 22.935999557375908,
+        "candidate_us": 20.603500306606293,
+        "speedup": 1.1132088827655038,
+        "max_error": 0.0078125,
+        "graph_checks": 4
+      },
+      {
+        "batch": 8,
+        "capacity": 1087,
+        "length": 1025,
+        "splits": 8,
+        "block": 64,
+        "baseline_us": 22.78600074350834,
+        "candidate_us": 19.05299909412861,
+        "speedup": 1.1959272464632666,
+        "max_error": 0.00390625,
+        "graph_checks": 4
+      }
+    ],
+    "elapsed": 16.262701508
+  },
+  "ab": {
+    "kind": "complete",
+    "reports": [
+      {
+        "shape": [
+          1,
+          512,
+          32
+        ],
+        "seed": 4903,
+        "choices": [
+          8,
+          64
+        ],
+        "prompt_kinds": [
+          "python_continuation"
+        ],
+        "speedup": 0.9898033153652684,
+        "main_tps": 276.73615202998724,
+        "candidate_tps": 273.9143607607083,
+        "samples": {
+          "main": [
+            {
+              "seconds": 0.11560204799999951,
+              "ttft": 0.009333677999997292
+            },
+            {
+              "seconds": 0.11563360899999964,
+              "ttft": 0.009313989999998995
+            },
+            {
+              "seconds": 0.11572146500000002,
+              "ttft": 0.009327449000000598
+            }
+          ],
+          "sglang": [
+            {
+              "seconds": 0.11704604900000248,
+              "ttft": 0.009382355999999703
+            },
+            {
+              "seconds": 0.11682483499999918,
+              "ttft": 0.009357324999999861
+            },
+            {
+              "seconds": 0.11680176100000139,
+              "ttft": 0.009354616999999621
+            }
+          ]
+        },
+        "checks": {
+          "main": {
+            "checked": 32,
+            "failed": 0,
+            "worst_deficit": 0.0
+          },
+          "sglang": {
+            "checked": 32,
+            "failed": 0,
+            "worst_deficit": 0.0
+          }
+        },
+        "identical": true
+      },
+      {
+        "shape": [
+          1,
+          512,
+          32
+        ],
+        "seed": 4907,
+        "choices": [
+          8,
+          64
+        ],
+        "prompt_kinds": [
+          "literature_instruction"
+        ],
+        "speedup": 0.9643413177426763,
+        "main_tps": 268.1559714123967,
+        "candidate_tps": 258.59388283239804,
+        "samples": {
+          "main": [
+            {
+              "seconds": 0.11950166600000145,
+              "ttft": 0.009441929000001181
+            },
+            {
+              "seconds": 0.1193335349999991,
+              "ttft": 0.00932539999999804
+            },
+            {
+              "seconds": 0.11926777900000118,
+              "ttft": 0.009320867999999649
+            }
+          ],
+          "sglang": [
+            {
+              "seconds": 0.12383131600000041,
+              "ttft": 0.0093385210000001
+            },
+            {
+              "seconds": 0.12374616000000316,
+              "ttft": 0.009315147000002355
+            },
+            {
+              "seconds": 0.12370971300000022,
+              "ttft": 0.009362166000002503
+            }
+          ]
+        },
+        "checks": {
+          "main": {
+            "checked": 32,
+            "failed": 0,
+            "worst_deficit": 0.0
+          },
+          "sglang": {
+            "checked": 32,
+            "failed": 0,
+            "worst_deficit": 0.75
+          }
+        },
+        "identical": false
+      },
+      {
+        "shape": [
+          4,
+          2048,
+          32
+        ],
+        "seed": 4903,
+        "choices": [
+          8,
+          64
+        ],
+        "prompt_kinds": [
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction"
+        ],
+        "speedup": 1.007881973548935,
+        "main_tps": 500.1865011800668,
+        "candidate_tps": 504.1289579519024,
+        "samples": {
+          "main": [
+            {
+              "seconds": 0.2559045470000001,
+              "ttft": 0.11853843299999767
+            },
+            {
+              "seconds": 0.25786699199999674,
+              "ttft": 0.120267934999994
+            },
+            {
+              "seconds": 0.25477435300000195,
+              "ttft": 0.11713804699999741
+            }
+          ],
+          "sglang": [
+            {
+              "seconds": 0.2539032879999965,
+              "ttft": 0.11842073500000083
+            },
+            {
+              "seconds": 0.25406519700000274,
+              "ttft": 0.11825117600000112
+            },
+            {
+              "seconds": 0.2529240200000018,
+              "ttft": 0.11755701399999907
+            }
+          ]
+        },
+        "checks": {
+          "main": {
+            "checked": 128,
+            "failed": 0,
+            "worst_deficit": 0.25
+          },
+          "sglang": {
+            "checked": 128,
+            "failed": 0,
+            "worst_deficit": 0.0
+          }
+        },
+        "identical": false
+      },
+      {
+        "shape": [
+          4,
+          2048,
+          32
+        ],
+        "seed": 4907,
+        "choices": [
+          8,
+          64
+        ],
+        "prompt_kinds": [
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation"
+        ],
+        "speedup": 1.0112803910452226,
+        "main_tps": 497.7439831735222,
+        "candidate_tps": 503.3587299441263,
+        "samples": {
+          "main": [
+            {
+              "seconds": 0.2598040009999991,
+              "ttft": 0.12284213099999874
+            },
+            {
+              "seconds": 0.25716031599999667,
+              "ttft": 0.12013339299999615
+            },
+            {
+              "seconds": 0.2548853799999975,
+              "ttft": 0.11815774200000106
+            }
+          ],
+          "sglang": [
+            {
+              "seconds": 0.25386071799999854,
+              "ttft": 0.11771785900000253
+            },
+            {
+              "seconds": 0.2547493129999978,
+              "ttft": 0.11885687699999892
+            },
+            {
+              "seconds": 0.25429180500000115,
+              "ttft": 0.11844179700000268
+            }
+          ]
+        },
+        "checks": {
+          "main": {
+            "checked": 128,
+            "failed": 0,
+            "worst_deficit": 0.0
+          },
+          "sglang": {
+            "checked": 128,
+            "failed": 0,
+            "worst_deficit": 0.0
+          }
+        },
+        "identical": true
+      },
+      {
+        "shape": [
+          16,
+          512,
+          128
+        ],
+        "seed": 4903,
+        "choices": [
+          4,
+          64
+        ],
+        "prompt_kinds": [
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction"
+        ],
+        "speedup": 1.0226664292997794,
+        "main_tps": 3027.467874548702,
+        "candidate_tps": 3096.0897610845136,
+        "samples": {
+          "main": [
+            {
+              "seconds": 0.6766975939999966,
+              "ttft": 0.10888399600000298
+            },
+            {
+              "seconds": 0.6754193860000015,
+              "ttft": 0.1085149899999962
+            },
+            {
+              "seconds": 0.6764729089999975,
+              "ttft": 0.10957774299999556
+            }
+          ],
+          "sglang": [
+            {
+              "seconds": 0.6614795300000011,
+              "ttft": 0.10759696700000632
+            },
+            {
+              "seconds": 0.6614216560000017,
+              "ttft": 0.10716364000000311
+            },
+            {
+              "seconds": 0.6630966230000013,
+              "ttft": 0.10925141899999602
+            }
+          ]
+        },
+        "checks": {
+          "main": {
+            "checked": 2048,
+            "failed": 0,
+            "worst_deficit": 0.5
+          },
+          "sglang": {
+            "checked": 2048,
+            "failed": 0,
+            "worst_deficit": 0.25
+          }
+        },
+        "identical": false
+      },
+      {
+        "shape": [
+          16,
+          512,
+          128
+        ],
+        "seed": 4907,
+        "choices": [
+          4,
+          64
+        ],
+        "prompt_kinds": [
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation"
+        ],
+        "speedup": 1.0218165774939785,
+        "main_tps": 3028.0309900105863,
+        "candidate_tps": 3094.0922627583204,
+        "samples": {
+          "main": [
+            {
+              "seconds": 0.676347106999998,
+              "ttft": 0.10911341799999974
+            },
+            {
+              "seconds": 0.675429464000004,
+              "ttft": 0.10699257800000339
+            },
+            {
+              "seconds": 0.676558380000003,
+              "ttft": 0.10957994299999996
+            }
+          ],
+          "sglang": [
+            {
+              "seconds": 0.6619065710000029,
+              "ttft": 0.10842795900000368
+            },
+            {
+              "seconds": 0.6606834350000028,
+              "ttft": 0.10667026499999821
+            },
+            {
+              "seconds": 0.6621562100000062,
+              "ttft": 0.10860443600000025
+            }
+          ]
+        },
+        "checks": {
+          "main": {
+            "checked": 2048,
+            "failed": 0,
+            "worst_deficit": 0.375
+          },
+          "sglang": {
+            "checked": 2048,
+            "failed": 0,
+            "worst_deficit": 0.5
+          }
+        },
+        "identical": false
+      },
+      {
+        "shape": [
+          8,
+          1024,
+          64
+        ],
+        "seed": 4903,
+        "choices": [
+          8,
+          64
+        ],
+        "prompt_kinds": [
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation"
+        ],
+        "speedup": 1.0176025243572795,
+        "main_tps": 1307.5343025048278,
+        "candidate_tps": 1330.5502069126476,
+        "samples": {
+          "main": [
+            {
+              "seconds": 0.39203309400000563,
+              "ttft": 0.11246582600000465
+            },
+            {
+              "seconds": 0.3915767250000002,
+              "ttft": 0.1118365259999976
+            },
+            {
+              "seconds": 0.3913598279999988,
+              "ttft": 0.11244709799999697
+            }
+          ],
+          "sglang": [
+            {
+              "seconds": 0.3843880069999983,
+              "ttft": 0.11242086300000409
+            },
+            {
+              "seconds": 0.386168320000003,
+              "ttft": 0.11451596400000597
+            },
+            {
+              "seconds": 0.3848032169999982,
+              "ttft": 0.11308854900000398
+            }
+          ]
+        },
+        "checks": {
+          "main": {
+            "checked": 512,
+            "failed": 0,
+            "worst_deficit": 0.25
+          },
+          "sglang": {
+            "checked": 512,
+            "failed": 0,
+            "worst_deficit": 0.0
+          }
+        },
+        "identical": false
+      },
+      {
+        "shape": [
+          8,
+          1024,
+          64
+        ],
+        "seed": 4907,
+        "choices": [
+          8,
+          64
+        ],
+        "prompt_kinds": [
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation"
+        ],
+        "speedup": 1.0160431132864185,
+        "main_tps": 1308.8748491780593,
+        "candidate_tps": 1329.873276661167,
+        "samples": {
+          "main": [
+            {
+              "seconds": 0.3925171869999957,
+              "ttft": 0.11277529799999542
+            },
+            {
+              "seconds": 0.39117567299999934,
+              "ttft": 0.11123928899999669
+            },
+            {
+              "seconds": 0.3899392189999986,
+              "ttft": 0.11108481899999845
+            }
+          ],
+          "sglang": [
+            {
+              "seconds": 0.3839217490000024,
+              "ttft": 0.11242657600000427
+            },
+            {
+              "seconds": 0.38727522199999953,
+              "ttft": 0.11512669399999709
+            },
+            {
+              "seconds": 0.38499908900000435,
+              "ttft": 0.11272318900000045
+            }
+          ]
+        },
+        "checks": {
+          "main": {
+            "checked": 512,
+            "failed": 0,
+            "worst_deficit": 0.25
+          },
+          "sglang": {
+            "checked": 512,
+            "failed": 0,
+            "worst_deficit": 0.25
+          }
+        },
+        "identical": false
+      }
+    ],
+    "elapsed": 54.747872259000005,
+    "scope": "SGLang v0.4.6 static-cache adapter; frozen shared projection choices; ordinary decode only; unchanged prefill and speculative verifier; native own-prefix checks for both engines"
+  },
+  "integrated": {
+    "kind": "complete",
+    "reports": [
+      {
+        "shape": [
+          4,
+          2048,
+          32
+        ],
+        "seed": 4911,
+        "choices": [
+          8,
+          64
+        ],
+        "prompt_kinds": [
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation"
+        ],
+        "speedup": 1.0068292913091925,
+        "main_tps": 500.71510331610534,
+        "candidate_tps": 504.13463261956343,
+        "samples": {
+          "main": [
+            {
+              "seconds": 0.2556343900000009,
+              "ttft": 0.11873067999999876
+            },
+            {
+              "seconds": 0.2573654939999983,
+              "ttft": 0.11985913599999876
+            },
+            {
+              "seconds": 0.25546448799999766,
+              "ttft": 0.11787480899999991
+            }
+          ],
+          "sglang": [
+            {
+              "seconds": 0.2539004300000016,
+              "ttft": 0.1183002110000011
+            },
+            {
+              "seconds": 0.251391739999999,
+              "ttft": 0.11541239099999956
+            },
+            {
+              "seconds": 0.25562342300000296,
+              "ttft": 0.12033183800000202
+            }
+          ]
+        },
+        "checks": {
+          "main": {
+            "checked": 128,
+            "failed": 0,
+            "worst_deficit": 0.0
+          },
+          "sglang": {
+            "checked": 128,
+            "failed": 0,
+            "worst_deficit": 0.0
+          }
+        },
+        "identical": true
+      },
+      {
+        "shape": [
+          16,
+          512,
+          128
+        ],
+        "seed": 4911,
+        "choices": [
+          4,
+          64
+        ],
+        "prompt_kinds": [
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation"
+        ],
+        "speedup": 1.019051713063886,
+        "main_tps": 3034.8483380702883,
+        "candidate_tps": 3092.6673977996147,
+        "samples": {
+          "main": [
+            {
+              "seconds": 0.6763573589999972,
+              "ttft": 0.10923315299999814
+            },
+            {
+              "seconds": 0.674827791000002,
+              "ttft": 0.10729885199999956
+            },
+            {
+              "seconds": 0.673884723999997,
+              "ttft": 0.10704430899999906
+            }
+          ],
+          "sglang": [
+            {
+              "seconds": 0.662599280000002,
+              "ttft": 0.1076020480000004
+            },
+            {
+              "seconds": 0.6622115270000002,
+              "ttft": 0.1069422160000002
+            },
+            {
+              "seconds": 0.6608712919999995,
+              "ttft": 0.1053595069999993
+            }
+          ]
+        },
+        "checks": {
+          "main": {
+            "checked": 2048,
+            "failed": 0,
+            "worst_deficit": 0.25
+          },
+          "sglang": {
+            "checked": 2048,
+            "failed": 0,
+            "worst_deficit": 0.125
+          }
+        },
+        "identical": false
+      },
+      {
+        "shape": [
+          8,
+          1024,
+          64
+        ],
+        "seed": 4911,
+        "choices": [
+          8,
+          64
+        ],
+        "prompt_kinds": [
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction"
+        ],
+        "speedup": 1.0168537797727784,
+        "main_tps": 1309.8510234542673,
+        "candidate_tps": 1331.926964138714,
+        "samples": {
+          "main": [
+            {
+              "seconds": 0.39052504,
+              "ttft": 0.11060570500000111
+            },
+            {
+              "seconds": 0.3923929659999992,
+              "ttft": 0.11298340600000145
+            },
+            {
+              "seconds": 0.3908841470000013,
+              "ttft": 0.11075039499999662
+            }
+          ],
+          "sglang": [
+            {
+              "seconds": 0.38440546200000014,
+              "ttft": 0.11069452599999963
+            },
+            {
+              "seconds": 0.382101445,
+              "ttft": 0.10978408099999726
+            },
+            {
+              "seconds": 0.38662909899999676,
+              "ttft": 0.11447567900000166
+            }
+          ]
+        },
+        "checks": {
+          "main": {
+            "checked": 512,
+            "failed": 0,
+            "worst_deficit": 0.125
+          },
+          "sglang": {
+            "checked": 512,
+            "failed": 0,
+            "worst_deficit": 0.0
+          }
+        },
+        "identical": false
+      },
+      {
+        "shape": [
+          32,
+          128,
+          32
+        ],
+        "seed": 4911,
+        "choices": [
+          4,
+          64
+        ],
+        "prompt_kinds": [
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction",
+          "literature_instruction",
+          "wiki_continuation",
+          "python_continuation",
+          "literature_continuation",
+          "wiki_instruction",
+          "python_instruction"
+        ],
+        "speedup": 0.9816935981442896,
+        "main_tps": 5429.942733034803,
+        "candidate_tps": 5330.540019310373,
+        "samples": {
+          "main": [
+            {
+              "seconds": 0.18858394099999742,
+              "ttft": 0.05250396499999965
+            },
+            {
+              "seconds": 0.1883845839999978,
+              "ttft": 0.052686965999996005
+            },
+            {
+              "seconds": 0.18994570699999969,
+              "ttft": 0.05347131300000285
+            }
+          ],
+          "sglang": [
+            {
+              "seconds": 0.19210061199999728,
+              "ttft": 0.052146324999995386
+            },
+            {
+              "seconds": 0.19081993900000072,
+              "ttft": 0.051566864999998074
+            },
+            {
+              "seconds": 0.19355441700000142,
+              "ttft": 0.0529909150000023
+            }
+          ]
+        },
+        "checks": {
+          "main": {
+            "checked": 1024,
+            "failed": 0,
+            "worst_deficit": 0.25
+          },
+          "sglang": {
+            "checked": 1024,
+            "failed": 0,
+            "worst_deficit": 0.5
+          }
+        },
+        "identical": false
+      }
+    ],
+    "elapsed": 33.787748627,
+    "scope": "Production SGLang dispatch with forced attention choice; frozen shared projection choices; fresh prompts after warmup; native own-prefix checks for both engines"
+  },
+  "calibration": {
+    "kind": "complete",
+    "records": [
+      {
+        "shape": [
+          4,
+          2048,
+          32
+        ],
+        "choice": [
+          "fused"
+        ],
+        "warmup_seconds": 4.759413515999999,
+        "checked": 128,
+        "failed": 0,
+        "worst_deficit": 0.0
+      },
+      {
+        "shape": [
+          16,
+          512,
+          128
+        ],
+        "choice": [
+          "sglang",
+          4
+        ],
+        "warmup_seconds": 1.8925593370000016,
+        "checked": 2048,
+        "failed": 0,
+        "worst_deficit": 0.25
+      },
+      {
+        "shape": [
+          8,
+          1024,
+          64
+        ],
+        "choice": [
+          "sglang",
+          8
+        ],
+        "warmup_seconds": 5.3617860299999975,
+        "checked": 512,
+        "failed": 0,
+        "worst_deficit": 0.25
+      },
+      {
+        "shape": [
+          32,
+          128,
+          32
+        ],
+        "choice": [
+          "fused"
+        ],
+        "warmup_seconds": 6.081330112,
+        "checked": 1024,
+        "failed": 0,
+        "worst_deficit": 0.1875
+      }
+    ],
+    "elapsed": 32.19792554,
+    "scope": "Actual production attention calibration; other projection choices frozen; selected dispatch checked on fresh prompts against native; not a full cold calibration"
+  }
+}

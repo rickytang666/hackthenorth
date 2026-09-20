@@ -1,0 +1,690 @@
+[
+  {
+    "kind": "environment",
+    "torch": "2.5.1+cu124",
+    "transformers": "4.51.3",
+    "gpu": "NVIDIA H100 80GB HBM3",
+    "cuda": "12.4"
+  },
+  {
+    "kind": "kernel_tests",
+    "passed": true
+  },
+  {
+    "kind": "loaded",
+    "seconds": 2.3100840960000006
+  },
+  {
+    "kind": "timing",
+    "shape": [
+      1,
+      512,
+      32
+    ],
+    "seconds": 0.0661508820000023,
+    "ttft_ms": 18.412795999999787,
+    "tpot_ms": 1.5392513548385705,
+    "output_tps": 483.7426052762061
+  },
+  {
+    "kind": "timing",
+    "shape": [
+      4,
+      2048,
+      32
+    ],
+    "seconds": 0.3197135830000022,
+    "ttft_ms": 156.10929099999993,
+    "tpot_ms": 5.269581225806656,
+    "output_tps": 400.3583419851108
+  },
+  {
+    "kind": "timing",
+    "shape": [
+      16,
+      512,
+      128
+    ],
+    "seconds": 0.8216113530000015,
+    "ttft_ms": 144.81491800000157,
+    "tpot_ms": 5.326860125984221,
+    "output_tps": 2492.6627322297923
+  },
+  {
+    "kind": "teacher_forced",
+    "batch": 1,
+    "worst_logit_deficit": 0.0,
+    "failed_positions": 0
+  },
+  {
+    "kind": "teacher_forced",
+    "batch": 4,
+    "worst_logit_deficit": 0.0,
+    "failed_positions": 0
+  },
+  {
+    "kind": "teacher_forced",
+    "batch": 16,
+    "worst_logit_deficit": 0.0,
+    "failed_positions": 0
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "tensor",
+    "block_n": 32,
+    "warps": 4,
+    "baseline_us": 18.750600516796112,
+    "candidate_us": 77.6445984840393,
+    "speedup": 0.24149265863807,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "tensor",
+    "block_n": 64,
+    "warps": 4,
+    "baseline_us": 18.750600516796112,
+    "candidate_us": 64.01159763336182,
+    "speedup": 0.2929250512413957,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "tensor",
+    "block_n": 64,
+    "warps": 8,
+    "baseline_us": 18.750600516796112,
+    "candidate_us": 82.74040222167969,
+    "speedup": 0.22661964425262449,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "vector",
+    "block_n": 1,
+    "warps": 4,
+    "baseline_us": 18.750600516796112,
+    "candidate_us": 18.747800588607788,
+    "speedup": 1.0001493470220728,
+    "max_abs_error": 0.0078125,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "vector",
+    "block_n": 2,
+    "warps": 4,
+    "baseline_us": 18.750600516796112,
+    "candidate_us": 15.363000333309174,
+    "speedup": 1.220503815009503,
+    "max_abs_error": 0.0078125,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "vector",
+    "block_n": 4,
+    "warps": 4,
+    "baseline_us": 18.750600516796112,
+    "candidate_us": 16.92039966583252,
+    "speedup": 1.108165344029038,
+    "max_abs_error": 0.0078125,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "vector",
+    "block_n": 4,
+    "warps": 8,
+    "baseline_us": 18.750600516796112,
+    "candidate_us": 17.918400466442108,
+    "speedup": 1.0464438805189427,
+    "max_abs_error": 0.0078125,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "vector",
+    "block_n": 8,
+    "warps": 8,
+    "baseline_us": 18.750600516796112,
+    "candidate_us": 17.569799721240997,
+    "speedup": 1.0672062752159654,
+    "max_abs_error": 0.0078125,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "vector",
+    "block_n": 8,
+    "warps": 16,
+    "baseline_us": 18.750600516796112,
+    "candidate_us": 17.14700013399124,
+    "speedup": 1.093520754083741,
+    "max_abs_error": 0.0078125,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "tensor",
+    "block_n": 32,
+    "warps": 4,
+    "baseline_us": 45.81040143966675,
+    "candidate_us": 105.36140203475952,
+    "speedup": 0.4347930129532023,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "tensor",
+    "block_n": 64,
+    "warps": 4,
+    "baseline_us": 45.81040143966675,
+    "candidate_us": 93.36400032043457,
+    "speedup": 0.490664509687255,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "tensor",
+    "block_n": 64,
+    "warps": 8,
+    "baseline_us": 45.81040143966675,
+    "candidate_us": 166.91060066223145,
+    "speedup": 0.27446070685690566,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "vector",
+    "block_n": 1,
+    "warps": 4,
+    "baseline_us": 45.81040143966675,
+    "candidate_us": 38.1197988986969,
+    "speedup": 1.2017482453516497,
+    "max_abs_error": 0.03125,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "vector",
+    "block_n": 2,
+    "warps": 4,
+    "baseline_us": 45.81040143966675,
+    "candidate_us": 38.349199295043945,
+    "speedup": 1.1945595287979598,
+    "max_abs_error": 0.03125,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "vector",
+    "block_n": 4,
+    "warps": 4,
+    "baseline_us": 45.81040143966675,
+    "candidate_us": 41.095200181007385,
+    "speedup": 1.1147384910619937,
+    "max_abs_error": 0.03125,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "vector",
+    "block_n": 4,
+    "warps": 8,
+    "baseline_us": 45.81040143966675,
+    "candidate_us": 43.63740086555481,
+    "speedup": 1.0497967461629274,
+    "max_abs_error": 0.03125,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "vector",
+    "block_n": 8,
+    "warps": 8,
+    "baseline_us": 45.81040143966675,
+    "candidate_us": 57.01580047607422,
+    "speedup": 0.8034685307784175,
+    "max_abs_error": 0.03125,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      1,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "vector",
+    "block_n": 8,
+    "warps": 16,
+    "baseline_us": 45.81040143966675,
+    "candidate_us": 47.30960130691528,
+    "speedup": 0.9683108750479071,
+    "max_abs_error": 0.03125,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      4,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "tensor",
+    "block_n": 32,
+    "warps": 4,
+    "baseline_us": 19.493800401687622,
+    "candidate_us": 75.58959722518921,
+    "speedup": 0.25788998906309263,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      4,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "tensor",
+    "block_n": 64,
+    "warps": 4,
+    "baseline_us": 19.493800401687622,
+    "candidate_us": 63.87919783592224,
+    "speedup": 0.30516664363504814,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      4,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "tensor",
+    "block_n": 64,
+    "warps": 8,
+    "baseline_us": 19.493800401687622,
+    "candidate_us": 82.43280053138733,
+    "speedup": 0.23648111280976208,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      4,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "tensor",
+    "block_n": 32,
+    "warps": 4,
+    "baseline_us": 46.13940119743347,
+    "candidate_us": 104.63780164718628,
+    "speedup": 0.4409439081394746,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      4,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "tensor",
+    "block_n": 64,
+    "warps": 4,
+    "baseline_us": 46.13940119743347,
+    "candidate_us": 92.76880025863647,
+    "speedup": 0.4973590374004868,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      4,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "tensor",
+    "block_n": 64,
+    "warps": 8,
+    "baseline_us": 46.13940119743347,
+    "candidate_us": 166.72899723052979,
+    "speedup": 0.2767329136733084,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      16,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "tensor",
+    "block_n": 32,
+    "warps": 4,
+    "baseline_us": 18.6256006360054,
+    "candidate_us": 76.87839865684509,
+    "speedup": 0.24227352496170934,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      16,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "tensor",
+    "block_n": 64,
+    "warps": 4,
+    "baseline_us": 18.6256006360054,
+    "candidate_us": 65.02699851989746,
+    "speedup": 0.2864287305265396,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      16,
+      6144,
+      2560
+    ],
+    "swiglu": false,
+    "mode": "tensor",
+    "block_n": 64,
+    "warps": 8,
+    "baseline_us": 18.6256006360054,
+    "candidate_us": 83.95699858665466,
+    "speedup": 0.221846909126716,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      16,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "tensor",
+    "block_n": 32,
+    "warps": 4,
+    "baseline_us": 46.520599722862244,
+    "candidate_us": 109.39140319824219,
+    "speedup": 0.4252674192190066,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      16,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "tensor",
+    "block_n": 64,
+    "warps": 4,
+    "baseline_us": 46.520599722862244,
+    "candidate_us": 93.69419813156128,
+    "speedup": 0.4965152661591709,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "projection",
+    "shape": [
+      16,
+      19456,
+      2560
+    ],
+    "swiglu": true,
+    "mode": "tensor",
+    "block_n": 64,
+    "warps": 8,
+    "baseline_us": 46.520599722862244,
+    "candidate_us": 168.89660358428955,
+    "speedup": 0.2754383376314946,
+    "max_abs_error": 0.0,
+    "close": true
+  },
+  {
+    "kind": "selected",
+    "configurations": {
+      "1": {
+        "qkv": {
+          "kind": "projection",
+          "shape": [
+            1,
+            6144,
+            2560
+          ],
+          "swiglu": false,
+          "mode": "vector",
+          "block_n": 2,
+          "warps": 4,
+          "baseline_us": 18.750600516796112,
+          "candidate_us": 15.363000333309174,
+          "speedup": 1.220503815009503,
+          "max_abs_error": 0.0078125,
+          "close": true
+        },
+        "mlp": {
+          "kind": "projection",
+          "shape": [
+            1,
+            19456,
+            2560
+          ],
+          "swiglu": true,
+          "mode": "vector",
+          "block_n": 1,
+          "warps": 4,
+          "baseline_us": 45.81040143966675,
+          "candidate_us": 38.1197988986969,
+          "speedup": 1.2017482453516497,
+          "max_abs_error": 0.03125,
+          "close": true
+        }
+      }
+    }
+  },
+  {
+    "kind": "engine_ab",
+    "shape": [
+      1,
+      512,
+      32
+    ],
+    "baseline_seconds": [
+      0.09748385499999301,
+      0.017756710000000453,
+      0.0025718433870965344
+    ],
+    "candidate_seconds": [
+      0.09300035199999002,
+      0.01784287700000675,
+      0.0024259034516128687
+    ],
+    "speedup": 1.0482095272069882
+  },
+  {
+    "kind": "engine_ab",
+    "shape": [
+      4,
+      2048,
+      32
+    ],
+    "baseline_seconds": [
+      0.3185285489999927,
+      0.15656270499999891,
+      0.0052247046451610905
+    ],
+    "candidate_seconds": [
+      0.3183893289999986,
+      0.15610604500000136,
+      0.0052352019032258015
+    ],
+    "speedup": 1.0004372633983412
+  },
+  {
+    "kind": "engine_ab",
+    "shape": [
+      16,
+      512,
+      128
+    ],
+    "baseline_seconds": [
+      0.819069350999996,
+      0.14500329000000534,
+      0.005310695779527583
+    ],
+    "candidate_seconds": [
+      0.8185961639999988,
+      0.14558810500000163,
+      0.00529824760629911
+    ],
+    "speedup": 1.0005780469305952
+  },
+  {
+    "kind": "teacher_forced",
+    "failed_positions": {
+      "baseline": 0,
+      "candidate": 0
+    },
+    "worst_logit_deficit": {
+      "baseline": 0.375,
+      "candidate": 0.375
+    }
+  }
+]

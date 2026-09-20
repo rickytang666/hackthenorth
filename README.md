@@ -154,3 +154,12 @@ seventh, at 0.74 confidence, promotes a different beam to the top.
 Built with the [TORGO database](https://huggingface.co/datasets/abnerh/TORGO-database),
 downloaded separately under its own terms. Base model Apache 2.0; OpenVoice V2
 and MeloTTS MIT.
+
+## Dryft GPU challenge
+
+Our Qwen3-4B inference optimization work is in [dryft/](dryft/), including the
+[BF16 H100 engine](dryft/engine/), [tests](dryft/tests/), and
+[experiment records](dryft/experiments/). The import preserves all 45 development
+commits, including the seven upstream starter commits, with their original
+authors and timestamps. Run the Dryft project's local commands from `dryft/`;
+its submission folder in this repository is `dryft/engine/`.

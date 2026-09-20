@@ -1,0 +1,1399 @@
+{
+  "baseline_commit": "eea1b37c3a9e25de608c12c3ac4136890e422a69",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "torch": "2.5.1+cu124",
+  "gpu_kernel_tests": {
+    "exit_code": 0,
+    "output": "...........\n----------------------------------------------------------------------\nRan 11 tests in 42.520s\n\nOK\n"
+  },
+  "records": [
+    {
+      "kind": "selected",
+      "configurations": {
+        "vector_down_and_greedy_head": true
+      }
+    },
+    {
+      "kind": "corpus",
+      "name": "wiki",
+      "url": "https://raw.githubusercontent.com/pytorch/examples/main/word_language_model/data/wikitext-2/valid.txt",
+      "sha256": "f0737ed31fc1329026e95cb8b98e19c2a182c39c240ab909dc31abf2f8af58e8",
+      "tokens": 270674
+    },
+    {
+      "kind": "corpus",
+      "name": "python",
+      "url": "https://raw.githubusercontent.com/python/cpython/3.12/Lib/heapq.py",
+      "sha256": "6d43277e5c76fc0f073cd388fcff852d14d068f6bb6d4886c340f8b75a1229a9",
+      "tokens": 6143
+    },
+    {
+      "kind": "corpus",
+      "name": "literature",
+      "url": "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt",
+      "sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+      "tokens": 301829
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        1,
+        512,
+        32
+      ],
+      "baseline_seconds": [
+        0.13446464799999092,
+        0.016139504000008742,
+        0.0038208790322581507
+      ],
+      "candidate_seconds": [
+        0.12962794400000632,
+        0.015270086000001015,
+        0.00371337829032275
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.12681313599999555,
+            0.01638823199999706,
+            0.003562093677419306
+          ],
+          [
+            0.13446464799999092,
+            0.016017397999988248,
+            0.0038208790322581507
+          ],
+          [
+            0.13072711499999912,
+            0.016116336999999703,
+            0.003697121870967723
+          ],
+          [
+            0.13852668699999526,
+            0.016139504000008742,
+            0.003947973645160856
+          ],
+          [
+            0.13931819399999767,
+            0.016841505000002144,
+            0.0039508609354837266
+          ]
+        ],
+        "candidate": [
+          [
+            0.1226057139999881,
+            0.015270086000001015,
+            0.003462439612902809
+          ],
+          [
+            0.12962794400000632,
+            0.014513217000001077,
+            0.00371337829032275
+          ],
+          [
+            0.12611454800000388,
+            0.015029835000007097,
+            0.0035833778387095736
+          ],
+          [
+            0.1347198189999972,
+            0.01620917399999655,
+            0.003822924032258085
+          ],
+          [
+            0.13511821900000598,
+            0.01662790599999653,
+            0.0038222681612906273
+          ]
+        ]
+      },
+      "speedup": 1.0373122017578582
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        4,
+        2048,
+        32
+      ],
+      "baseline_seconds": [
+        0.26346151599999246,
+        0.12357845699999359,
+        0.004533229677419619
+      ],
+      "candidate_seconds": [
+        0.25969392500000765,
+        0.12101761200000283,
+        0.004473634935484297
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.2658090179999988,
+            0.1251502149999908,
+            0.004537380741935742
+          ],
+          [
+            0.26368980099999817,
+            0.12377559899999824,
+            0.0045133613548387075
+          ],
+          [
+            0.2618689039999964,
+            0.12133878399998821,
+            0.004533229677419619
+          ],
+          [
+            0.2623175049999986,
+            0.12160370899999862,
+            0.004539154709677419
+          ],
+          [
+            0.26346151599999246,
+            0.12357845699999359,
+            0.0045123567419354475
+          ]
+        ],
+        "candidate": [
+          [
+            0.2600422769999966,
+            0.12101761200000283,
+            0.004484666612903025
+          ],
+          [
+            0.2581697620000085,
+            0.11948707899999533,
+            0.004473634935484297
+          ],
+          [
+            0.25955574300000706,
+            0.12112897400000122,
+            0.004465379645161478
+          ],
+          [
+            0.26128586500000495,
+            0.12274349700000187,
+            0.00446910864516139
+          ],
+          [
+            0.25969392500000765,
+            0.1205239119999959,
+            0.004489355258064895
+          ]
+        ]
+      },
+      "speedup": 1.0145078133806353
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        16,
+        512,
+        128
+      ],
+      "baseline_seconds": [
+        0.6921013529999982,
+        0.11208572900000036,
+        0.004570536165354365
+      ],
+      "candidate_seconds": [
+        0.6833916209999984,
+        0.11028014900000471,
+        0.004518408976377874
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.6921013529999982,
+            0.11208572900000036,
+            0.004567052157480298
+          ],
+          [
+            0.6891541810000064,
+            0.10951741600000275,
+            0.0045640690157480596
+          ],
+          [
+            0.6880846429999963,
+            0.10760581200000274,
+            0.0045706994566928625
+          ],
+          [
+            0.6935324159999965,
+            0.11285019800000384,
+            0.004572300929133801
+          ],
+          [
+            0.6942899809999972,
+            0.11383188799999289,
+            0.004570536165354365
+          ]
+        ],
+        "candidate": [
+          [
+            0.6841180889999947,
+            0.11028014900000471,
+            0.004518408976377874
+          ],
+          [
+            0.6832899129999959,
+            0.10944123800000227,
+            0.004518493503936957
+          ],
+          [
+            0.6833916209999984,
+            0.11040027199999258,
+            0.0045117429055118565
+          ],
+          [
+            0.6831113269999918,
+            0.10999599199999466,
+            0.004512719173228324
+          ],
+          [
+            0.6884591430000029,
+            0.11373333400000263,
+            0.004525400070866143
+          ]
+        ]
+      },
+      "speedup": 1.0127448621439856
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        2,
+        256,
+        32
+      ],
+      "baseline_seconds": [
+        0.13978950400000656,
+        0.015609079000000747,
+        0.004006756548386831
+      ],
+      "candidate_seconds": [
+        0.13771395300000222,
+        0.015210453000008783,
+        0.003949120000000096
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.14020623199999704,
+            0.016064275000005068,
+            0.004004579258064257
+          ],
+          [
+            0.1394228120000065,
+            0.015609079000000747,
+            0.00399399138709696
+          ],
+          [
+            0.13978205499999774,
+            0.015572602000005986,
+            0.004006756548386831
+          ],
+          [
+            0.14005746700000543,
+            0.015716706999995722,
+            0.00401099225806483
+          ],
+          [
+            0.13978950400000656,
+            0.01550479899999857,
+            0.004009184032258323
+          ]
+        ],
+        "candidate": [
+          [
+            0.13734202400000584,
+            0.015210453000008783,
+            0.003939728096774098
+          ],
+          [
+            0.13745621999999003,
+            0.0148029949999966,
+            0.003956555645161079
+          ],
+          [
+            0.13771395300000222,
+            0.015157942000001867,
+            0.003953419709677431
+          ],
+          [
+            0.1381368320000007,
+            0.015901107999994224,
+            0.003943087870967951
+          ],
+          [
+            0.13896696400000508,
+            0.016544244000002095,
+            0.003949120000000096
+          ]
+        ]
+      },
+      "speedup": 1.0150714648355517
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        8,
+        256,
+        32
+      ],
+      "baseline_seconds": [
+        0.15760178700000438,
+        0.029113804999994386,
+        0.004145282387097019
+      ],
+      "candidate_seconds": [
+        0.15593996300000867,
+        0.028622550999997998,
+        0.004111052419354854
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.15739881899999375,
+            0.0288188899999966,
+            0.004147739645161198
+          ],
+          [
+            0.15760178700000438,
+            0.029113804999994386,
+            0.004144773612903548
+          ],
+          [
+            0.15672719600000562,
+            0.028622648000009576,
+            0.00413240477419342
+          ],
+          [
+            0.15788894700000355,
+            0.02938519299999598,
+            0.004145282387097019
+          ],
+          [
+            0.1584004649999997,
+            0.029489835000006792,
+            0.00415840741935461
+          ]
+        ],
+        "candidate": [
+          [
+            0.15651293100000885,
+            0.028738106000005814,
+            0.004121768548387195
+          ],
+          [
+            0.15550498300000015,
+            0.028307439000002432,
+            0.004103146580645088
+          ],
+          [
+            0.15665142599999626,
+            0.02879457299999899,
+            0.004124414612903138
+          ],
+          [
+            0.15593996300000867,
+            0.028622550999997998,
+            0.004107013290322925
+          ],
+          [
+            0.15584423900000388,
+            0.028401614000003406,
+            0.004111052419354854
+          ]
+        ]
+      },
+      "speedup": 1.0106568192529044
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        24,
+        256,
+        32
+      ],
+      "baseline_seconds": [
+        0.22635928299999364,
+        0.07935394300000098,
+        0.004725742677419567
+      ],
+      "candidate_seconds": [
+        0.22676542899999674,
+        0.08136653499998658,
+        0.004686747516129322
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.22558648400000436,
+            0.07935394300000098,
+            0.004717178741935593
+          ],
+          [
+            0.22646744799999396,
+            0.07996942499998738,
+            0.004725742677419567
+          ],
+          [
+            0.22635928299999364,
+            0.07932859800000358,
+            0.004742925322580325
+          ],
+          [
+            0.22505979299999979,
+            0.07923894099999984,
+            0.004703898451612901
+          ],
+          [
+            0.2271262239999885,
+            0.07965141500000072,
+            0.004757251903225412
+          ]
+        ],
+        "candidate": [
+          [
+            0.22676542899999674,
+            0.08141627199999846,
+            0.0046886824838709125
+          ],
+          [
+            0.22305086699999777,
+            0.07901628199999777,
+            0.0046462769354838705
+          ],
+          [
+            0.22728124500000035,
+            0.08199207199999137,
+            0.004686747516129322
+          ],
+          [
+            0.22536982500000136,
+            0.08037841699999149,
+            0.004677142193548705
+          ],
+          [
+            0.2267656049999971,
+            0.08136653499998658,
+            0.0046902925806455
+          ]
+        ]
+      },
+      "speedup": 0.9982089597969401
+    },
+    {
+      "kind": "engine_ab",
+      "shape": [
+        32,
+        256,
+        32
+      ],
+      "baseline_seconds": [
+        0.25813426999999933,
+        0.10923736799999517,
+        0.004803125870967876
+      ],
+      "candidate_seconds": [
+        0.2570922839999952,
+        0.10931861699999956,
+        0.004768305870967534
+      ],
+      "samples_seconds": {
+        "baseline": [
+          [
+            0.25878958799999907,
+            0.10993364499999814,
+            0.004801804612903256
+          ],
+          [
+            0.2591475889999941,
+            0.11010686499999167,
+            0.0048077652903226594
+          ],
+          [
+            0.2569072290000065,
+            0.1082241630000027,
+            0.004796227935483993
+          ],
+          [
+            0.25813426999999933,
+            0.10923736799999517,
+            0.004803125870967876
+          ],
+          [
+            0.2579696279999979,
+            0.10761696400000176,
+            0.0048500859354837465
+          ]
+        ],
+        "candidate": [
+          [
+            0.2557527139999962,
+            0.108301376,
+            0.004756494774193426
+          ],
+          [
+            0.2571360989999931,
+            0.10931861699999956,
+            0.004768305870967534
+          ],
+          [
+            0.25758020499999645,
+            0.10959515400000441,
+            0.0047737113225803885
+          ],
+          [
+            0.2559803330000108,
+            0.10778471500000819,
+            0.004780503806451696
+          ],
+          [
+            0.2570922839999952,
+            0.10951217399998825,
+            0.004760648709677643
+          ]
+        ]
+      },
+      "speedup": 1.0040529648879084
+    },
+    {
+      "kind": "teacher_forced",
+      "failed_positions": {
+        "baseline": 0,
+        "candidate": 0
+      },
+      "worst_logit_deficit": {
+        "baseline": 1.375,
+        "candidate": 1.375
+      },
+      "checked_tokens": {
+        "baseline": 21600,
+        "candidate": 21600
+      }
+    }
+  ],
+  "microbenchmark": [
+    {
+      "kind": "vector_down",
+      "config": [
+        1,
+        512,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.015625,
+      "baseline_us": 25.523999333381653,
+      "candidate_us": 36.48959994316101,
+      "speedup": 0.6994869599321392
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        2,
+        512,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.52720010280609,
+      "candidate_us": 28.441599011421204,
+      "speedup": 0.8975304128489827
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        4,
+        512,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.598400831222534,
+      "candidate_us": 24.850399792194366,
+      "speedup": 1.030100161175802
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        8,
+        512,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.125,
+      "baseline_us": 25.604000687599182,
+      "candidate_us": 24.607999622821808,
+      "speedup": 1.0404746862826537
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        8,
+        512,
+        8
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.446400046348572,
+      "candidate_us": 25.197601318359375,
+      "speedup": 1.0098739052517638
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        1,
+        1024,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.015625,
+      "baseline_us": 25.45360028743744,
+      "candidate_us": 28.28879952430725,
+      "speedup": 0.8997766153196548
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        2,
+        1024,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.496798753738403,
+      "candidate_us": 25.385600328445435,
+      "speedup": 1.0043803740645978
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        4,
+        1024,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.604799389839172,
+      "candidate_us": 23.788799345493317,
+      "speedup": 1.0763384489469785
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        8,
+        1024,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.459200143814087,
+      "candidate_us": 24.003200232982635,
+      "speedup": 1.0606585745525203
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        8,
+        1024,
+        8
+      ],
+      "close": true,
+      "max_abs_error": 0.125,
+      "baseline_us": 25.33920109272003,
+      "candidate_us": 24.23519939184189,
+      "speedup": 1.0455536462906005
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        1,
+        2048,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.651198625564575,
+      "candidate_us": 25.10640025138855,
+      "speedup": 1.0216995813306966
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        2,
+        2048,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.516000390052795,
+      "candidate_us": 23.923200368881226,
+      "speedup": 1.0665797216347128
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        4,
+        2048,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.03125,
+      "baseline_us": 25.508001446723938,
+      "candidate_us": 24.28400069475174,
+      "speedup": 1.0504035874219328
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        8,
+        2048,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.015625,
+      "baseline_us": 25.570398569107056,
+      "candidate_us": 23.947200179100037,
+      "speedup": 1.0677823869958571
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        8,
+        2048,
+        8
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.60639977455139,
+      "candidate_us": 23.86000007390976,
+      "speedup": 1.0731936167322678
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        1,
+        16384,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.446400046348572,
+      "candidate_us": 31.802400946617126,
+      "speedup": 0.800140847512186
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        2,
+        16384,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.03125,
+      "baseline_us": 25.594401359558105,
+      "candidate_us": 49.508801102638245,
+      "speedup": 0.5169666966181943
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        4,
+        16384,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.53119957447052,
+      "candidate_us": 52.66079902648926,
+      "speedup": 0.4848236268049769
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        8,
+        16384,
+        4
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.941601395606995,
+      "candidate_us": 102.53679752349854,
+      "speedup": 0.25299796777505085
+    },
+    {
+      "kind": "vector_down",
+      "config": [
+        8,
+        16384,
+        8
+      ],
+      "close": true,
+      "max_abs_error": 0.0625,
+      "baseline_us": 25.508001446723938,
+      "candidate_us": 56.1568021774292,
+      "speedup": 0.45422816929871823
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 1,
+      "column": false,
+      "config": [
+        16,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 280.4640054702759,
+      "candidate_us": 281.2351942062378,
+      "speedup": 0.9972578512510195
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 1,
+      "column": false,
+      "config": [
+        16,
+        256,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 281.36000633239746,
+      "candidate_us": 286.025595664978,
+      "speedup": 0.9836882104144086
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 1,
+      "column": false,
+      "config": [
+        16,
+        64,
+        128,
+        4,
+        5
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 282.35199451446533,
+      "candidate_us": 264.3104076385498,
+      "speedup": 1.068259086114338
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 1,
+      "column": false,
+      "config": [
+        32,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 281.7663908004761,
+      "candidate_us": 289.0144109725952,
+      "speedup": 0.9749215959587344
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 1,
+      "column": true,
+      "config": [
+        16,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 281.55839443206787,
+      "candidate_us": 273.24159145355225,
+      "speedup": 1.0304375440586224
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 1,
+      "column": true,
+      "config": [
+        16,
+        256,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 281.56158924102783,
+      "candidate_us": 268.84799003601074,
+      "speedup": 1.0472891733477872
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 1,
+      "column": true,
+      "config": [
+        16,
+        64,
+        128,
+        4,
+        5
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 281.71520233154297,
+      "candidate_us": 275.11680126190186,
+      "speedup": 1.0239839989392712
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 1,
+      "column": true,
+      "config": [
+        32,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 281.3152074813843,
+      "candidate_us": 268.42238903045654,
+      "speedup": 1.048031829600715
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 4,
+      "column": false,
+      "config": [
+        16,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 283.55839252471924,
+      "candidate_us": 281.72481060028076,
+      "speedup": 1.0065084147914825
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 4,
+      "column": false,
+      "config": [
+        16,
+        256,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 284.3616008758545,
+      "candidate_us": 286.37120723724365,
+      "speedup": 0.9929825125201072
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 4,
+      "column": false,
+      "config": [
+        16,
+        64,
+        128,
+        4,
+        5
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 284.40959453582764,
+      "candidate_us": 263.06560039520264,
+      "speedup": 1.0811356335019098
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 4,
+      "column": false,
+      "config": [
+        32,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 284.41600799560547,
+      "candidate_us": 287.55199909210205,
+      "speedup": 0.9890941773787073
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 4,
+      "column": true,
+      "config": [
+        16,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 284.5855951309204,
+      "candidate_us": 273.50080013275146,
+      "speedup": 1.040529296414448
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 4,
+      "column": true,
+      "config": [
+        16,
+        256,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 284.27839279174805,
+      "candidate_us": 268.9311981201172,
+      "speedup": 1.057067364362747
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 4,
+      "column": true,
+      "config": [
+        16,
+        64,
+        128,
+        4,
+        5
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 284.43520069122314,
+      "candidate_us": 275.7215976715088,
+      "speedup": 1.031602903411635
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 4,
+      "column": true,
+      "config": [
+        32,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 284.5024108886719,
+      "candidate_us": 268.38080883026123,
+      "speedup": 1.060069876563368
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 16,
+      "column": false,
+      "config": [
+        16,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 291.3439989089966,
+      "candidate_us": 284.33918952941895,
+      "speedup": 1.0246353989795447
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 16,
+      "column": false,
+      "config": [
+        16,
+        256,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 291.81439876556396,
+      "candidate_us": 289.32480812072754,
+      "speedup": 1.0086048295028942
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 16,
+      "column": false,
+      "config": [
+        16,
+        64,
+        128,
+        4,
+        5
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 291.8015956878662,
+      "candidate_us": 264.40958976745605,
+      "speedup": 1.1035968700851622
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 16,
+      "column": false,
+      "config": [
+        32,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 291.974401473999,
+      "candidate_us": 287.44640350341797,
+      "speedup": 1.0157524947795258
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 16,
+      "column": true,
+      "config": [
+        16,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 292.0383930206299,
+      "candidate_us": 275.7535934448242,
+      "speedup": 1.0590556205356
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 16,
+      "column": true,
+      "config": [
+        16,
+        256,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 292.4288034439087,
+      "candidate_us": 269.75040435791016,
+      "speedup": 1.084071789030234
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 16,
+      "column": true,
+      "config": [
+        16,
+        64,
+        128,
+        4,
+        5
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 292.47679710388184,
+      "candidate_us": 277.47199535369873,
+      "speedup": 1.0540768149630964
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 16,
+      "column": true,
+      "config": [
+        32,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 291.8015956878662,
+      "candidate_us": 270.032000541687,
+      "speedup": 1.0806185752151936
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 32,
+      "column": false,
+      "config": [
+        16,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 314.1184091567993,
+      "candidate_us": 291.78879261016846,
+      "speedup": 1.0765266422568305
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 32,
+      "column": false,
+      "config": [
+        16,
+        256,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 314.2496109008789,
+      "candidate_us": 285.8527898788452,
+      "speedup": 1.0993407167167033
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 32,
+      "column": false,
+      "config": [
+        16,
+        64,
+        128,
+        4,
+        5
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 313.82079124450684,
+      "candidate_us": 290.85121154785156,
+      "speedup": 1.078973642827258
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 32,
+      "column": false,
+      "config": [
+        32,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 314.49599266052246,
+      "candidate_us": 287.44640350341797,
+      "speedup": 1.0941030704417314
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 32,
+      "column": true,
+      "config": [
+        16,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 314.69759941101074,
+      "candidate_us": 276.8991947174072,
+      "speedup": 1.1365060116270078
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 32,
+      "column": true,
+      "config": [
+        16,
+        256,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 313.9456033706665,
+      "candidate_us": 272.77441024780273,
+      "speedup": 1.1509349542189888
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 32,
+      "column": true,
+      "config": [
+        16,
+        64,
+        128,
+        4,
+        5
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 314.79361057281494,
+      "candidate_us": 295.2127933502197,
+      "speedup": 1.066327807140004
+    },
+    {
+      "kind": "head_argmax",
+      "rows": 32,
+      "column": true,
+      "config": [
+        32,
+        128,
+        64,
+        4,
+        3
+      ],
+      "exact_argmax": true,
+      "max_logit_deficit": 0.0,
+      "baseline_us": 314.3104076385498,
+      "candidate_us": 270.4607963562012,
+      "speedup": 1.1621292692808536
+    },
+    {
+      "kind": "head_tie_check",
+      "passed": true
+    }
+  ],
+  "merged_remote_commit": "227b31eb7293451abec17ebcbfbc87826a61d82e",
+  "final_source_checks": {
+    "gpu": "NVIDIA H100 80GB HBM3",
+    "torch": "2.5.1+cu124",
+    "phases": {
+      "check_explore.py": {
+        "exit_code": 0,
+        "output": "test_first_log_request_includes_sequence_zero (test_client.ClientTests.test_first_log_request_includes_sequence_zero) ... ok\ntest_submission_to_terminal_run_uses_api_envelopes (test_client.ClientTests.test_submission_to_terminal_run_uses_api_envelopes) ... ok\ntest_cached_rotary_preserves_logits_and_native_mask_fallback (test_decode.DecodeTests.test_cached_rotary_preserves_logits_and_native_mask_fallback) ... Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.\nok\ntest_fixed_cache_matches_full_prefix_and_excludes_stale_slots (test_decode.DecodeTests.test_fixed_cache_matches_full_prefix_and_excludes_stale_slots) ... ok\ntest_graph_replay_resets_positions_and_prompt_state (test_decode.DecodeTests.test_graph_replay_resets_positions_and_prompt_state) ... ok\ntest_multi_token_verification_and_rollback_match_native (test_decode.DecodeTests.test_multi_token_verification_and_rollback_match_native) ... ok\ntest_rotary_table_matches_native_and_reuses_changed_positions (test_decode.DecodeTests.test_rotary_table_matches_native_and_reuses_changed_positions) ... ok\ntest_speculative_generator_stream_and_capacity_boundaries (test_decode.DecodeTests.test_speculative_generator_stream_and_capacity_boundaries) ... ok\ntest_add_rms_norm_preserves_residual_rounding_and_inputs (test_fused_kernels.FusedKernelTests.test_add_rms_norm_preserves_residual_rounding_and_inputs) ... ok\ntest_flash_prefill_matches_reference_and_preserves_causality (test_fused_kernels.FusedKernelTests.test_flash_prefill_matches_reference_and_preserves_causality) ... ok\ntest_gateup_epilogue_matches_native_under_graph_replay (test_fused_kernels.FusedKernelTests.test_gateup_epilogue_matches_native_under_graph_replay) ... ok\ntest_greedy_head_rounding_ties_and_graph_replay (test_fused_kernels.FusedKernelTests.test_greedy_head_rounding_ties_and_graph_replay) ... ok\ntest_grouped_attention_and_offset_causality (test_fused_kernels.FusedKernelTests.test_grouped_attention_and_offset_causality) ... ok\ntest_norm_rope_cache_matches_separate_updates_under_graph_replay (test_fused_kernels.FusedKernelTests.test_norm_rope_cache_matches_separate_updates_under_graph_replay) ... ok\ntest_norm_rope_preserves_reference_rounding (test_fused_kernels.FusedKernelTests.test_norm_rope_preserves_reference_rounding) ... ok\ntest_normalized_projections_and_swiglu (test_fused_kernels.FusedKernelTests.test_normalized_projections_and_swiglu) ... ok\ntest_projection_dispatch_boundaries (test_fused_kernels.FusedKernelTests.test_projection_dispatch_boundaries) ... ok\ntest_swiglu_preserves_intermediate_bf16_cast (test_fused_kernels.FusedKernelTests.test_swiglu_preserves_intermediate_bf16_cast) ... ok\ntest_vector_down_residual_native_bf16_rounding (test_fused_kernels.FusedKernelTests.test_vector_down_residual_native_bf16_rounding) ... ok\ntest_acceptance_emits_only_correct_prefix_and_one_target_token (test_speculate.SpeculationTests.test_acceptance_emits_only_correct_prefix_and_one_target_token) ... ok\ntest_lookup_learns_verified_output_without_self_matching (test_speculate.SpeculationTests.test_lookup_learns_verified_output_without_self_matching) ... ok\ntest_lookup_only_proposes_previously_seen_continuations (test_speculate.SpeculationTests.test_lookup_only_proposes_previously_seen_continuations) ... ok\ntest_verification_requires_bonus_prediction (test_speculate.SpeculationTests.test_verification_requires_bonus_prediction) ... ok\n\n----------------------------------------------------------------------\nRan 23 tests in 9.170s\n\nOK\n"
+      }
+    }
+  }
+}

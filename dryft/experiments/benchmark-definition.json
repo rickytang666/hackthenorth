@@ -1,0 +1,89 @@
+{
+  "id": "76f132a6-bce0-4aa5-a655-682557dd7e36",
+  "slug": "decode",
+  "version": 2,
+  "reference": "decode",
+  "title": "Decode Qwen3 4B faster",
+  "summary": "Submit a decode engine for the pinned Qwen3 4B checkpoint; the judge times it against native Qwen on H100 and checks every token.",
+  "runtime": "triton-cu124-py311",
+  "specDigest": "b103e41b682f2e7c1dead713db0a4d104d0045b53162efdd7b4039fd51562ee0",
+  "status": "published",
+  "publishedAt": "2026-09-10T10:27:15.575968+00:00",
+  "budgets": {
+    "max_files": 200,
+    "max_gpu_seconds": 2100.0,
+    "max_run_seconds": 2400.0,
+    "max_artifact_bytes": 2097152,
+    "max_compile_seconds": 600.0,
+    "max_uncompressed_bytes": 16777216
+  },
+  "measurement": {
+    "timer": "model_wall_clock",
+    "metric": "p50_ms",
+    "repeats": 5,
+    "tolerance": {
+      "atol": 0.02,
+      "rtol": 0.02
+    },
+    "warmup_iters": 1,
+    "measure_iters": 1
+  },
+  "scoring": {
+    "metric": "tokens_per_second",
+    "baseline": null,
+    "objective": "maximize",
+    "aggregation": "weighted_model_throughput",
+    "official_hardware": "H100"
+  },
+  "descriptionMd": "Decode Qwen3 4B faster on one NVIDIA H100.\n\nSubmit an inference engine for the pinned `Qwen/Qwen3-4B-Instruct-2507`\ncheckpoint, BF16 weights. Your `engine.py` exports `class Engine` with\n`__init__(self, model_path)` and `generate(self, input_ids, max_new_tokens)`,\nwhich yields one list with a token id per sequence for every output step,\nexactly `max_new_tokens` times, without stopping at end-of-sequence tokens. The\nengine owns the whole generation loop. The judge owns the prompts, the clock,\nthe native reference and the rule that every token must be what native Qwen\nwould produce under greedy decoding.\n\nNine workloads, each a fixed batch, prompt length and output length: three\npublic, shown below, and six private, which decide the score. For each, the\njudge starts your engine in a fresh process, lets it load and warm up, then\ntimes its samples from a separate trusted process that writes the prompt ids\nto your engine and reads the token stream back. Native Qwen is timed by the\nsame clock through the same pipe for latency checks. Ranking uses output tokens\nper second: batch size times output length divided by median generation seconds.\nThe leaderboard takes the geometric mean across the six private workloads,\nwith equal weight for each. Higher throughput wins. Public runs measure the\npublic workloads once each and never rank.\n\nYour tokens are replayed through native Qwen, teacher-forced on your own\nprefix. Each must be the argmax of the native logits at that position, or\nwithin 2 logits of it: the margin absorbs BF16 near ties, not\napproximations. A workload also fails, and with it the run, on time to first\ntoken or time per output token above 1.10 times native (official runs), peak\nGPU memory above 90% of the device, more than 25% spread across samples, or\nan engine that fails to load within 300 seconds, crashes, emits the wrong\nnumber of steps or tokens, or exceeds 300 seconds on one sample.\n\nThe runtime is the platform's: Python 3.11, CUDA 12.4, PyTorch 2.5.1, Triton\n3.1.0, Transformers 4.51.3, no network. Vendor any Python or Triton source in\nthe archive (2 MiB compressed, 200 files); do not include weights,\ncredentials, compiled binaries or Docker images. Your engine runs as an\nunprivileged process inside the timing container with read-only access to\nthe checkpoint. See docs/QWEN_ENGINE_CONTRACT.md for the full rules.\n",
+  "dtype": "bfloat16",
+  "publicShapes": [
+    {
+      "batch": 1,
+      "family": 1,
+      "output": 32,
+      "prompt": 512,
+      "regime": 1,
+      "tokens": 32
+    },
+    {
+      "batch": 4,
+      "family": 1,
+      "output": 32,
+      "prompt": 2048,
+      "regime": 2,
+      "tokens": 128
+    },
+    {
+      "batch": 16,
+      "family": 1,
+      "output": 128,
+      "prompt": 512,
+      "regime": 3,
+      "tokens": 2048
+    }
+  ],
+  "callable": "Engine(model_path).generate(input_ids, max_new_tokens) -> iterator of per-step token lists",
+  "returns": "greedy token stream; every token native Qwen's argmax or a near tie",
+  "modelBenchmark": {
+    "modelId": "Qwen/Qwen3-4B-Instruct-2507",
+    "revision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "nativeTps": null,
+    "latencyLimit": 1.1,
+    "engineBudgets": {
+      "maxLoadSeconds": 300,
+      "maxSampleSeconds": 300
+    },
+    "familyWeights": {
+      "1": 1.0
+    },
+    "rankingEnabled": true,
+    "outputValidation": {
+      "method": "greedy_exact_v1",
+      "tieMarginLogits": 2.0
+    },
+    "maxMemoryFraction": 0.9,
+    "tokenizerRevision": "cdbee75f17c01a7cc42f958dc650907174af0554",
+    "submissionContract": "dryft.model.engine/1"
+  }
+}
