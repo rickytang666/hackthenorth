@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VoiceBridge layout study</title>
+  <style>
+    * { box-sizing:border-box }
+    html,body { min-width:320px; min-height:100%; margin:0 }
+    body { background:#dedfe1; color:#191b1e; font-family:"Avenir Next","Gill Sans",sans-serif }
+    button { font:inherit }
+    .study-bar { min-height:78px; padding:13px 22px; display:flex; align-items:center; justify-content:space-between; gap:22px; border-bottom:1px solid #c9ccd0; background:#f7f7f6 }
+    .study-title { display:grid; gap:3px; flex:0 0 auto }
+    .study-title strong { font-size:13px; letter-spacing:.02em }
+    .study-title span { color:#6b7076; font-size:11px }
+    .direction-picker { display:flex; gap:6px; overflow:auto }
+    .direction-picker button { min-height:44px; padding:0 13px; border:1px solid #c9cdd1; border-radius:6px; background:#fff; color:#464b51; font-size:11px; font-weight:650; white-space:nowrap; cursor:pointer }
+    .direction-picker button:hover,.direction-picker button:focus-visible { border-color:#767c83; outline:none }
+    .direction-picker button.active { border-color:#202328; background:#202328; color:#fff }
+    .direction-picker small { margin-right:6px; opacity:.55 }
+    .stage { padding:clamp(12px,2vw,24px); display:grid; place-items:center; min-height:calc(100vh - 78px) }
+    .concept { width:min(1180px,100%); min-height:min(720px,calc(100vh - 110px)); overflow:hidden; animation:arrive .28s ease both }
+    .concept[hidden] { display:none }
+
+    /* Direction 1: a rigorous data sheet with the result first. */
+    .sheet { display:grid; grid-template-columns:180px 1fr; background:#f7f8fa; color:#18212b; border:1px solid #ced5dc; font-family:"Avenir Next","Gill Sans",sans-serif }
+    .sheet-rail { padding:28px 24px; display:flex; flex-direction:column; justify-content:space-between; border-right:1px solid #ced5dc; background:#fff }
+    .sheet-brand { font-size:13px; font-weight:750; letter-spacing:.08em }
+    .sheet-index { color:#245c8f; font:700 11px/1.4 Menlo,monospace; text-transform:uppercase }
+    .sheet-rail p { margin:0; color:#6c7782; font:11px/1.45 Menlo,monospace }
+    .sheet-body { padding:clamp(34px,5vw,70px); display:grid; grid-template-rows:auto 1fr auto; gap:28px }
+    .sheet-kicker { display:flex; justify-content:space-between; color:#6c7782; font:10px/1 Menlo,monospace; letter-spacing:.06em; text-transform:uppercase }
+    .sheet-kicker strong { color:#245c8f; font-weight:700 }
+    .sheet-grid { display:grid; grid-template-columns:minmax(280px,1.1fr) minmax(300px,.9fr); gap:clamp(38px,6vw,88px); align-items:center }
+    .sheet-result span { color:#6c7782; font:10px/1 Menlo,monospace; letter-spacing:.08em; text-transform:uppercase }
+    .sheet-result strong { display:block; margin:12px 0 6px; color:#245c8f; font-size:clamp(92px,13vw,170px); font-weight:600; line-height:.78; letter-spacing:-.075em }
+    .sheet-result p { max-width:320px; margin:20px 0 0; font-size:17px; line-height:1.45 }
+    .sheet-table { border-top:2px solid #18212b }
+    .sheet-row { min-height:78px; display:grid; grid-template-columns:1fr auto; align-items:center; gap:20px; border-bottom:1px solid #ced5dc }
+    .sheet-row span { color:#6c7782; font-size:12px }
+    .sheet-row strong { font-size:20px; font-weight:650 }
+    .sheet-row:first-child strong { color:#245c8f }
+    .sheet-transcript { padding-top:24px; border-top:1px solid #ced5dc; display:grid; grid-template-columns:180px 1fr auto; gap:26px; align-items:baseline }
+    .sheet-transcript span { color:#6c7782; font:10px/1 Menlo,monospace; text-transform:uppercase }
+    .sheet-transcript s { color:#6c7782; font-size:20px }
+    .sheet-transcript strong { color:#245c8f; font-size:32px; font-weight:650 }
+
+    /* Direction 2: the before and after is the entire composition. */
+    .split { position:relative; display:grid; grid-template-columns:1fr 1fr; background:#efeee9; color:#17191b; font-family:"Avenir Next Condensed","Franklin Gothic Condensed","Avenir Next",sans-serif }
+    .split-brand { position:absolute; z-index:2; left:50%; top:28px; transform:translateX(-50%); padding:8px 13px; background:#17191b; color:#fff; font-family:"Avenir Next","Gill Sans",sans-serif; font-size:11px; font-weight:750; letter-spacing:.1em }
+    .split-side { padding:clamp(68px,8vw,110px) clamp(32px,5vw,70px) 100px; display:flex; flex-direction:column; justify-content:center }
+    .split-before { border-right:1px solid #bbbcb9 }
+    .split-after { background:#244e73; color:#f7f6f0 }
+    .split-side > span { margin-bottom:22px; color:#747875; font-family:"Avenir Next","Gill Sans",sans-serif; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase }
+    .split-after > span { color:#c4d5e3 }
+    .split-side h2 { margin:0; font-size:clamp(58px,8.5vw,122px); font-weight:650; line-height:.85; letter-spacing:-.055em }
+    .split-before h2 { color:#696d6b; text-decoration:line-through; text-decoration-thickness:2px }
+    .split-side p { max-width:420px; margin:26px 0 0; color:#747875; font-family:"Avenir Next","Gill Sans",sans-serif; font-size:15px; line-height:1.5 }
+    .split-after p { color:#d8e2ea }
+    .split-score { position:absolute; left:50%; bottom:0; width:min(660px,72%); min-height:80px; transform:translateX(-50%); display:grid; grid-template-columns:1.2fr 1fr 1fr; background:#fff; color:#17191b; box-shadow:0 12px 30px rgba(0,0,0,.12) }
+    .split-score div { padding:17px 20px; display:grid; gap:4px; border-right:1px solid #ddd }
+    .split-score div:last-child { border-right:0 }
+    .split-score span { color:#73787c; font-family:"Avenir Next","Gill Sans",sans-serif; font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase }
+    .split-score strong { color:#244e73; font-family:"Avenir Next","Gill Sans",sans-serif; font-size:19px; font-weight:700 }
+
+    /* Direction 3: a human story that lets the evidence behave like footnotes. */
+    .editorial { padding:clamp(30px,5vw,64px); display:grid; grid-template-rows:auto 1fr auto; gap:30px; background:#f3eee4; color:#292721; border:1px solid #d4caba; font-family:"Iowan Old Style","Palatino Linotype",Palatino,serif }
+    .editorial-head { display:flex; justify-content:space-between; align-items:baseline; padding-bottom:17px; border-bottom:1px solid #bdb3a3 }
+    .editorial-head strong { font-family:"Avenir Next","Gill Sans",sans-serif; font-size:12px; letter-spacing:.08em }
+    .editorial-head span { color:#756e63; font-size:13px; font-style:italic }
+    .editorial-grid { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(260px,.55fr); gap:clamp(44px,8vw,110px); align-items:center }
+    .story-kicker { margin:0 0 18px; color:#8c493c; font-family:"Avenir Next","Gill Sans",sans-serif; font-size:10px; font-weight:750; letter-spacing:.11em; text-transform:uppercase }
+    .story h2 { max-width:760px; margin:0; font-size:clamp(52px,7.4vw,104px); font-weight:500; line-height:.94; letter-spacing:-.04em }
+    .story h2 em { color:#8c493c; font-weight:500 }
+    .story p { max-width:650px; margin:26px 0 0; color:#685f54; font-size:18px; line-height:1.55 }
+    .evidence { padding-left:26px; border-left:1px solid #bdb3a3 }
+    .evidence h3 { margin:0 0 22px; font-family:"Avenir Next","Gill Sans",sans-serif; font-size:10px; letter-spacing:.1em; text-transform:uppercase }
+    .evidence-item { padding:17px 0; border-top:1px solid #d4caba }
+    .evidence-item strong { display:block; color:#8c493c; font-size:36px; font-weight:500; letter-spacing:-.03em }
+    .evidence-item span { color:#756e63; font-size:13px }
+    .editorial-foot { padding-top:18px; border-top:1px solid #bdb3a3; display:flex; justify-content:space-between; gap:30px; color:#756e63; font-size:12px }
+    .editorial-foot strong { color:#292721; font-weight:600 }
+
+    /* Direction 4: a live instrument that gives the transcript the stage. */
+    .instrument { padding:28px clamp(28px,4vw,54px) 34px; display:grid; grid-template-rows:auto 1fr auto; gap:24px; background:#15181b; color:#eef0ee; border:1px solid #343a40; font-family:"Avenir Next","Gill Sans",sans-serif }
+    .instrument-head { display:flex; justify-content:space-between; align-items:center; padding-bottom:18px; border-bottom:1px solid #343a40 }
+    .instrument-head strong { font-size:13px; letter-spacing:.09em }
+    .instrument-live { display:flex; align-items:center; gap:8px; color:#a2bed8; font:10px/1 Menlo,monospace }
+    .instrument-live i { width:7px; height:7px; border-radius:50%; background:#a2bed8 }
+    .instrument-main { display:grid; grid-template-columns:1fr 220px; gap:40px; align-items:center }
+    .signal { min-width:0 }
+    .signal-label { color:#8d969e; font:10px/1 Menlo,monospace; letter-spacing:.08em; text-transform:uppercase }
+    .signal h2 { margin:17px 0 0; font-size:clamp(76px,12vw,168px); font-weight:560; line-height:.83; letter-spacing:-.07em }
+    .signal h2 span { color:#a2bed8 }
+    .wave { height:56px; margin-top:38px; display:flex; align-items:center; gap:5px; overflow:hidden }
+    .wave i { flex:1; min-width:3px; height:calc(8px + var(--h) * 1px); max-height:52px; border-radius:2px; background:#a2bed8; opacity:calc(.28 + var(--o)) }
+    .instrument-side { align-self:stretch; padding-left:24px; border-left:1px solid #343a40; display:grid; align-content:center; gap:22px }
+    .telemetry { display:grid; gap:5px }
+    .telemetry span { color:#8d969e; font:9px/1 Menlo,monospace; text-transform:uppercase }
+    .telemetry strong { color:#eef0ee; font-size:23px; font-weight:600 }
+    .telemetry.primary strong { color:#a2bed8; font-size:38px }
+    .instrument-foot { padding-top:22px; border-top:1px solid #343a40; display:grid; grid-template-columns:1fr auto; gap:30px; align-items:center }
+    .instrument-foot p { margin:0; color:#8d969e; font:10px/1.5 Menlo,monospace }
+    .instrument-foot button { min-height:42px; padding:0 17px; border:1px solid #a2bed8; border-radius:4px; background:#a2bed8; color:#15181b; font-size:11px; font-weight:750; cursor:pointer }
+
+    @keyframes arrive { from { opacity:0; transform:translateY(5px) } }
+    @media (max-width:850px) {
+      .study-bar { align-items:flex-start; flex-direction:column }
+      .direction-picker { width:100% }
+      .stage { min-height:0 }
+      .concept { min-height:720px }
+      .sheet { grid-template-columns:1fr }
+      .sheet-rail { min-height:80px; flex-direction:row; border-right:0; border-bottom:1px solid #ced5dc }
+      .sheet-rail p { display:none }
+      .sheet-grid,.editorial-grid { grid-template-columns:1fr }
+      .sheet-transcript { grid-template-columns:1fr }
+      .split { min-height:760px; grid-template-columns:1fr }
+      .split-before { border-right:0; border-bottom:1px solid #bbbcb9 }
+      .split-brand { top:16px }
+      .split-side { padding:70px 30px 90px }
+      .split-score { width:calc(100% - 32px) }
+      .instrument-main { grid-template-columns:1fr }
+      .instrument-side { grid-template-columns:repeat(3,1fr); align-self:auto; padding:20px 0 0; border-left:0; border-top:1px solid #343a40 }
+    }
+    @media (max-width:540px) {
+      .study-bar { padding:12px }
+      .stage { padding:0 }
+      .concept { border-left:0; border-right:0 }
+      .split-score { grid-template-columns:1fr }
+      .split-score div { display:none }
+      .split-score div:first-child { display:grid; border-right:0 }
+      .editorial-foot { flex-direction:column }
+      .instrument-side { grid-template-columns:1fr }
+    }
+    @media (prefers-reduced-motion:reduce) { .concept { animation:none } }
+  </style>
+</head>
+<body>
+  <header class="study-bar">
+    <div class="study-title"><strong>VoiceBridge composition study</strong><span>Four different hierarchies using the same evidence</span></div>
+    <nav class="direction-picker" aria-label="Layout direction">
+      <button class="active" data-show="sheet"><small>1</small>Evidence sheet</button>
+      <button data-show="split"><small>2</small>Split proof</button>
+      <button data-show="editorial"><small>3</small>Human story</button>
+      <button data-show="instrument"><small>4</small>Live instrument</button>
+    </nav>
+  </header>
+
+  <main class="stage">
+    <section class="concept sheet" data-concept="sheet">
+      <aside class="sheet-rail">
+        <div class="sheet-brand">VOICEBRIDGE</div>
+        <div class="sheet-index">Proof<br>03 / 06</div>
+        <p>Sealed speaker M02<br>388 test clips<br>One decode</p>
+      </aside>
+      <div class="sheet-body">
+        <div class="sheet-kicker"><span>Adapted speech recognition</span><strong>Result verified</strong></div>
+        <div class="sheet-grid">
+          <div class="sheet-result"><span>Relative word-error reduction</span><strong>38.6%</strong><p>Fewer recognition errors after adapting the model to dysarthric speech.</p></div>
+          <div class="sheet-table">
+            <div class="sheet-row"><span>Word error rate</span><strong>56.7 → 34.8</strong></div>
+            <div class="sheet-row"><span>Exact-match clips</span><strong>98 → 198</strong></div>
+            <div class="sheet-row"><span>Evaluated clips</span><strong>388</strong></div>
+          </div>
+        </div>
+        <div class="sheet-transcript"><span>Same recording</span><s>“who were killed”</s><strong>“wicked”</strong></div>
+      </div>
+    </section>
+
+    <section class="concept split" data-concept="split" hidden>
+      <div class="split-brand">VOICEBRIDGE</div>
+      <article class="split-side split-before"><span>Frozen baseline heard</span><h2>“who were killed”</h2><p>The off-the-shelf model turns one word into a different sentence.</p></article>
+      <article class="split-side split-after"><span>Adapted model heard</span><h2>“wicked”</h2><p>Same recording. Same sealed speaker. The word lands correctly.</p></article>
+      <div class="split-score">
+        <div><span>Relative error reduction</span><strong>38.6%</strong></div>
+        <div><span>WER</span><strong>56.7 → 34.8</strong></div>
+        <div><span>Test set</span><strong>388 clips</strong></div>
+      </div>
+    </section>
+
+    <section class="concept editorial" data-concept="editorial" hidden>
+      <header class="editorial-head"><strong>VOICEBRIDGE</strong><span>Speech recovery that preserves the speaker</span></header>
+      <div class="editorial-grid">
+        <article class="story"><p class="story-kicker">A real recording from speaker M02</p><h2>He knew the word was <em>“wicked.”</em><br>The first model did not.</h2><p>After adapting the model to dysarthric speech, the same recording becomes understandable without asking the speaker to sound like someone else.</p></article>
+        <aside class="evidence"><h3>The evidence</h3><div class="evidence-item"><strong>38.6%</strong><span>relative error reduction</span></div><div class="evidence-item"><strong>34.8%</strong><span>adapted word error rate</span></div><div class="evidence-item"><strong>388</strong><span>sealed test clips</span></div></aside>
+      </div>
+      <footer class="editorial-foot"><span>Baseline transcript: <strong>“who were killed”</strong></span><span>Recovered transcript: <strong>“wicked”</strong></span></footer>
+    </section>
+
+    <section class="concept instrument" data-concept="instrument" hidden>
+      <header class="instrument-head"><strong>VOICEBRIDGE</strong><span class="instrument-live"><i></i>LIVE MODEL READY</span></header>
+      <div class="instrument-main">
+        <div class="signal"><span class="signal-label">Final transcript / M02_0233</span><h2><span>wicked</span></h2><div class="wave" aria-hidden="true"><i style="--h:8;--o:.15"></i><i style="--h:22;--o:.28"></i><i style="--h:38;--o:.42"></i><i style="--h:18;--o:.3"></i><i style="--h:46;--o:.5"></i><i style="--h:26;--o:.36"></i><i style="--h:12;--o:.2"></i><i style="--h:34;--o:.44"></i><i style="--h:48;--o:.52"></i><i style="--h:20;--o:.31"></i><i style="--h:40;--o:.47"></i><i style="--h:16;--o:.24"></i><i style="--h:30;--o:.39"></i><i style="--h:10;--o:.18"></i><i style="--h:24;--o:.34"></i></div></div>
+        <aside class="instrument-side"><div class="telemetry primary"><span>Relative reduction</span><strong>38.6%</strong></div><div class="telemetry"><span>WER</span><strong>34.8%</strong></div><div class="telemetry"><span>Clips</span><strong>388</strong></div></aside>
+      </div>
+      <footer class="instrument-foot"><p>BASELINE / “who were killed”<br>ADAPTED / “wicked”</p><button type="button">NEXT: CLARIFICATION</button></footer>
+    </section>
+  </main>
+
+  <script>
+    const concepts=[...document.querySelectorAll('[data-concept]')];
+    const buttons=[...document.querySelectorAll('[data-show]')];
+    function showConcept(name) {
+      concepts.forEach(concept=>{ concept.hidden=concept.dataset.concept!==name; });
+      buttons.forEach(button=>button.classList.toggle('active',button.dataset.show===name));
+    }
+    buttons.forEach(button=>button.onclick=()=>showConcept(button.dataset.show));
+    document.addEventListener('keydown',event=>{
+      const button=buttons[Number(event.key)-1];
+      if (button) showConcept(button.dataset.show);
+    });
+  </script>
+</body>
+</html>
