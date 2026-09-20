@@ -1,4 +1,5 @@
-const CACHE_NAME = 'voicebridge-offline-v7';
+const CACHE_PREFIX = 'voicebridge-offline-';
+const CACHE_NAME = `${CACHE_PREFIX}v8`;
 const OFFLINE_ASSETS = [
   './',
   './index.html',
@@ -13,7 +14,7 @@ const OFFLINE_ASSETS = [
   './static/demo.css',
   './static/report.css?v=3',
   './static/report.css?v=7',
-  './static/single-page.js?v=3',
+  './static/single-page.js?v=4',
   './static/race.js',
   './static/diff.js',
   './static/clarify.js',
@@ -30,7 +31,9 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(keys => Promise.all(keys
+        .filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+        .map(key => caches.delete(key))))
       .then(() => self.clients.claim()),
   );
 });

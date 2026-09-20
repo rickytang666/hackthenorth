@@ -69,7 +69,7 @@
       </div>
     </section>
     <section class="replay">
-      <div class="replay-head"><span id="fixtureName">M02 BOOTH RECOVERY</span><strong id="clock">0 MS</strong></div>
+      <div class="replay-head"><span id="fixtureName">M02 BOOTH RECOVERY</span><strong id="clock">SIMULATED TIMING · 0 MS</strong></div>
       <div class="wave"><canvas id="waveform"></canvas></div>
       <div class="transcript"><span>RECORDED PROTOCOL 1 OUTPUT</span><strong id="transcript">READY</strong></div>
       <div class="confidence"><i id="confidence"></i></div>
@@ -123,7 +123,7 @@
         const wait=Math.max(0,event.at_ms-(performance.now()-began));
         await new Promise(resolve=>setTimeout(resolve,wait));
         if (token!==replayToken) return;
-        byId('clock').textContent=`${event.at_ms} MS`;
+        byId('clock').textContent=`SIMULATED TIMING · ${event.at_ms} MS`;
         drawWaveform(session.waveform,Math.min(1,event.at_ms/session.final_ms));
         if (event.type==='start') continue;
         const stable=event.text.slice(0,event.stable_prefix_len);
@@ -140,7 +140,7 @@
       drawWaveform(session.waveform,1);
       byId('baseline').textContent=session.baseline;
       byId('tuned').textContent=session.tuned;
-      byId('footerState').textContent=`REPLAY COMPLETE · ${session.final_ms} MS`;
+      byId('footerState').textContent=`SIMULATED REPLAY COMPLETE · ${session.final_ms} MS`;
     }
 
     async function prepare() {

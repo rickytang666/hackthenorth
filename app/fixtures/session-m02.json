@@ -1,6 +1,7 @@
 {
   "fixture": "M02 booth recovery 01",
   "recorded": true,
+  "timing_mode": "simulated replay",
   "source": "1_M02_2_headMic_0233.wav",
   "duration_ms": 3500,
   "baseline": "who were killed",

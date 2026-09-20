@@ -180,6 +180,11 @@ async function runLiveRace() {
     lanes.tuned.socket.send(end);
     playback.onended = () => context.close();
   } catch (error) {
+    Object.values(lanes).forEach(lane => {
+      try { lane.socket?.close(); } catch {}
+      lane.socket = null;
+      setLaneState(lane, 'CONNECTION FAILED', 'error');
+    });
     showToast(error.message.toUpperCase());
   }
 }

@@ -1,4 +1,5 @@
 const PERSONAL_VOICE_URL = 'http://127.0.0.1:8770/v1/synthesize';
+const EXPECTED_SOURCE_SHA256 = 'c3cd6943ac3313f68ba572a56fef11b382b73f131a3d197116bfa49a565d50bf';
 const paths = {
   baseline: {
     pane: document.getElementById('baselinePane'),
@@ -25,6 +26,9 @@ const sourceMeta = document.getElementById('sourceMeta');
 const toast = document.getElementById('toast');
 let sourceAudioUrl = null;
 let activeSourceAudio = null;
+let activePersonalSource = null;
+let activePersonalContext = null;
+let activePersonalResolve = null;
 let toastTimer = null;
 
 function setStatus(message) {
@@ -42,6 +46,16 @@ function stopCurrentAudio() {
   if (activeSourceAudio) {
     activeSourceAudio.pause();
     activeSourceAudio = null;
+  }
+  if (activePersonalSource) {
+    try { activePersonalSource.stop(); } catch {}
+    activePersonalSource = null;
+  }
+  activePersonalResolve?.();
+  activePersonalResolve = null;
+  if (activePersonalContext) {
+    activePersonalContext.close().catch(() => {});
+    activePersonalContext = null;
   }
   window.speechSynthesis?.cancel();
 }
@@ -94,19 +108,28 @@ async function speakWithPersonalVoice(text) {
   if (!response.ok) throw new Error(`Personal voice returned ${response.status}`);
 
   const context = new AudioContext();
+  activePersonalContext = context;
   const buffer = await context.decodeAudioData(await response.arrayBuffer());
   await new Promise(resolve => {
     const source = context.createBufferSource();
+    activePersonalSource = source;
+    activePersonalResolve = resolve;
     source.buffer = buffer;
     source.connect(context.destination);
-    source.onended = resolve;
+    source.onended = () => {
+      if (activePersonalSource === source) activePersonalSource = null;
+      if (activePersonalResolve === resolve) activePersonalResolve = null;
+      resolve();
+    };
     source.start();
   });
-  await context.close();
+  if (activePersonalContext === context) activePersonalContext = null;
+  await context.close().catch(() => {});
 }
 
 async function playReturnedSpeech(pathName) {
   const path = paths[pathName];
+  stopCurrentAudio();
   path.responseButton.disabled = true;
   path.responseButton.classList.add('playing');
   setStatus(pathName === 'baseline' ? 'Playing generic returned speech' : 'Generating speaker-voice response');
@@ -165,9 +188,23 @@ paths.tuned.runButton.onclick = () => runPath('tuned');
 paths.baseline.responseButton.onclick = () => playReturnedSpeech('baseline').catch(() => {});
 paths.tuned.responseButton.onclick = () => playReturnedSpeech('tuned').catch(() => {});
 
-sourceFileInput.onchange = () => {
+sourceFileInput.onchange = async () => {
   const file = sourceFileInput.files[0];
   if (!file) return;
+  setRunButtonsDisabled(true);
+  setStatus('Verifying local recording');
+  const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+  const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+  if (hash !== EXPECTED_SOURCE_SHA256) {
+    if (sourceAudioUrl) URL.revokeObjectURL(sourceAudioUrl);
+    sourceAudioUrl = null;
+    sourceFileInput.value = '';
+    sourceTitle.textContent = 'Choose the M02 evaluation recording';
+    sourceMeta.textContent = 'This comparison only supports the sealed M02 fixture';
+    setStatus('Recording does not match the comparison fixture');
+    showToast('Choose the M02 evaluation recording');
+    return;
+  }
   if (sourceAudioUrl) URL.revokeObjectURL(sourceAudioUrl);
   sourceAudioUrl = URL.createObjectURL(file);
   sourceTitle.textContent = file.name;
@@ -176,7 +213,7 @@ sourceFileInput.onchange = () => {
     path.state.textContent = 'Ready';
     path.runButton.disabled = false;
   });
-  setStatus('Local recording ready');
+  setStatus('Verified recording ready');
 };
 
 document.querySelectorAll('[data-choice]').forEach(button => {

@@ -20,8 +20,8 @@
     <section class="source-bar" aria-labelledby="sourceTitle">
       <div class="source-copy">
         <span class="section-label">Source recording</span>
-        <strong id="sourceTitle">Choose a local recording</strong>
-        <span id="sourceMeta">WAV or browser-supported audio · stays on this device</span>
+        <strong id="sourceTitle">Choose the M02 evaluation recording</strong>
+        <span id="sourceMeta">The file is verified locally and never uploaded</span>
       </div>
       <div class="source-wave" aria-hidden="true">
         <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
@@ -35,10 +35,10 @@
     <section class="comparison-section" aria-labelledby="comparisonTitle">
       <div class="section-heading">
         <div>
-          <span class="section-label">Same audio, two models</span>
+          <span class="section-label">One recording, two paths</span>
           <h1 id="comparisonTitle">Transcription comparison</h1>
         </div>
-        <p>Both models receive the same PCM16 recording.</p>
+        <p>Recorded ASR evidence for this fixture, with returned speech generated live.</p>
       </div>
 
       <div class="comparison-panes">
@@ -49,7 +49,7 @@
           </div>
           <button class="pipeline-trigger" id="runBaseline" type="button" disabled>
             <span class="play-symbol">▶</span>
-            <span><small>Input recording</small><strong>Play through original model</strong></span>
+            <span><small>Input recording</small><strong>Replay baseline result</strong></span>
           </button>
           <div class="transcript-block">
             <span>Returned transcript</span>
@@ -72,7 +72,7 @@
           </div>
           <button class="pipeline-trigger" id="runTuned" type="button" disabled>
             <span class="play-symbol">▶</span>
-            <span><small>Input recording</small><strong>Play through VoiceBridge</strong></span>
+            <span><small>Input recording</small><strong>Replay VoiceBridge result</strong></span>
           </button>
           <div class="transcript-block">
             <span>Returned transcript</span>
@@ -92,8 +92,8 @@
       <dl class="evidence-strip" aria-label="Evaluation summary">
         <div><dt>Relative error reduction</dt><dd>38.6%</dd></div>
         <div><dt>Sealed test clips</dt><dd>388</dd></div>
-        <div><dt>First partial</dt><dd>184 ms</dd></div>
-        <div><dt>Final transcript</dt><dd>612 ms</dd></div>
+        <div><dt>First partial range</dt><dd>0.88-1.76 s</dd></div>
+        <div><dt>End-to-end range</dt><dd>3.73-5.56 s</dd></div>
       </dl>
     </section>
 
@@ -115,6 +115,6 @@
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="static/single-page.js?v=3"></script>
+  <script src="static/single-page.js?v=4"></script>
 </body>
 </html>
