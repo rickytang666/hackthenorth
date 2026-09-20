@@ -13,14 +13,18 @@
                   font: inherit; font-size: 12px; color: #555; line-height: 1 }
   #clips button[aria-pressed="true"] { border-color: #000; color: #000 }
   #clips canvas { display: block }
-  #transcript { font-size: 24px; line-height: 1.3; min-height: 2.6em }
+  #transcript { font-size: 26px; line-height: 1.3; min-height: 1.3em }
   #transcript .tail { color: #999 }
-  .was { color: #777; margin-top: 8px }
-  .was s { color: #777 }
+  .line { margin-top: 10px; font-size: 14px }
+  .line .k { display: inline-block; min-width: 116px; color: #777 }
+  #reference { color: #000 }
+  #baseline, #baseline .k { color: #aaa }
   #clarify[hidden] { display: none }
   #choices button { display: block; width: 100%; text-align: left; margin-top: 6px;
-                    padding: 6px 8px; font: inherit; background: #fff; border: 1px solid #666;
-                    cursor: pointer }
+                    padding: 6px 8px; font: inherit; background: #fff; border: 1px solid #ccc;
+                    cursor: pointer; color: #555 }
+  #choices button:first-child { border-color: #000; color: #000; font-size: 17px;
+                                padding: 9px 10px }
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap }
   button, input { font: inherit }
   button { padding: 5px 12px }
@@ -49,12 +53,13 @@
 <fieldset>
   <legend>Recovered text</legend>
   <div id="transcript"></div>
-  <p class="was" id="was"></p>
+  <p class="line" id="reference"></p>
+  <p class="line" id="baseline"></p>
 </fieldset>
 
 <fieldset id="clarify" hidden>
-  <legend>Low confidence</legend>
-  <div>Not sure. Which did you mean?</div>
+  <legend>Confirm</legend>
+  <div id="clarifyLabel"></div>
   <div id="choices"></div>
 </fieldset>
 
@@ -147,7 +152,7 @@ async function select(i) {
     `M02, sealed test speaker. Frozen baseline scores 0.567 WER over all 388 clips, tuned 0.348.`;
   $('run').disabled = $('original').disabled = false;
   $('transcript').textContent = '';
-  $('was').textContent = '';
+  $('reference').textContent = $('baseline').textContent = '';
   $('clarify').hidden = true;
   setStatus('ready');
   enrolling = enroll(current);        // start the clone now so beat 5 is not waiting on it
@@ -219,20 +224,35 @@ function render(text, stableLen) {
   }
 }
 
-function showBaseline() {
-  $('was').textContent = `Frozen baseline heard: "${current.baseline}"`;
+function showComparison() {
+  const put = (id, key, value) => {
+    const el = $(id);
+    el.textContent = '';
+    const k = document.createElement('span');
+    k.className = 'k';
+    k.textContent = key;
+    el.append(k, document.createTextNode(value));
+  };
+  put('reference', 'Ground truth', current.truth);
+  put('baseline', 'Frozen baseline', current.baseline);
 }
 
 function accept(text) {
   render(text, text.length);
   $('clarify').hidden = true;
-  showBaseline();
+  showComparison();
   speak(text);
 }
 
 function showClarify(candidates) {
   const box = $('choices');
   box.textContent = '';
+  // Framed as a confirmation, not a menu. The model's own best guess is first
+  // and primary; the rest are there because weak evidence should be visible,
+  // not because the model is undecided.
+  $('clarifyLabel').textContent = candidates.length > 1
+    ? 'Below the accept threshold. Confirm the top reading, or pick another.'
+    : 'Below the accept threshold. Confirm before speaking.';
   for (const c of candidates.slice(0, 3)) {
     const b = document.createElement('button');
     b.textContent = c.text;
@@ -264,7 +284,7 @@ function connect() {
         setStatus(`confidence ${(m.confidence ?? 0).toFixed(3)}`);
         if ((m.confidence ?? 1) < CLARIFY_BELOW) {
           render(m.text, m.text.length);
-          showBaseline();
+          showComparison();
           const alts = m.candidates?.length ? m.candidates : [{ text: m.text }];
           alts.sort((a, b) => (b.text === m.text) - (a.text === m.text));
           showClarify(alts);
@@ -292,7 +312,7 @@ async function run() {
   $('run').disabled = true;
   sawPartial = false;
   $('transcript').textContent = '';
-  $('was').textContent = '';
+  $('reference').textContent = $('baseline').textContent = '';
   $('clarify').hidden = true;
   for (const k of Object.keys(timings)) timings[k] = '-';
   stat('model', '-');
