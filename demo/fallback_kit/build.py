@@ -63,6 +63,12 @@ def build(media_root: Path, output_dir: Path) -> dict[str, object]:
         "personal_voice": require_file(media_root / "serve/voice/out/timed.wav", "personal-voice WAV"),
         "generic_tts": require_file(media_root / "serve/voice/out/_base.wav", "generic-TTS WAV"),
     }
+    source_details = {name: wav_details(path) for name, path in sources.items()}
+    personal_duration = float(source_details["personal_voice"]["duration_seconds"])
+    generic_duration = float(source_details["generic_tts"]["duration_seconds"])
+    if abs(personal_duration - generic_duration) > 0.25:
+        raise SystemExit("personal and generic synthesis files do not appear to contain the same sentence")
+
     output_dir.mkdir(parents=True, exist_ok=True)
 
     artifacts = {
@@ -86,11 +92,6 @@ def build(media_root: Path, output_dir: Path) -> dict[str, object]:
             "bytes": path.stat().st_size,
             "sha256": file_sha256(path),
         }
-
-    personal_duration = float(artifacts["personal_voice"]["duration_seconds"])
-    generic_duration = float(artifacts["generic_tts"]["duration_seconds"])
-    if abs(personal_duration - generic_duration) > 0.25:
-        raise SystemExit("personal and generic synthesis files do not appear to contain the same sentence")
 
     manifest = {
         "bundle": "VoiceBridge booth fallback kit",

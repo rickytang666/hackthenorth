@@ -179,12 +179,22 @@
       return Object.entries(payload).map(([name, score]) => ({ name, ...score }));
     }
 
+    function scoreRole(entry) {
+      if (entry.role === 'baseline' || entry.role === 'tuned') return entry.role;
+      const identity = `${entry.name || ''} ${entry.model_id || ''}`.toLowerCase();
+      if (/baseline|frozen|(^|[_\s-])base([_\s-]|$)/.test(identity)) return 'baseline';
+      if (/tuned|adapter|voicebridge|lora/.test(identity)) return 'tuned';
+      return null;
+    }
+
     async function loadScorecard(file) {
       try {
         const entries = scoreEntries(JSON.parse(await file.text())).filter(item => Number.isFinite(item.wer));
-        if (entries.length < 2) throw new Error('Need two score objects with WER values');
-        byId('beforeWer').textContent = `${(entries[0].wer * 100).toFixed(1)}%`;
-        byId('afterWer').textContent = `${(entries[1].wer * 100).toFixed(1)}%`;
+        const baseline = entries.find(entry => scoreRole(entry) === 'baseline');
+        const tuned = entries.find(entry => scoreRole(entry) === 'tuned');
+        if (!baseline || !tuned) throw new Error('Scorecard names must identify baseline and tuned models');
+        byId('beforeWer').textContent = `${(baseline.wer * 100).toFixed(1)}%`;
+        byId('afterWer').textContent = `${(tuned.wer * 100).toFixed(1)}%`;
         showToast('SCORECARD WER LOADED');
       } catch (error) {
         showToast(error.message.toUpperCase());
