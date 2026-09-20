@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VoiceBridge booth demo</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23d7ff3f' stroke-width='6' stroke-dasharray='58 18'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="static/demo.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="wordmark" href="#" aria-label="Restart VoiceBridge demo">
+      <span class="wordmark-mark" aria-hidden="true"></span>
+      VOICEBRIDGE
+    </a>
+    <div class="beat-progress" aria-label="Demo progress">
+      <span class="progress-label">BEAT <b id="beatNumber">01</b>/06</span>
+      <div class="progress-track" id="progressTrack"></div>
+    </div>
+    <div class="connection-pill" id="connectionPill">
+      <span class="connection-dot"></span>
+      <span id="connectionLabel">LOCAL READY</span>
+    </div>
+  </header>
+
+  <main id="stage" aria-live="polite">
+    <section class="scene active" data-scene="0" aria-labelledby="scene0Title">
+      <div class="scene-index">01 / PROBLEM</div>
+      <div class="opening-grid">
+        <div>
+          <p class="eyebrow">HE KNOWS EXACTLY WHAT HE WANTS TO SAY.</p>
+          <h1 id="scene0Title">Listen.<br><em>Do not guess.</em></h1>
+        </div>
+        <div class="audio-plate">
+          <div class="speaker-orbit" aria-hidden="true">
+            <span></span><span></span><span></span>
+            <i>02</i>
+          </div>
+          <button class="action action-round" id="playSource" type="button">
+            <span class="play-icon">▶</span>
+            PLAY CLIP
+          </button>
+          <p class="clip-meta">HELD-OUT SPEAKER M02 · <span id="sourceDuration">3.5 SEC</span></p>
+        </div>
+      </div>
+      <blockquote class="baseline-quote">
+        <span>OFF-THE-SHELF HEARD</span>
+        “<strong data-baseline>who were killed</strong>”
+      </blockquote>
+    </section>
+
+    <section class="scene" data-scene="1" aria-labelledby="scene1Title">
+      <div class="scene-index">02 / RECOVER</div>
+      <div class="live-layout">
+        <div class="live-header">
+          <p class="eyebrow">FINE-TUNED ON DYSARTHRIC SPEECH</p>
+          <h2 id="scene1Title">Now let the model <em>listen.</em></h2>
+        </div>
+        <div class="transcript-panel">
+          <span class="live-badge"><i></i> LIVE RECOVERY</span>
+          <div class="transcript" id="liveTranscript"><span class="empty">Waiting for audio.</span></div>
+          <div class="confidence-line">
+            <span>CONFIDENCE</span>
+            <div class="confidence-track"><i id="confidenceFill"></i></div>
+            <strong id="confidenceValue">0%</strong>
+          </div>
+        </div>
+        <div class="run-controls">
+          <button class="action action-primary" id="replaySource" type="button">REPLAY INTO MODEL <span>↗</span></button>
+          <button class="action" id="useMic" type="button">USE MICROPHONE</button>
+          <span class="latency-readout">FIRST WORD <b id="firstPartial">-</b></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene" data-scene="2" aria-labelledby="scene2Title">
+      <div class="scene-index">03 / PROOF</div>
+      <p class="eyebrow">SAME RECORDING. SAME UNSEEN SPEAKER.</p>
+      <h2 id="scene2Title">Before <span>/</span> after</h2>
+      <div class="comparison-grid">
+        <article class="comparison-card wrong">
+          <span class="comparison-tag">FROZEN BASELINE</span>
+          <p>“<strong data-baseline>who were killed</strong>”</p>
+          <div class="wer-number"><strong>56.7</strong><span>% WER</span></div>
+        </article>
+        <div class="comparison-arrow" aria-hidden="true">→</div>
+        <article class="comparison-card right">
+          <span class="comparison-tag">VOICEBRIDGE TUNED</span>
+          <p>“<strong data-tuned>wicked</strong>”</p>
+          <div class="wer-number"><strong>34.8</strong><span>% WER</span></div>
+        </article>
+      </div>
+      <div class="proof-strip">
+        <strong>38.6%</strong>
+        <span>RELATIVE ERROR REDUCTION<br>ACROSS 388 SEALED TEST CLIPS</span>
+      </div>
+    </section>
+
+    <section class="scene" data-scene="3" aria-labelledby="scene3Title">
+      <div class="scene-index">04 / ASK, DO NOT GUESS</div>
+      <div class="clarify-layout">
+        <div>
+          <p class="eyebrow warning">CRITICAL TERM DISAGREEMENT</p>
+          <h2 id="scene3Title">Uncertain speech deserves an <em>honest question.</em></h2>
+          <p class="scene-copy">VoiceBridge will not turn weak evidence into a fluent mistake.</p>
+        </div>
+        <div class="clarify-card">
+          <div class="clarify-head">
+            <span>WHICH DID YOU MEAN?</span>
+            <strong id="clarifyConfidence">41% CONFIDENCE</strong>
+          </div>
+          <div id="clarifyChoices" class="clarify-choices"></div>
+          <p>PRESS <kbd>1</kbd> OR <kbd>2</kbd> TO CONFIRM</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene" data-scene="4" aria-labelledby="scene4Title">
+      <div class="scene-index">05 / RETURN THE VOICE</div>
+      <div class="voice-layout">
+        <div class="voice-copy">
+          <p class="eyebrow">CONFIRMED MEANING, PERSONAL VOICE</p>
+          <h2 id="scene4Title">Clear enough to understand.<br><em>Still recognizably his.</em></h2>
+          <p class="confirmed-line">“<span id="confirmedText">Do not give her the insulin.</span>”</p>
+        </div>
+        <button class="voice-disc" id="playVoice" type="button" aria-label="Play recovered personal voice">
+          <span class="disc-rings" aria-hidden="true"></span>
+          <span class="play-icon">▶</span>
+          <strong>PLAY HIS VOICE</strong>
+        </button>
+      </div>
+      <div class="voice-facts">
+        <span>ENROLLED FROM CONSENTED RECORDINGS</span>
+        <span>NO GENERATED HEALTH AUDIO CACHED</span>
+        <span id="voiceStatus">LOCAL FALLBACK READY</span>
+      </div>
+    </section>
+
+    <section class="scene" data-scene="5" aria-labelledby="scene5Title">
+      <div class="final-lockup">
+        <div class="final-mark" aria-hidden="true"><span></span></div>
+        <p class="eyebrow">VOICEBRIDGE</p>
+        <h2 id="scene5Title">We do not replace<br>someone’s voice.</h2>
+        <p>We repair the path between <em>what they meant</em><br>and <em>how the world hears them.</em></p>
+        <div class="final-proof">
+          <span>LIVE ASR</span><i></i><span>SAFE CLARIFICATION</span><i></i><span>PERSONAL VOICE</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="control-rail">
+    <button id="previousScene" type="button" aria-label="Previous scene">←</button>
+    <span><kbd>SPACE</kbd> NEXT · <kbd>←</kbd> BACK · <kbd>C</kbd> SETUP</span>
+    <button id="nextScene" type="button" aria-label="Next scene">→</button>
+  </footer>
+
+  <aside class="setup-drawer" id="setupDrawer" aria-hidden="true">
+    <div class="setup-head">
+      <div><span>BOOTH SETUP</span><strong>Local-first controls</strong></div>
+      <button id="closeSetup" type="button" aria-label="Close setup">×</button>
+    </div>
+    <label>Demo clip
+      <select id="cueSelect"></select>
+    </label>
+    <label>ASR WebSocket
+      <input id="asrUrl" type="text" value="ws://127.0.0.1:8765" spellcheck="false">
+    </label>
+    <label>Voice renderer
+      <input id="voiceUrl" type="text" value="http://127.0.0.1:8770" spellcheck="false">
+    </label>
+    <label class="file-label">Source audio
+      <input id="sourceFile" type="file" accept="audio/*">
+      <span id="sourceFileName">Choose local WAV</span>
+    </label>
+    <label class="file-label">Personal-voice fallback
+      <input id="voiceFile" type="file" accept="audio/*">
+      <span id="voiceFileName">Choose local WAV</span>
+    </label>
+    <button class="action action-primary" id="fullscreen" type="button">ENTER FULL SCREEN</button>
+    <p>No settings leave this browser. Press <kbd>C</kbd> to close.</p>
+  </aside>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="static/demo.js"></script>
+</body>
+</html>
