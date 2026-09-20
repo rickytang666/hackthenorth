@@ -11,6 +11,7 @@ from kernels.rmsnorm import rms_norm
 from speculate import BackoffPromptLookup as PromptLookup
 from fused_layer import install as install_fused_projections
 from kernels.tile import tile_projection
+from kernels.split_down import split_down_residual, split_down_residual_norm
 from projections import Projection, probe_point, resolve
 from prefill import prefill
 
@@ -81,12 +82,58 @@ class FusedMLP(torch.nn.Module):
         if not 2 <= rows <= 32:
             return residual + self.forward(x)
         intermediate = self._intermediate(x, rows)
+        return self._down_residual(intermediate, residual, rows)
+
+    def _down_residual(self, intermediate, residual, rows):
         probe_point("down_residual", _DownResidual(self.down_proj, residual),
                     intermediate, rows)
         choice = resolve("down_residual", rows) or ("legacy",)
-        if choice[0] == "restile":
+        if choice[0] in ("restile", "splitk"):
             return _DownResidual(self.down_proj, residual)._run(choice, intermediate, rows)
         return residual + self.down_proj(intermediate)
+
+    def forward_residual_next_norm(self, x, residual, next_norm):
+        rows = x.numel() // x.shape[-1]
+        intermediate = self._intermediate(x, rows)
+        adapter = _DownNextNorm(self, residual, next_norm)
+        probe_point("down_next_norm", adapter, intermediate, rows)
+        choice = resolve("down_next_norm", rows) or ("legacy",)
+        if choice[0] == "legacy":
+            return self._down_residual(intermediate, residual, rows), None
+        return adapter.compute(choice, intermediate, rows)
+
+
+class _DownNextNorm:
+    """Compare the whole decode step with cross-layer down/norm fusion."""
+
+    def __init__(self, mlp, residual, norm):
+        self.mlp = mlp
+        self.residual = residual
+        self.norm = norm
+
+    def _candidates(self, rows):
+        return [("legacy",), ("fused", 16)]
+
+    def compute(self, choice, x, rows):
+        norm = self.norm
+        if choice[0] == "legacy":
+            out = self.mlp._down_residual(x, self.residual, rows)
+            return out, rms_norm(out, norm.weight, norm.variance_epsilon)
+        return split_down_residual_norm(x, self.mlp.down_proj._column(),
+                                       self.residual, norm.weight,
+                                       norm.variance_epsilon, choice[1])
+
+    def _run(self, choice, x, rows):
+        # Validate both outputs; timing uses the ordinary decode graph.
+        return torch.stack(self.compute(choice, x, rows))
+
+    def _reference(self, x):
+        out = self.residual + torch.nn.functional.linear(x, self.mlp.down_proj.weight)
+        value = out.float()
+        inverse = torch.rsqrt(value.square().mean(-1, keepdim=True)
+                              + self.norm.variance_epsilon)
+        normalized = (value * inverse).to(out.dtype) * self.norm.weight
+        return torch.stack((out, normalized))
 
 
 class _DownResidual:
@@ -99,12 +146,21 @@ class _DownResidual:
         self.residual = residual
 
     def _candidates(self, rows):
-        return [("legacy",)] + [("restile", column, tile)
-                                for tile in self.TILES for column in (True, False)]
+        options = [("legacy",)] + [("restile", column, tile)
+                                   for tile in self.TILES for column in (True, False)]
+        if rows in (4, 16):
+            options.append(("splitk",))
+        return options
 
     def _run(self, choice, x, rows):
         if choice[0] == "legacy":
             return self.residual + self.projection(x)
+        if choice[0] == "splitk":
+            flat = split_down_residual(
+                x.reshape(rows, -1), self.projection._column(),
+                self.residual.reshape(rows, -1),
+            )
+            return flat.reshape(self.residual.shape)
         _, column, tile = choice
         n, k = self.projection.weight.shape
         weight = self.projection._column() if column else self.projection.weight

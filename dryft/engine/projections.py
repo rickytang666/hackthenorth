@@ -1,16 +1,8 @@
-"""H100 decode projections calibrated on the run GPU with whole decode steps.
+"""Fixed H100 decode projection choices, measured in full generation.
 
-Kernel rankings for these shapes flip between H100 instances, and isolated
-microbenchmarks misrank kernels that run interleaved inside the decode
-step (measured 2026-09-19: isolated winners lost 4-6% end to end). So the
-engine calibrates in context: before production CUDA graphs are captured,
-it times throwaway CUDA-graph replays while switching one projection kind's
-implementation at a time - the frozen upstream-matmul tile, native cuBLAS,
-and pipelined tensor-core tiles in both layouts - and keeps the fastest
-per (kind, rows). Candidates must first match native linear on the real
-activations. Calibration runs inside the untimed load budget;
-uncalibrated paths keep the frozen configuration. Every
-candidate accumulates FP32 and rounds once to BF16, the native boundary.
+Engine startup does not run calibration. The calibration helpers remain for
+offline experiments; ordinary execution uses the fixed dispatch below.
+Projections accumulate FP32 and preserve the native BF16 rounding boundaries.
 """
 import json
 
@@ -85,10 +77,21 @@ def probe_point(kind, instance, x, rows):
 
 
 def resolve(kind, rows):
-    """Return the forced or calibrated choice for (kind, rows), or None."""
+    """Return an offline override or the fixed production choice."""
     choice = _forced.get(kind)
     if choice is None:
         choice = _choices.get((kind, rows))
+    if choice is None:
+        if kind == "down_next_norm" and 2 <= rows <= 32:
+            return ("fused", 16)
+        if kind == "down_residual" and 2 <= rows <= 32:
+            return ("splitk",)
+        if kind == "rope_attention":
+            if rows == 8:
+                return ("sglang", 8)
+            if rows == 16:
+                return ("sglang", 4)
+            return ("fused",)
     return choice
 
 

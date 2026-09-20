@@ -84,6 +84,7 @@ class FusedProjectionLayer(torch.nn.Module):
         self.fuse_residual_norm = True
         self.follower = None
         self.chain_gu = None
+        self._normalized_input = None
 
     def _chain_gu(self):
         # Row-interleaved [I, 2, K] gate/up copy: chain_a streams each tile
@@ -102,6 +103,8 @@ class FusedProjectionLayer(torch.nn.Module):
                 past_key_value=None, output_attentions=False, use_cache=False,
                 cache_position=None, position_embeddings=None, **kwargs):
         layer = self.original
+        normalized_input = self._normalized_input
+        self._normalized_input = None
         rows = hidden_states.numel() // hidden_states.shape[-1]
         selected = self.selections.get(str(rows), {})
         if past_key_value.prefill or (not selected and not self.fuse_residual_norm):
@@ -130,7 +133,8 @@ class FusedProjectionLayer(torch.nn.Module):
             a = attention(hidden_states, position_embeddings,
                           attention_mask, past_key_value=past_key_value,
                           cache_position=cache_position,
-                          norm=layer.input_layernorm)[0]
+                          norm=layer.input_layernorm,
+                          normalized_input=normalized_input)[0]
         if "mlp" in selected and "qkv" in selected:
             probe_point("chain_a", _ChainA(self, hidden_states), a, rows)
             if (resolve("chain_a", rows) or ("legacy",))[0] == "chain":
@@ -171,7 +175,11 @@ class FusedProjectionLayer(torch.nn.Module):
             else:
                 residual = hidden_states + a
                 normalized = layer.post_attention_layernorm(residual)
-            if hasattr(layer.mlp, "forward_residual"):
+            if self.follower is not None and 2 <= rows <= 32:
+                result, normalized_next = layer.mlp.forward_residual_next_norm(
+                    normalized, residual, self.follower.original.input_layernorm)
+                self.follower._normalized_input = normalized_next
+            elif hasattr(layer.mlp, "forward_residual"):
                 result = layer.mlp.forward_residual(normalized, residual)
             else:
                 result = residual + layer.mlp(normalized)

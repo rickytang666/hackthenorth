@@ -63,7 +63,8 @@ class GroupedAttention(torch.nn.Module):
         reference.o_proj = Projection(reference.o_proj.weight, "o")
 
     def forward(self, hidden_states, position_embeddings, attention_mask=None,
-                past_key_value=None, cache_position=None, norm=None, **kwargs):
+                past_key_value=None, cache_position=None, norm=None,
+                normalized_input=None, **kwargs):
         ref = self.reference
         prefill = past_key_value.prefill
         if prefill and attention_mask is not None:
@@ -72,7 +73,9 @@ class GroupedAttention(torch.nn.Module):
                 past_key_value=past_key_value, cache_position=cache_position, **kwargs,
             )
         shape = (*hidden_states.shape[:-1], -1, ref.head_dim)
-        if norm is not None and not prefill:
+        if normalized_input is not None and not prefill:
+            qkv = self.qkv(normalized_input)
+        elif norm is not None and not prefill:
             rows = hidden_states.numel() // hidden_states.shape[-1]
             adapter = _NormQkv(self, norm)
             probe_point("norm_qkv", adapter, hidden_states, rows)

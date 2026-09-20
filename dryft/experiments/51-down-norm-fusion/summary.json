@@ -1,0 +1,41 @@
+{
+  "integrated_candidate_positions": 7424,
+  "cold_candidate_positions": 1056,
+  "failures": 0,
+  "identical_to_split_down": true,
+  "speedup_vs_main_range": [
+    1.0198517511007954,
+    1.0362245925244296
+  ],
+  "speedup_vs_split_range": [
+    1.002252108635837,
+    1.0184045493339169
+  ],
+  "gpu_events": {
+    "main": 370.0,
+    "split_down": 370.0,
+    "fused": 335.0
+  },
+  "engine_source_sha256": {
+    "attention.py": "2b0b2e58c479f096d7cba724c861c558f142aa3c8ddd6aaf3a6ebb05ab203b2f",
+    "decode.py": "fd3258939e182f4677a435ee163a0a08a392d33f22da14ebc4f34f5b35f75cab",
+    "engine.py": "49fc8e8e5fd155c2da27e8840f072a06d5c6c5b0a983e36e16adf9635447d553",
+    "fused_layer.py": "c3563e902b1ab982c5fc4a9a287a849eaac7c0db60693c940f686f13feeb03ad",
+    "kernels/__init__.py": "29a4a94caa6473daa795011c4c11e07d31ca0f73c02ba28b41e8f5f8e5438084",
+    "kernels/attention.py": "bf6c013d83f4df262d91480ed84f503e9b167f19800f3e3d3ecbdb05084bc1a1",
+    "kernels/chain.py": "2e2e7c4272493be453f6802cf810a5e276c5c6c74c202f44bef84691123d84fc",
+    "kernels/dotgemv.py": "a86c961244aafaf4d2217f3287f4acff49c437fd84de077650f6f9c95c718db0",
+    "kernels/down.py": "31750fdddb04811adfb4834e47902c9ea656330aa00e0ed60db7f43a8e081ac3",
+    "kernels/fused.py": "b93b31998a71daac464bb8b7201d54e6ab60742bd1da49b7afe54be5b3a33cab",
+    "kernels/gateup.py": "bad8c16dcd7397de42a4b51b7a36dc27c4c44fb568ab6b3f359103c4bb7645ae",
+    "kernels/greedy.py": "5c713eca6739e6fc98ec6b60f57b389aedfe14760a349d88e0ff337747ce740f",
+    "kernels/projection.py": "d31406c39ce041c5041dcdfff7bfb26e993d28e767dc02dac9b80398ef727a40",
+    "kernels/rmsnorm.py": "5380d37a887ff316b85bfc90176b7106ac62566e51e14cbf7a468d056431f49b",
+    "kernels/sglang_attention.py": "27645ae42568afd8189f6bd96ece8b708d0c3b2923b1febb5e707a008bc5a0ba",
+    "kernels/split_down.py": "e1add228498462b30f98d7fbe509c36d97cd52cc924f36410d4052fd0ce07102",
+    "kernels/tile.py": "00232c70928738fc75ca92613f785db07cae7822c9c9b48a2d6b0597de06dc56",
+    "prefill.py": "ddfa139f63c3b70513da87398998b31028a3e914bca062eb0b4be18c03061180",
+    "projections.py": "c24010ad549a676c6c05e9e99bcd4e64c3b270f2a3ed113ef2c940fbcee35e05",
+    "speculate.py": "463f553334b2f90b09e1db42b6c5b78b2c9c77d1ed6a1bbebce2c5c3e38d59b0"
+  }
+}

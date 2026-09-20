@@ -138,8 +138,6 @@ class DecodeState:
         self.position.add_(1)
 
     def capture(self, model):
-        from projections import calibrate
-
         self.cache.prefill = False
         prompt_length = self.shape[1]
         stream = torch.cuda.Stream(device=model.device)
@@ -150,27 +148,6 @@ class DecodeState:
                 self.position.fill_(prompt_length)
                 self.step(model)
 
-            def calibration_step():
-                self.position.fill_(prompt_length)
-                self.step(model)
-
-            pool = torch.cuda.graph_pool_handle()
-
-            def graph_factory():
-                graph = torch.cuda.CUDAGraph()
-                self.position.fill_(prompt_length)
-                with torch.cuda.graph(graph, stream=stream, pool=pool):
-                    self.step(model)
-
-                def replay():
-                    self.position.fill_(prompt_length)
-                    graph.replay()
-
-                return replay
-
-            # Pick per-kind projection kernels by replay-timing throwaway
-            # graphs on this GPU, inside the untimed load budget.
-            calibrate(calibration_step, graph_factory)
             self.position.fill_(prompt_length)
         torch.cuda.current_stream(model.device).wait_stream(stream)
         self.graph = torch.cuda.CUDAGraph()
@@ -202,8 +179,6 @@ class DecodeState:
         )
 
     def capture_verifier(self, model):
-        from projections import calibrate
-
         length = self.draft_tokens + 1
         self.verify_input = torch.zeros((1, length), dtype=torch.int64, device=model.device)
         self.verify_offsets = torch.arange(length, device=model.device)
@@ -214,15 +189,6 @@ class DecodeState:
             for _ in range(2):
                 self.verify_step(model)
 
-            pool = torch.cuda.graph_pool_handle()
-
-            def verify_factory():
-                graph = torch.cuda.CUDAGraph()
-                with torch.cuda.graph(graph, stream=stream, pool=pool):
-                    self.verify_step(model)
-                return graph.replay
-
-            calibrate(lambda: self.verify_step(model), verify_factory)
         torch.cuda.current_stream(model.device).wait_stream(stream)
         self.verify_graph = torch.cuda.CUDAGraph()
         with torch.cuda.graph(self.verify_graph, stream=stream):
