@@ -172,7 +172,8 @@ async function loadClips() {
     b.title = `${clip.duration_s}s`;
     const c = document.createElement('canvas');
     c.width = 96; c.height = 28;
-    b.append(c, document.createTextNode(`${i + 1} · ${clip.duration_s}s`));
+    b.append(c, document.createTextNode(
+      `${clip.video ? '▶' : i + 1} · ${clip.duration_s}s`));
     b.onclick = () => select(i);
     box.append(b);
     const raw = await (await fetch(clip.wav)).arrayBuffer();

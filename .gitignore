@@ -41,3 +41,8 @@ serve/voice/out/
 
 # `truss train get_checkpoint_urls` drops these in the working directory
 voicebridge-*_checkpoints.json
+
+# demo media: third-party footage and generated audio stay local
+*.mp4
+*.mov
+*.webm

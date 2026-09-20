@@ -89,5 +89,15 @@
     "expected_confidence": 0.8935,
     "clarifies": false,
     "duration_s": 11.64
+  },
+  {
+    "utterance_id": "jim_telephone",
+    "wav": "clips/jim_telephone.wav",
+    "video": "clips/jim_telephone.mp4",
+    "label": "Jim, stroke survivor, unscripted",
+    "speaker_id": "live",
+    "truth": "no not really but getting the some sometimes they get certain words that they did nay work right over the telephone eh im sitting there too",
+    "baseline": "",
+    "duration_s": 11.8
   }
 ]
