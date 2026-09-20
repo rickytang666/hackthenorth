@@ -28,8 +28,15 @@
             text-transform: uppercase; letter-spacing: 0.07em; color: #999 }
   th, td { padding: 11px 16px; border-bottom: 1px solid #f0f0f0; text-align: right }
   th:first-child, td:first-child { text-align: left }
-  thead th { font-size: 12px; font-weight: 600; color: #777; border-bottom: 1px solid #e0e0e0 }
-  thead th span { display: block; font-weight: 400; font-size: 11px; color: #aaa; margin-top: 2px }
+  thead th { font-size: 13px; font-weight: 600; color: #1b1b1b;
+             border-bottom: 1px solid #e0e0e0; padding-bottom: 13px }
+  thead th:first-child { font-size: 12px; font-weight: 600; color: #999 }
+  .marks { display: flex; justify-content: flex-end; margin-bottom: 6px }
+  .marks img { width: 17px; height: 17px; border-radius: 3px; background: #fff;
+               box-shadow: 0 0 0 1.5px #fff }
+  .marks img + img { margin-left: -5px }
+  .modelcode { display: block; font-weight: 400; font-size: 11px; color: #aaa;
+               margin-top: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace }
   tbody th { font-weight: 400; font-size: 14px }
   tbody th span { display: block; font-size: 11px; color: #999 }
   tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0 }
@@ -60,42 +67,34 @@ every model-selection decision.</p>
 
 <div class="card">
 <table>
-  <caption>Sealed test &middot; speaker M02 &middot; 388 clips &middot; decoded once</caption>
+  <caption>Sealed test &middot; speaker M02 &middot; 388 clips</caption>
   <thead>
     <tr>
       <th>Metric</th>
-      <th>Frozen<span>Cohere Transcribe 2.07B</span></th>
-      <th>Tuned<span>+ LoRA, 0.166% of weights</span></th>
+      <th><span class="marks"><img src="data:image/png;base64,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" alt=""></span>Cohere Transcribe
+          <span class="modelcode">cohere-transcribe-03-2026</span></th>
+      <th><span class="marks"><img src="data:image/png;base64,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" alt=""><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAzElEQVR42u3ZsQnCQBSA4YeFUSGHIhaCXbosIFikEyzsLASHsHIBncANMkEmcCDHOPP6eJFgwjP+xd+FkC+BezlOls+z/+UEAAAAfwAYuMiLyNdzt6wbQBsPr8WXNQAAAAB8cNG8OLSSAoab1dvMDzIFhL4QAAAAANQ3y/d+fEwbpYDpfVuZ3rcTQN1bNDHIAAAA0GOA/lVOyiWxSSaWUSYxAAAAbAMWj1NwUx+Vm/eqRrvEBsD8IAMAAEDPAaHjKXfN7AM4pQQAAECwFwWMbBsS2YwXAAAAAElFTkSuQmCC" alt=""></span>VoiceBridge
+          <span class="modelcode">tuned</span></th>
     </tr>
   </thead>
   <tbody>
-    <tr><th>Word error rate<span>All utterances</span></th>
+    <tr><th>Word error rate</th>
         <td>56.68%</td><td class="win">34.81%</td></tr>
-    <tr><th>Isolated words<span>Single-word clips</span></th>
+    <tr><th>Isolated words</th>
         <td>101.69%</td><td class="win">46.28%</td></tr>
-    <tr><th>Sentences<span>Full-sentence clips</span></th>
+    <tr><th>Sentences</th>
         <td>36.34%</td><td class="win">29.62%</td></tr>
-    <tr><th>Critical errors<span>Negation, yes/no, numbers, medications</span></th>
+    <tr><th>Critical errors<span>negation, numbers, medications</span></th>
         <td>40.00%</td><td class="win">28.57%</td></tr>
-    <tr><th>Exact transcripts<span>Whole clip correct</span></th>
+    <tr><th>Exact transcripts</th>
         <td>98 / 388</td><td class="win">198 / 388</td></tr>
-    <tr><th>Tail latency<span>Per clip, p95</span></th>
+    <tr><th>Tail latency<span>p95</span></th>
         <td class="win">154 ms</td><td>216 ms</td></tr>
   </tbody>
 </table>
 </div>
 
-<p class="notes"><b>Lower is better on every row except exact transcripts.</b>
-Shading marks the better result, so the frozen model wins on latency: LoRA adds
-matrix multiplications. At 39x real time that does not matter, and it is not
-presented as a win. Word error rate exceeds 100% on isolated words when the
-model emits more words than were spoken.</p>
-
-<p class="notes"><b>M02 was held out from training and from tuning</b>, then
-decoded exactly once. All eight dysarthric speakers improved and critical errors
-worsened in none, with the largest gain, 70.9%, on the most impaired speaker.
-Per-speaker tables, the adapter capacity sweep and the live end-to-end timings
-are in <a href="https://github.com/rickytang666/hackthenorth/blob/main/docs/RESULTS.md">docs/RESULTS.md</a>.</p>
+<p class="notes">Lower is better except exact transcripts. M02 was held out from training and from tuning.</p>
 
 <dl class="facts">
   <div><dt>Method</dt><dd>LoRA, rank 8</dd></div>
