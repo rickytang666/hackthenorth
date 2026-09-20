@@ -38,3 +38,6 @@ serve/voice/.venv/
 serve/voice/vendor/
 serve/voice/checkpoints/
 serve/voice/out/
+
+# `truss train get_checkpoint_urls` drops these in the working directory
+voicebridge-*_checkpoints.json
