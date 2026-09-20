@@ -1,0 +1,37 @@
+[
+  {
+    "order": 1,
+    "text": "wicked",
+    "personal_voice": "voice_1_wicked.wav",
+    "source_clip": "1_M02_2_headMic_0233.wav",
+    "synthesis_ms": 4380.0
+  },
+  {
+    "order": 2,
+    "text": "jagged",
+    "personal_voice": "voice_2_jagged.wav",
+    "source_clip": "2_M02_1_headMic_0112.wav",
+    "synthesis_ms": 1181.0
+  },
+  {
+    "order": 3,
+    "text": "brawn",
+    "personal_voice": "voice_3_brawn.wav",
+    "source_clip": "3_M02_2_headMic_0132.wav",
+    "synthesis_ms": 1913.0
+  },
+  {
+    "order": 4,
+    "text": "witty",
+    "personal_voice": "voice_4_witty.wav",
+    "source_clip": "4_M02_2_headMic_0116.wav",
+    "synthesis_ms": 1068.0
+  },
+  {
+    "order": 5,
+    "text": "I need my medication before dinner tonight",
+    "personal_voice": "voice_5_i.wav",
+    "source_clip": "sentence.wav",
+    "synthesis_ms": 2516.0
+  }
+]

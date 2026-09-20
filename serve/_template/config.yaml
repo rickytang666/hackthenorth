@@ -10,6 +10,14 @@ resources:
   use_gpu: true
 runtime:
   predict_concurrency: 4
-  is_websocket_endpoint: true
+  # A load() slower than the default startup window leaves the replica marked
+  # unhealthy: the deployment reports ACTIVE, the router refuses every
+  # handshake with a 500, and nothing reaches the container to be logged.
+  health_checks:
+    startup_threshold_seconds: 600
+  # `is_websocket_endpoint` is deprecated and inferred from this. Setting the
+  # old key alone leaves the route unregistered and every handshake 500s.
+  transport:
+    kind: websocket
 environment_variables: {}
 secrets: {}

@@ -1,0 +1,40 @@
+# Cohere lane. Copied from serve/_template, Recognizer replaced, protocol
+# untouched: promoting a winner must stay a change to ASR_WS_URL and nothing else.
+model_name: voicebridge-asr-cohere
+python_version: py311
+requirements:
+  # torch MUST be pinned. Unpinned, pip pulls a build that needs a newer CUDA
+  # driver than truss-server-base 3.11-gpu-v0.13.0 ships (driver 12080), torch
+  # silently falls back to CPU, and the 2B warm-up then blows the health check.
+  # The symptom is a deployment that reports ACTIVE and answers 500.
+  - torch==2.6.0
+  - numpy<2.3
+  - transformers>=5.0
+  - peft>=0.17
+  - librosa
+  - sentencepiece
+  - soundfile
+resources:
+  accelerator: H100
+  use_gpu: true
+runtime:
+  # load() pulls 2B weights and runs a warm-up generate, which takes 50 to 90 s.
+  # The platform default startup window is shorter, so the replica was marked
+  # unhealthy and the router answered every handshake with a 500 that never
+  # reached the container. Every trivial probe passed because it loaded instantly.
+  health_checks:
+    startup_threshold_seconds: 600
+    stop_traffic_threshold_seconds: 120
+    restart_threshold_seconds: 900
+  # `is_websocket_endpoint` is deprecated and inferred from this. Setting the
+  # old key alone leaves the route unregistered and every handshake 500s.
+  transport:
+    kind: websocket
+environment_variables:
+  # The 13.7 MB adapter ships inside the Truss rather than being fetched at
+  # boot: no network dependency on cold start, and the served weights are
+  # pinned to the exact checkpoint the sealed test measured.
+  # Resolved relative to the Truss root at runtime; see model.py.
+  COHERE_ADAPTER_PATH: packages/best
+secrets:
+  hf_token: null

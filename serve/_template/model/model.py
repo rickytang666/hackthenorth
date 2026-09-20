@@ -8,6 +8,8 @@ promotion table is comparing transports instead of models.
 
 import base64
 import json
+
+import fastapi
 import time
 
 MODEL_ID = "stub-template"
@@ -54,12 +56,15 @@ class Model:
         """Load weights here. Called once per worker, before any request."""
         return None
 
-    async def websocket(self, websocket) -> None:
+    async def websocket(self, websocket: fastapi.WebSocket) -> None:
         recognizer = self._recognizer_factory()
         began = time.perf_counter()
         try:
-            async for raw in websocket.iter_text():
-                message = json.loads(raw)
+            # Documented Baseten pattern: receive_text() in a loop, not
+            # iter_text(). Baseten accepts the connection itself, so never
+            # call websocket.accept().
+            while True:
+                message = json.loads(await websocket.receive_text())
                 kind = message.get("type")
                 if kind == "audio":
                     partial = recognizer.push(base64.b64decode(message["pcm16_b64"]))
@@ -78,6 +83,8 @@ class Model:
                         "model_id": MODEL_ID,
                     }))
                     return
+        except fastapi.WebSocketDisconnect:
+            return
         except Exception as exc:  # surfaced to the client, never swallowed
             await websocket.send_text(json.dumps({"type": "error", "message": str(exc)}))
             raise

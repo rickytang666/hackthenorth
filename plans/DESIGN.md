@@ -17,6 +17,8 @@ A person speaks, the app shows recovered text, asks a two-choice question when e
 - No clinical validation. TORGO is read prompts, not open conversation.
 - No new datasets. SAP is a post-hackathon scale-up.
 - No FP8 training or quantization-aware fine-tuning. Post-training quantization only, behind an accuracy gate.
+- **No streaming TTS.** Measured at 196 ms per clause on the H100, so whole-clause synthesis fits the budget with room to spare.
+- **No LLM anywhere on the demo path.** Baseten is the only track being targeted; Rox is not. The verifier is deterministic and offline.
 
 ## Architecture
 
@@ -262,20 +264,34 @@ Enrollment runs once per consented session and the embedding is cached. Generate
 
 *Streaming TTS*, meaning audio starting before synthesis finishes, is not shipped by default. OpenVoice V2 has no native streaming path; the sub-second figures people report come from wrapping it in a pipeline such as Pipecat or LiveKit. Building chunked synthesis buys maybe 200 to 400 ms and costs chunk-boundary artifacts, cross-fade logic, and buffer management, which is the single most likely thing to stutter live.
 
-A confirmed clause is 5 to 8 words. **Time one 7-word synthesis in Phase 0.** Under about 800 ms, synthesize whole confirmed clauses and delete streaming TTS from the plan. Only if that measurement misses the 1.5 s first-audio budget do you segment at punctuation or a 300 to 500 ms pause and cross-fade adjacent chunks.
+**Measured and decided, 2026-09-19, job `w7rrz03`.** A 7-word synthesis on the
+H100 takes a median of **196 ms** (base TTS 52, tone conversion 141), against an
+800 ms bar. So: synthesize whole confirmed clauses, and **streaming TTS is cut
+from the plan**. No chunking, no cross-fade, no buffer management.
+
+For contrast the same measurement on a Mac CPU was 2200 ms, which is why the bar
+was always going to be settled on the serving hardware rather than a laptop.
 
 ### Protocol 3: Verifier
 
-Hosted Model API, stateless, strict JSON in and out. It receives only the candidate set, confidence, an approved vocabulary and topic, and cannot emit free text.
+Deterministic, offline, no model call. In, the candidate set and its confidence. Out, one of three actions.
 
 ```json
-in:  {"candidates": [...], "confidence": 0.41,
-      "topic": "medication", "vocabulary": [...]}
+in:  {"candidates": [...], "confidence": 0.41}
 out: {"action": "accept" | "clarify" | "abstain",
       "text": "...", "choices": ["...", "..."]}
 ```
 
-Enforced in code, not in the prompt: a returned `text` must be one of the supplied candidates. Negation, names, numbers, and medication terms are never substituted.
+The rules, in order:
+
+1. Confidence below the abstain floor: abstain.
+2. Candidates disagree about a critical term (negation, yes/no, number, name, medication): clarify, always, whatever the scores say.
+3. Confidence at or above the accept threshold: accept the top candidate.
+4. Otherwise: clarify.
+
+A returned `text` is byte-identical to a supplied candidate, enforced in code.
+
+**Why there is no LLM here.** An earlier design had a hosted model break ties in the middle-confidence band. It was dropped: that band is exactly where candidates differ harmlessly, so showing two buttons is as good an answer, and a network call on the demo path is a liability at a booth. Add a model back only if it demonstrably improves the demo path without costing latency.
 
 ## Repo layout
 
@@ -408,7 +424,7 @@ Each rung is reachable in under ten minutes and each is demoable.
 | FP8 misses its accuracy gate | BF16 winner |
 | Streaming state reuse drifts | Fixed overlapping windows |
 | First-partial latency gate unreachable | `nvidia/nemotron-speech-streaming-en-0.6b`, cache-aware by design |
-| First-audio budget missed with whole-clause synthesis | Add chunked streaming TTS, measured in Phase 0 before it is built |
+| First-audio budget missed with whole-clause synthesis | Not applicable: measured at 196 ms on the H100, 8x inside budget |
 | OpenVoice enrollment fails | Generic pretrained voice, stated honestly on stage |
 | Any live service down at the booth | Fixture replay through `contract/mock_asr.py`, local file on the presenting laptop |
 | Microphone unusable at the booth | The page's file-upload path, replaying a recording through the same socket |

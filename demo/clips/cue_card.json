@@ -1,0 +1,34 @@
+[
+  {
+    "order": 1,
+    "file": "1_M02_2_headMic_0233.wav",
+    "said": "wicked",
+    "frozen_heard": "who were killed",
+    "tuned": "wicked",
+    "seconds": 3.5
+  },
+  {
+    "order": 2,
+    "file": "2_M02_1_headMic_0112.wav",
+    "said": "jagged",
+    "frozen_heard": "they are good",
+    "tuned": "jagged",
+    "seconds": 3.3
+  },
+  {
+    "order": 3,
+    "file": "3_M02_2_headMic_0132.wav",
+    "said": "brawn",
+    "frozen_heard": "oh put it on",
+    "tuned": "brawn",
+    "seconds": 3.2
+  },
+  {
+    "order": 4,
+    "file": "4_M02_2_headMic_0116.wav",
+    "said": "witty",
+    "frozen_heard": "where is he ah where is he",
+    "tuned": "witty",
+    "seconds": 2.9
+  }
+]
