@@ -1,4 +1,4 @@
-const CACHE_NAME = 'voicebridge-offline-v4';
+const CACHE_NAME = 'voicebridge-offline-v5';
 const OFFLINE_ASSETS = [
   './',
   './index.html',
@@ -12,13 +12,17 @@ const OFFLINE_ASSETS = [
   './meter.html',
   './static/demo.css',
   './static/report.css?v=3',
-  './static/demo.js',
+  './static/report.css?v=5',
+  './static/single-page.js?v=1',
   './static/race.js',
   './static/diff.js',
   './static/clarify.js',
   './static/hud.js',
   './static/meter.js?v=3',
   './fixtures/session-m02.json',
+  './fixtures/m02-source.wav',
+  './fixtures/m02-personal-voice.wav',
+  './fixtures/generic-tts.wav',
 ];
 
 self.addEventListener('install', event => {

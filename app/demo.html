@@ -3,188 +3,108 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>VoiceBridge booth demo</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23d7ff3f' stroke-width='6' stroke-dasharray='58 18'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="static/demo.css">
-  <link rel="stylesheet" href="static/report.css?v=3">
+  <title>VoiceBridge comparison</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M7 16h6m6 0h6M13 10v12m6-12v12' stroke='%23355f82' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="static/report.css?v=5">
 </head>
-<body class="report-ui page-demo">
-  <div class="grain" aria-hidden="true"></div>
-
-  <header class="topbar">
-    <a class="wordmark" href="#" aria-label="Restart VoiceBridge demo">
+<body class="report-ui page-single">
+  <header class="single-header">
+    <a class="wordmark" href="demo.html" aria-label="VoiceBridge comparison">
       <span class="wordmark-mark" aria-hidden="true"></span>
-      VOICEBRIDGE
+      VoiceBridge
     </a>
-    <div class="beat-progress" aria-label="Demo progress">
-      <span class="progress-label">BEAT <b id="beatNumber">01</b>/06</span>
-      <div class="progress-track" id="progressTrack"></div>
-    </div>
-    <div class="connection-pill" id="connectionPill">
-      <span class="connection-dot"></span>
-      <span id="connectionLabel">LOCAL READY</span>
-    </div>
+    <div class="session-status"><i></i><span id="sessionStatus">Recorded comparison ready</span></div>
   </header>
 
-  <main id="stage" aria-live="polite">
-    <section class="scene active" data-scene="0" aria-labelledby="scene0Title">
-      <div class="scene-index">01 / PROBLEM</div>
-      <div class="opening-grid">
+  <main class="single-main">
+    <section class="source-bar" aria-labelledby="sourceTitle">
+      <div class="source-copy">
+        <span class="section-label">Source recording</span>
+        <strong id="sourceTitle">M02_0233.wav</strong>
+        <span>3.5 seconds · sealed test speaker</span>
+      </div>
+      <div class="source-wave" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <div class="source-actions">
+        <button id="playSource" type="button">Play recording</button>
+        <button class="primary" id="runComparison" type="button">Run comparison</button>
+      </div>
+    </section>
+
+    <section class="comparison-section" aria-labelledby="comparisonTitle">
+      <div class="section-heading">
         <div>
-          <p class="eyebrow">HE KNOWS EXACTLY WHAT HE WANTS TO SAY.</p>
-          <h1 id="scene0Title">Listen.<br><em>Do not guess.</em></h1>
+          <span class="section-label">Same audio, two models</span>
+          <h1 id="comparisonTitle">Transcription comparison</h1>
         </div>
-        <div class="audio-plate">
-          <div class="speaker-orbit" aria-hidden="true">
-            <span></span><span></span><span></span>
-            <i>02</i>
-          </div>
-          <button class="action action-round" id="playSource" type="button">
-            <span class="play-icon">▶</span>
-            PLAY CLIP
-          </button>
-          <p class="clip-meta">HELD-OUT SPEAKER M02 · <span id="sourceDuration">3.5 SEC</span></p>
-        </div>
+        <p>Both models receive the same PCM16 recording.</p>
       </div>
-      <blockquote class="baseline-quote">
-        <span>OFF-THE-SHELF HEARD</span>
-        “<strong data-baseline>who were killed</strong>”
-      </blockquote>
-    </section>
 
-    <section class="scene" data-scene="1" aria-labelledby="scene1Title">
-      <div class="scene-index">02 / RECOVER</div>
-      <div class="live-layout">
-        <div class="live-header">
-          <p class="eyebrow">FINE-TUNED ON DYSARTHRIC SPEECH</p>
-          <h2 id="scene1Title">Now let the model <em>listen.</em></h2>
-        </div>
-        <div class="transcript-panel">
-          <span class="live-badge"><i></i> LIVE RECOVERY</span>
-          <div class="transcript" id="liveTranscript"><span class="empty">Waiting for audio.</span></div>
-          <div class="confidence-line">
-            <span>CONFIDENCE</span>
-            <div class="confidence-track"><i id="confidenceFill"></i></div>
-            <strong id="confidenceValue">0%</strong>
+      <div class="comparison-panes">
+        <article class="model-pane baseline-pane" id="baselinePane">
+          <div class="pane-head">
+            <div><span>Original model</span><strong>Frozen baseline</strong></div>
+            <span class="model-state" id="baselineState">Complete</span>
           </div>
-        </div>
-        <div class="run-controls">
-          <button class="action action-primary" id="replaySource" type="button">REPLAY INTO MODEL <span>↗</span></button>
-          <button class="action" id="useMic" type="button">USE MICROPHONE</button>
-          <span class="latency-readout">FIRST WORD <b id="firstPartial">-</b></span>
-        </div>
-      </div>
-    </section>
-
-    <section class="scene" data-scene="2" aria-labelledby="scene2Title">
-      <div class="scene-index">03 / PROOF</div>
-      <p class="eyebrow">SAME RECORDING. SAME UNSEEN SPEAKER.</p>
-      <h2 id="scene2Title">Before <span>/</span> after</h2>
-      <div class="comparison-grid">
-        <article class="comparison-card wrong">
-          <span class="comparison-tag">FROZEN BASELINE</span>
-          <p>“<strong data-baseline>who were killed</strong>”</p>
-          <div class="wer-number"><strong>56.7</strong><span>% WER</span></div>
+          <div class="transcript-copy" id="baselineTranscript">“who were killed”</div>
+          <dl class="pane-metrics">
+            <div><dt>Clip result</dt><dd>Incorrect</dd></div>
+            <div><dt>Aggregate WER</dt><dd>56.7%</dd></div>
+          </dl>
         </article>
-        <div class="comparison-arrow" aria-hidden="true">→</div>
-        <article class="comparison-card right">
-          <span class="comparison-tag">VOICEBRIDGE TUNED</span>
-          <p>“<strong data-tuned>wicked</strong>”</p>
-          <div class="wer-number"><strong>34.8</strong><span>% WER</span></div>
+
+        <article class="model-pane tuned-pane" id="tunedPane">
+          <div class="pane-head">
+            <div><span>New model</span><strong>VoiceBridge tuned</strong></div>
+            <span class="model-state" id="tunedState">Complete</span>
+          </div>
+          <div class="transcript-copy" id="tunedTranscript">“wicked”</div>
+          <dl class="pane-metrics">
+            <div><dt>Clip confidence</dt><dd>94%</dd></div>
+            <div><dt>Aggregate WER</dt><dd>34.8%</dd></div>
+          </dl>
         </article>
       </div>
-      <div class="proof-strip">
-        <strong>38.6%</strong>
-        <span>RELATIVE ERROR REDUCTION<br>ACROSS 388 SEALED TEST CLIPS</span>
-      </div>
+
+      <dl class="evidence-strip" aria-label="Evaluation summary">
+        <div><dt>Relative error reduction</dt><dd>38.6%</dd></div>
+        <div><dt>Sealed test clips</dt><dd>388</dd></div>
+        <div><dt>First partial</dt><dd>184 ms</dd></div>
+        <div><dt>Final transcript</dt><dd>612 ms</dd></div>
+      </dl>
     </section>
 
-    <section class="scene" data-scene="3" aria-labelledby="scene3Title">
-      <div class="scene-index">04 / ASK, DO NOT GUESS</div>
-      <div class="clarify-layout">
+    <section class="outcome-grid">
+      <article class="playback-panel" aria-labelledby="playbackTitle">
         <div>
-          <p class="eyebrow warning">CRITICAL TERM DISAGREEMENT</p>
-          <h2 id="scene3Title">Uncertain speech deserves an <em>honest question.</em></h2>
-          <p class="scene-copy">VoiceBridge will not turn weak evidence into a fluent mistake.</p>
+          <span class="section-label">Text to speech</span>
+          <h2 id="playbackTitle">Play the result back</h2>
+          <p>Voice-continuity sample: “I need my medication before dinner tonight.”</p>
         </div>
-        <div class="clarify-card">
-          <div class="clarify-head">
-            <span>WHICH DID YOU MEAN?</span>
-            <strong id="clarifyConfidence">41% CONFIDENCE</strong>
-          </div>
-          <div id="clarifyChoices" class="clarify-choices"></div>
-          <p>PRESS <kbd>1</kbd> OR <kbd>2</kbd> TO CONFIRM</p>
+        <div class="playback-actions">
+          <button class="primary" id="playPersonal" type="button"><span>▶</span> Speaker’s voice</button>
+          <button id="playGeneric" type="button"><span>▶</span> Generic TTS</button>
         </div>
-      </div>
+      </article>
+
+      <article class="clarification-panel" aria-labelledby="clarificationTitle">
+        <div class="clarification-copy">
+          <span class="section-label">Low-confidence behavior</span>
+          <h2 id="clarificationTitle">Ask instead of guessing</h2>
+          <p>Critical term disagreement detected: <strong>not</strong>.</p>
+        </div>
+        <div class="clarification-options" id="clarificationOptions">
+          <button type="button" data-choice="Do not give her the insulin."><span>1</span> Do not give her the insulin.</button>
+          <button type="button" data-choice="Do give her the insulin."><span>2</span> Do give her the insulin.</button>
+        </div>
+      </article>
     </section>
 
-    <section class="scene" data-scene="4" aria-labelledby="scene4Title">
-      <div class="scene-index">05 / RETURN THE VOICE</div>
-      <div class="voice-layout">
-        <div class="voice-copy">
-          <p class="eyebrow">CONFIRMED MEANING, PERSONAL VOICE</p>
-          <h2 id="scene4Title">Clear enough to understand.<br><em>Still recognizably his.</em></h2>
-          <p class="confirmed-line">“<span id="confirmedText">Do not give her the insulin.</span>”</p>
-        </div>
-        <button class="voice-disc" id="playVoice" type="button" aria-label="Play recovered personal voice">
-          <span class="disc-rings" aria-hidden="true"></span>
-          <span class="play-icon">▶</span>
-          <strong>PLAY HIS VOICE</strong>
-        </button>
-      </div>
-      <div class="voice-facts">
-        <span>ENROLLED FROM CONSENTED RECORDINGS</span>
-        <span>NO GENERATED HEALTH AUDIO CACHED</span>
-        <span id="voiceStatus">LOCAL FALLBACK READY</span>
-      </div>
-    </section>
-
-    <section class="scene" data-scene="5" aria-labelledby="scene5Title">
-      <div class="final-lockup">
-        <div class="final-mark" aria-hidden="true"><span></span></div>
-        <p class="eyebrow">VOICEBRIDGE</p>
-        <h2 id="scene5Title">We do not replace<br>someone’s voice.</h2>
-        <p>We repair the path between <em>what they meant</em><br>and <em>how the world hears them.</em></p>
-        <div class="final-proof">
-          <span>LIVE ASR</span><i></i><span>SAFE CLARIFICATION</span><i></i><span>PERSONAL VOICE</span>
-        </div>
-      </div>
-    </section>
+    <p class="honesty-note">One sealed speaker is not proof of generalization. The aggregate result covers 388 selected test clips.</p>
   </main>
 
-  <footer class="control-rail">
-    <button id="previousScene" type="button" aria-label="Previous scene">←</button>
-    <span><kbd>SPACE</kbd> NEXT · <kbd>←</kbd> BACK · <kbd>C</kbd> SETUP</span>
-    <button id="nextScene" type="button" aria-label="Next scene">→</button>
-  </footer>
-
-  <aside class="setup-drawer" id="setupDrawer" aria-hidden="true">
-    <div class="setup-head">
-      <div><span>BOOTH SETUP</span><strong>Local-first controls</strong></div>
-      <button id="closeSetup" type="button" aria-label="Close setup">×</button>
-    </div>
-    <label>Demo clip
-      <select id="cueSelect"></select>
-    </label>
-    <label>ASR WebSocket
-      <input id="asrUrl" type="text" value="ws://127.0.0.1:8765" spellcheck="false">
-    </label>
-    <label>Voice renderer
-      <input id="voiceUrl" type="text" value="http://127.0.0.1:8770" spellcheck="false">
-    </label>
-    <label class="file-label">Source audio
-      <input id="sourceFile" type="file" accept="audio/*">
-      <span id="sourceFileName">Choose local WAV</span>
-    </label>
-    <label class="file-label">Personal-voice fallback
-      <input id="voiceFile" type="file" accept="audio/*">
-      <span id="voiceFileName">Choose local WAV</span>
-    </label>
-    <button class="action action-primary" id="fullscreen" type="button">ENTER FULL SCREEN</button>
-    <p>No settings leave this browser. Press <kbd>C</kbd> to close.</p>
-  </aside>
-
-  <div class="toast" id="toast" role="status"></div>
-  <script src="static/demo.js"></script>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="static/single-page.js?v=1"></script>
 </body>
 </html>
