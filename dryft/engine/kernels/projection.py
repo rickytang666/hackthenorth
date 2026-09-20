@@ -51,3 +51,33 @@ def norm_projection(x, gain, weight, eps=1e-6, *, swiglu=False, block_n=4, warps
         enable_fp_fusion=False,
     )
     return out
+
+
+@triton.jit
+def _output_residual(X, W, RES, OUT, K: tl.constexpr, N: tl.constexpr,
+                     BLOCK_K: tl.constexpr, BLOCK_N: tl.constexpr):
+    k = tl.arange(0, BLOCK_K)
+    n = tl.program_id(0) * BLOCK_N + tl.arange(0, BLOCK_N)
+    activation = tl.load(X + k, k < K, 0).to(tl.float32)
+    weight = tl.load(W + n[:, None] * K + k[None, :],
+                     (n[:, None] < N) & (k[None, :] < K), 0).to(tl.float32)
+    # Native projection rounds before residual addition; the store rounds again.
+    projected = tl.sum(weight * activation[None, :], 1).to(tl.bfloat16).to(tl.float32)
+    residual = tl.load(RES + n, n < N, 0).to(tl.float32)
+    tl.store(OUT + n, projected + residual, n < N)
+
+
+def output_projection_residual(x, weight, residual):
+    """Batch-one BF16 attention output projection and residual in one launch."""
+    n, k = weight.shape
+    if x.numel() != k or residual.numel() != n:
+        raise ValueError("output projection requires one activation and residual row")
+    if any(t.dtype != torch.bfloat16 or not t.is_contiguous()
+           for t in (x, weight, residual)):
+        raise ValueError("output projection requires contiguous BF16 tensors")
+    out = torch.empty_like(residual)
+    _output_residual[(triton.cdiv(n, 2),)](
+        x, weight, residual, out, k, n, triton.next_power_of_2(k), 2,
+        num_warps=4, enable_fp_fusion=False,
+    )
+    return out

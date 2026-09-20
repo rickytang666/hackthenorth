@@ -4,7 +4,7 @@ import torch
 from kernels.attention import grouped_attention
 from kernels.chain import chain_a, chain_b
 from kernels.fused import norm_rope_cache
-from kernels.projection import norm_projection
+from kernels.projection import norm_projection, output_projection_residual
 from kernels.down import down_residual
 from kernels.rmsnorm import add_rms_norm
 from projections import probe_point, resolve
@@ -29,7 +29,7 @@ class _ChainA:
         ref = layer.self_attn.reference
         norm = layer.post_attention_layernorm
         if choice[0] == "legacy":
-            residual = self.hidden + ref.o_proj(x)
+            residual = output_projection_residual(x, ref.o_proj.weight, self.hidden)
             return self.module.project(
                 residual, norm, layer.mlp.gate_up_weight,
                 self.module.selections["1"]["mlp"], swiglu=True)
@@ -139,7 +139,8 @@ class FusedProjectionLayer(torch.nn.Module):
                     a, layer.self_attn.reference.o_proj.weight, hidden_states,
                     norm.weight, self._chain_gu(), norm.variance_epsilon)
             else:
-                residual = hidden_states + layer.self_attn.reference.o_proj(a)
+                residual = output_projection_residual(
+                    a, layer.self_attn.reference.o_proj.weight, hidden_states)
                 intermediate = self.project(residual, layer.post_attention_layernorm,
                                             layer.mlp.gate_up_weight, selected["mlp"], swiglu=True)
             if self.follower is not None:

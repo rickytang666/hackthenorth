@@ -172,6 +172,37 @@ class FusedKernelTests(unittest.TestCase):
             x.fill_(1)
             self.assertTrue(bool((greedy_token(x[:3],weight)==3).all()))
 
+    def test_output_projection_residual_rounding_and_graph_replay(self):
+        from kernels.projection import output_projection_residual
+
+        with torch.inference_mode():
+            # A halfway projection must round before cancellation with residual.
+            # Rounding only the final sum would incorrectly return 1/256.
+            x = torch.ones(1, 1, 33, device="cuda", dtype=torch.bfloat16)
+            weight = torch.zeros(3, 33, device="cuda", dtype=torch.bfloat16)
+            weight[:, 0] = 1
+            weight[:, 1] = 1 / 256
+            residual = -torch.ones(1, 1, 3, device="cuda", dtype=torch.bfloat16)
+            actual = output_projection_residual(x, weight, residual)
+            self.assertTrue(bool((actual == 0).all()))
+
+            torch.manual_seed(3701)
+            weight = torch.randn(2560, 4096, device="cuda", dtype=torch.bfloat16) * .02
+            x = torch.randn(1, 1, 4096, device="cuda", dtype=torch.bfloat16)
+            residual = torch.randn(1, 1, 2560, device="cuda", dtype=torch.bfloat16)
+            output_projection_residual(x, weight, residual)
+            torch.cuda.synchronize()
+            graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(graph):
+                actual = output_projection_residual(x, weight, residual)
+            for scale in (0., .25, 1., 4.):
+                x.normal_(std=scale)
+                residual.normal_()
+                actual.fill_(float("nan"))
+                graph.replay()
+                expected = torch.nn.functional.linear(x, weight) + residual
+                torch.testing.assert_close(actual, expected, atol=.04, rtol=.02)
+
     def test_vector_down_residual_native_bf16_rounding(self):
         from kernels.down import down_residual
 
