@@ -40,8 +40,9 @@
     @media (max-width:700px) { .intro { align-items:start; flex-direction:column } .legend { width:100%; grid-template-columns:repeat(3,1fr) } .message { width:100%; margin:4px 0 0 } }
     @media (prefers-reduced-motion:reduce) { * { animation-duration:.01ms!important; transition-duration:.01ms!important } }
   </style>
+  <link rel="stylesheet" href="static/report.css?v=3">
 </head>
-<body>
+<body class="report-ui page-meter">
   <div class="grain" aria-hidden="true"></div>
   <header><div class="wordmark"><i></i>VOICEBRIDGE</div><div class="live"><i></i>STREAMING SIGNAL</div></header>
   <main>
@@ -58,7 +59,7 @@
     </div>
   </main>
   <footer><span>THE TAIL STAYS COLORED UNTIL THE MODEL COMMITS</span><strong>CONFIDENCE IS A SIGNAL, NOT A VERDICT</strong></footer>
-  <script src="static/meter.js"></script>
+  <script src="static/meter.js?v=3"></script>
   <script>
     const canvas=document.getElementById('meter');
     const meter=VoiceBridgeMeter.mount(canvas);

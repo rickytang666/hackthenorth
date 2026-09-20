@@ -1,8 +1,8 @@
 (function exposeVoiceBridgeMeter(global) {
   function confidenceColor(confidence) {
-    if (confidence >= 0.82) return '#d7ff3f';
-    if (confidence >= 0.62) return '#43d9ff';
-    return '#ff5a36';
+    if (confidence >= 0.82) return '#355f82';
+    if (confidence >= 0.62) return '#8a959d';
+    return '#a34b42';
   }
 
   function mount(canvas, options = {}) {

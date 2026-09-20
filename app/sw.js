@@ -1,4 +1,4 @@
-const CACHE_NAME = 'voicebridge-offline-v1';
+const CACHE_NAME = 'voicebridge-offline-v4';
 const OFFLINE_ASSETS = [
   './',
   './index.html',
@@ -11,12 +11,13 @@ const OFFLINE_ASSETS = [
   './hud.html',
   './meter.html',
   './static/demo.css',
+  './static/report.css?v=3',
   './static/demo.js',
   './static/race.js',
   './static/diff.js',
   './static/clarify.js',
   './static/hud.js',
-  './static/meter.js',
+  './static/meter.js?v=3',
   './fixtures/session-m02.json',
 ];
 

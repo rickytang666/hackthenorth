@@ -82,8 +82,9 @@
     }
     @media (prefers-reduced-motion:reduce) { * { animation-duration:.01ms!important; transition-duration:.01ms!important } }
   </style>
+  <link rel="stylesheet" href="static/report.css?v=3">
 </head>
-<body>
+<body class="report-ui page-ab">
   <div class="grain" aria-hidden="true"></div>
   <header>
     <div class="wordmark"><i></i>VOICEBRIDGE</div>
@@ -241,7 +242,7 @@
       renderIdentity();
       ['A','B'].forEach((label,index)=>{
         const source=sourceForSlot(index);
-        const color=source===sources.personal?'#d7ff3f':'#92968b';
+        const color=source===sources.personal?'#355f82':'#92999f';
         if (source.buffer) drawWaveform(byId(`wave${label}`),source.buffer,color);
         byId(`duration${label}`).textContent=source.buffer?`${source.buffer.duration.toFixed(1)}s`:'-';
       });

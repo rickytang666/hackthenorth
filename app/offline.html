@@ -52,8 +52,9 @@
     @media (max-width:560px) { .compare { grid-template-columns:1fr } .compare div + div { border-left:0; border-top:1px solid var(--line) } }
     @media (prefers-reduced-motion:reduce) { * { animation-duration:.01ms!important; transition-duration:.01ms!important } }
   </style>
+  <link rel="stylesheet" href="static/report.css?v=3">
 </head>
-<body>
+<body class="report-ui page-offline">
   <div class="grain" aria-hidden="true"></div>
   <header><div class="wordmark"><i></i>VOICEBRIDGE</div><div class="network"><i></i><span id="network">CHECKING OFFLINE KIT</span></div></header>
   <main>
@@ -96,7 +97,7 @@
       const context=canvas.getContext('2d');
       const center=canvas.height/2;
       context.clearRect(0,0,canvas.width,canvas.height);
-      context.strokeStyle='#d7ff3f';
+      context.strokeStyle='#355f82';
       context.lineWidth=2*ratio;
       context.beginPath();
       values.forEach((value,index)=>{
@@ -105,7 +106,7 @@
         if (index===0) context.moveTo(x,y); else context.lineTo(x,y);
       });
       context.stroke();
-      context.fillStyle='rgba(7,8,6,.75)';
+      context.fillStyle='rgba(246,247,248,.78)';
       context.fillRect(canvas.width*progress,0,canvas.width*(1-progress),canvas.height);
     }
 

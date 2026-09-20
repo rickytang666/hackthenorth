@@ -57,8 +57,9 @@
     @media (max-width:560px) { .latency-hud__headline { grid-template-columns:auto 1fr } .latency-hud__headline > b { grid-column:1/-1; justify-self:start } .latency-hud__stages { grid-template-columns:repeat(2,1fr) } footer { gap:12px } }
     @media (prefers-reduced-motion:reduce) { * { animation-duration:.01ms!important; transition-duration:.01ms!important } }
   </style>
+  <link rel="stylesheet" href="static/report.css?v=3">
 </head>
-<body>
+<body class="report-ui page-hud">
   <div class="grain" aria-hidden="true"></div>
   <header><div class="wordmark"><i></i>VOICEBRIDGE</div><div class="mode">INFERENCE ON <strong>BASETEN</strong></div></header>
   <main>
