@@ -66,11 +66,7 @@
 <fieldset>
   <legend>Endpoints</legend>
   <div class="row"><label for="url">ASR</label>
-    <input type="text" id="url" spellcheck="false"
-           value="wss://model-qk542geq.api.baseten.co/environments/production/websocket"></div>
-  <div class="row" style="margin-top:6px"><label for="apiKey">Key</label>
-    <input type="password" id="apiKey" placeholder="Baseten API key, this browser only"
-           spellcheck="false"></div>
+    <input type="text" id="url" value="ws://127.0.0.1:8765" spellcheck="false"></div>
   <div class="row" style="margin-top:6px"><label for="voiceUrl">Voice</label>
     <input type="text" id="voiceUrl" value="http://127.0.0.1:8770" spellcheck="false"></div>
 </fieldset>
@@ -166,6 +162,9 @@ async function enroll(clip) {
 
 async function speak(text) {
   const base = $('voiceUrl').value.replace(/\/$/, '');
+  // Timed from here, not from the start of the stream: a clarification can sit
+  // on screen for as long as the person takes, and that is not our latency.
+  const asked = performance.now();
   try {
     const id = await enrolling;
     const r = await fetch(base + '/v1/synthesize', {
@@ -174,7 +173,7 @@ async function speak(text) {
     });
     if (!r.ok) throw new Error(`synthesize ${r.status} ${await r.text()}`);
     const buf = await ac().decodeAudioData(await r.arrayBuffer());
-    stat('spoken', Math.round(performance.now() - began) + ' ms');
+    stat('spoken', Math.round(performance.now() - asked) + ' ms');
     play(buf);
   } catch (e) {
     stat('spoken', 'failed');
@@ -227,13 +226,10 @@ function showClarify(candidates) {
 
 function connect() {
   return new Promise((resolve, reject) => {
-    const url = $('url').value, key = $('apiKey').value.trim();
-    if (key) try { sessionStorage.setItem('bt_key', key); } catch {}
-    // A browser cannot set an Authorization header on a WebSocket, so Baseten
-    // takes the key as a subprotocol instead.
-    ws = key && /baseten\.co/.test(url)
-      ? new WebSocket(url, ['Authorization', `Api-Key ${key}`])
-      : new WebSocket(url);
+    // Always a local URL. app/serve.py holds the API key and adds the
+    // Authorization header upstream, because a browser cannot set one and a
+    // subprotocol is not a legal place to put a key.
+    ws = new WebSocket($('url').value);
     ws.onopen = () => { setStatus('streaming'); resolve(); };
     ws.onerror = () => { setStatus('connection failed'); reject(new Error('ws')); };
     ws.onmessage = e => {
@@ -251,7 +247,9 @@ function connect() {
         if ((m.confidence ?? 1) < CLARIFY_BELOW) {
           render(m.text, m.text.length);
           showBaseline();
-          showClarify(m.candidates?.length ? m.candidates : [{ text: m.text }]);
+          const alts = m.candidates?.length ? m.candidates : [{ text: m.text }];
+          alts.sort((a, b) => (b.text === m.text) - (a.text === m.text));
+          showClarify(alts);
         } else {
           accept(m.text);
         }
@@ -292,7 +290,7 @@ async function run() {
     sendPcm(d.subarray(o, o + FRAME));
     await new Promise(r => setTimeout(r, 20));   // real time, so the timings mean something
   }
-  ws.send(JSON.stringify({ type: 'end' }));
+  if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'end' }));
   $('run').disabled = false;
 }
 
@@ -300,7 +298,6 @@ async function run() {
 // so the room hears only the recovered voice unless someone asks for the original.
 $('original').onclick = () => current && play(current.buffer);
 $('run').onclick = run;
-try { const k = sessionStorage.getItem('bt_key'); if (k) $('apiKey').value = k; } catch {}
 loadClips();
 </script>
 </body>
