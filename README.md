@@ -29,23 +29,13 @@ VoiceBridge does three things:
 
 ## How it works
 
-```text
-  microphone or clip
-         |  20 ms PCM frames over a WebSocket
-         v
-  ASR, Protocol 1           Cohere Transcribe 2.07B + LoRA, on Baseten H100
-  Baseten H100              partial transcript every 400 ms
-         |  text + per-token confidence
-         v
-  confidence gate           >= 0.879  accept
-                            <  0.879  ask, with beam-search alternatives
-         |  confirmed text
-         v
-  voice renderer            MeloTTS speaks it
-  Protocol 2                OpenVoice V2 repaints it in the speaker's timbre
-         |
-         v  audio, about a second after the sentence ends
-```
+![VoiceBridge architecture: live input to speech recovery to personal voice, with offline adaptation on Baseten](app/architecture.png)
+
+A clip or the microphone streams 20 ms PCM frames to the recognizer over a
+WebSocket. Cohere Transcribe, adapted with LoRA, returns a revised transcript
+every 400 ms. Above 0.879 confidence the text is accepted; below it the system
+asks, offering beam-search alternatives. The confirmed sentence goes to MeloTTS,
+and OpenVoice V2 repaints it in the speaker's own timbre.
 
 Three decisions carry the weight:
 
