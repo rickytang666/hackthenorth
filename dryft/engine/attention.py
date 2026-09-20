@@ -3,6 +3,7 @@
 import torch
 from torch.nn.attention import SDPBackend, sdpa_kernel
 from kernels.attention import grouped_attention, prologue_attention
+from kernels.sglang_attention import grouped_attention as sglang_attention
 from kernels.fused import norm_rope, norm_rope_cache
 from kernels.rmsnorm import rms_norm
 from kernels.tile import tile_projection
@@ -107,7 +108,7 @@ class GroupedAttention(torch.nn.Module):
 
 
 class _RopeAttention:
-    """Calibration adapter: newest-token norm/rope/cache fused into attention."""
+    """Calibrate fused prologue and upstream SGLang decode attention."""
 
     def __init__(self, ref, widths, qkv, past_key_value, embeddings, positions):
         self.ref = ref
@@ -118,24 +119,38 @@ class _RopeAttention:
         self.positions = positions
 
     def _candidates(self, rows):
-        return [("legacy",), ("fused",)]
+        options = [("legacy",), ("fused",)]
+        if rows >= 4 and self.ref.head_dim == 128:
+            options.extend([("sglang", 4), ("sglang", 8)])
+        return options
 
     def _run(self, choice, x, rows):
         ref = self.ref
         keys = self.cache.keys[ref.layer_idx]
         values = self.cache.values[ref.layer_idx]
+        positions = self.positions
+        validation = getattr(self, "_validation", None)
+        if validation is not None and x is validation[0]:
+            keys, values, positions = validation[1:]
         if choice[0] == "fused":
             dim = ref.head_dim
             return prologue_attention(
                 x, ref.q_norm, ref.k_norm, *self.embeddings, keys, values,
-                self.positions, self.widths[1] // dim, self.widths[0] // self.widths[1],
+                positions, self.widths[1] // dim, self.widths[0] // self.widths[1],
                 self.widths[0], self.widths[0] + self.widths[1])
         shape = (*x.shape[:-1], -1, ref.head_dim)
         q, k, v = x.split(self.widths, dim=-1)
         q, k, v = norm_rope_cache(
             q.view(shape), k.view(shape), v.view(shape), ref.q_norm, ref.k_norm,
-            *self.embeddings, keys, values, self.positions)
-        return grouped_attention(q, k, v, self.positions)
+            *self.embeddings, keys, values, positions)
+        if choice[0] == "sglang":
+            return sglang_attention(q, k, v, positions, splits=choice[1], block=64)
+        return grouped_attention(q, k, v, positions)
 
     def _reference(self, x):
+        # Timing replays mutate the live cache. Compare every candidate against
+        # the same cache contents; ordinary decode adapters never take this copy.
+        layer = self.ref.layer_idx
+        self._validation = (x, self.cache.keys[layer].clone(),
+                            self.cache.values[layer].clone(), self.positions.clone())
         return self._run(("legacy",), x, self.rows)
