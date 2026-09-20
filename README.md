@@ -3,6 +3,8 @@
 Real-time speech recovery for dysarthric speech that speaks the result back in
 the person's own voice. Track: Baseten.
 
+Measured results: [docs/RESULTS.md](docs/RESULTS.md).
+
 Plans in [plans/](plans/): [DESIGN.md](plans/DESIGN.md) is the technical
 agreement, [OWNERSHIP.md](plans/OWNERSHIP.md) says who builds what and when.
 

@@ -1,9 +1,9 @@
-"""Baseten job running leave-one-speaker-out over all eight dysarthric speakers.
+"""Baseten job sweeping LoRA rank and encoder depth against the shipped config.
 
-Retrains one adapter per held-out speaker, so every row is a generalization
-number rather than a speaker the adapter already saw.
+Each config is trained from scratch and scored on F04 inside one job, so the
+comparison is against a number measured on the same box, not a remembered one.
 
-    uv run truss train push train/cohere/config_loso.py --team 34
+    uv run truss train push train/cohere/config_sweep.py --team 34
 """
 
 import os
@@ -21,11 +21,11 @@ workspace = definitions.Workspace(
 )
 
 runtime = definitions.Runtime(
-    start_commands=["/bin/bash ./train/cohere/loso.sh"],
+    start_commands=["/bin/bash ./train/cohere/sweep.sh"],
     environment_variables={
         "VOICEBRIDGE_DATA": "/tmp/voicebridge-data",
         "HF_TOKEN": definitions.SecretReference(name="hf_token"),
-        "LOSO_STEPS": os.environ.get("LOSO_STEPS", "900"),
+        "SWEEP_STEPS": os.environ.get("SWEEP_STEPS", "900"),
         # The adapter travels in the workspace: 13.7 MB, cheaper than wiring
         # cross-job checkpoint mounts for a file this small.
         "ADAPTER_PATH": "./checkpoints/cohere/best",
@@ -46,4 +46,4 @@ job = definitions.TrainingJob(
     workspace=workspace,
 )
 
-training_project = definitions.TrainingProject(name="voicebridge-loso-t34", job=job)
+training_project = definitions.TrainingProject(name="voicebridge-sweep-t34", job=job)
