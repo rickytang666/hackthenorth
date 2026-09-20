@@ -185,3 +185,32 @@ for 95% precision on accepted answers, and the cost is asking more often.
   and where the gain is largest. Longer utterances gain 17 to 25%.
 - 34.8% WER on M02 is still high. The claim is the relative reduction on an
   unseen speaker, not that the problem is solved.
+
+## End-to-end demo path, measured 2026-09-19 23:05 EDT
+
+`scripts/e2e_check.py` drives the real chain once per curated clip: 20 ms PCM
+frames to the live Baseten deployment over Protocol 1, then enrollment and
+synthesis against the OpenVoice renderer on MPS. Nothing is mocked and nothing
+is precomputed.
+
+| # | Clip | Transcript exact | Confidence | Clarifies | Alternatives | First partial | Final | Synthesis |
+|---|---|---|---:|---|---:|---:|---:|---:|
+| 1 | M02_1_headMic_0141 | yes | 0.924 | no | 1 | 645 ms | 4854 ms | 862 ms |
+| 2 | M02_1_headMic_0135 | yes | 0.815 | yes | 3 | 596 ms | 10036 ms | 1078 ms |
+| 3 | M02_1_headMic_0185 | yes | 0.901 | no | 1 | 604 ms | 6288 ms | 739 ms |
+| 4 | M02_1_headMic_0184 | yes | 0.848 | yes | 3 | 591 ms | 6820 ms | 1725 ms |
+| 5 | M02_1_headMic_0196 | yes | 0.976 | no | 1 | 598 ms | 8493 ms | 892 ms |
+| 6 | M02_2_headMic_0088 | yes | 0.754 | yes | 3 | 612 ms | 11837 ms | 2002 ms |
+| 7 | M02_1_headMic_0092 | yes | 0.892 | no | 1 | 608 ms | 14191 ms | 1011 ms |
+
+All seven transcribe exactly. `final` is wall clock from the first frame, so it
+includes streaming the clip in real time; the decode itself lands roughly 1.5 to
+2.5 s after the audio ends.
+
+Synthesis runs on MPS. On CPU the same calls took 2.2 s to 3.9 s, so
+`serve/voice/server.py` selects MPS when CUDA is absent; override with
+`VOICE_DEVICE=cpu` if a converter kernel is missing on an older torch.
+
+Browser run of the same path, clip 6 then clip 1: clarification card offered
+three real alternatives with the model's own best guess first, and synthesis
+after confirmation took 1317 ms and 735 ms.
