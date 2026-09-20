@@ -78,6 +78,13 @@ The prepared local destination is:
 checkpoints/parakeet-tdt-1.1b-focused-partial/best.nemo
 ```
 
+Verified local artifact:
+
+```text
+size:   4,294,574,080 bytes
+sha256: 55e407ff5c146fe09ca1fb308548f5a726ef36ad23340435f3e8186b5c0041a9
+```
+
 `checkpoints/` and `*.nemo` are intentionally ignored by Git. Do not force-add
 this checkpoint to the source repository. Ordinary GitHub Git objects are
 limited to 100 MiB; GitHub Free and Pro also limit each Git LFS object to 2 GB.
@@ -86,10 +93,9 @@ an account, then record its immutable repository revision and SHA-256 here.
 
 ## Remaining publication steps
 
-1. Verify the local checkpoint size and SHA-256 after download.
-2. Authenticate the intended Hugging Face organization or another model registry.
-3. Create a model repository with the training recipe, split limitations,
+1. Authenticate the intended Hugging Face organization or another model registry.
+2. Create a model repository with the training recipe, split limitations,
    evaluation table, base-model attribution, and license metadata.
-4. Upload `best.nemo` and pin the returned revision in this handoff.
-5. Load the uploaded checkpoint in a clean environment and reproduce at least
+3. Upload `best.nemo` and pin the returned revision in this handoff.
+4. Load the uploaded checkpoint in a clean environment and reproduce at least
    the F01/M01 smoke predictions before deployment.
