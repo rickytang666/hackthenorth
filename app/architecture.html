@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Architecture &middot; VoiceBridge</title>
+<style>
+  body { margin: 0 auto; padding: 32px 20px 64px; max-width: 820px;
+         font-family: system-ui, sans-serif; font-size: 15px; line-height: 1.5;
+         color: #1b1b1b; background: #fafafa }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px }
+  h1 { font-size: 19px; margin: 0; font-weight: 600; letter-spacing: -0.01em }
+  .by { display: flex; align-items: center; gap: 6px; margin: 5px 0 20px;
+        font-size: 12px; color: #888 }
+  .by img { width: 14px; height: 14px; border-radius: 2px }
+  .by b { color: #444; font-weight: 600 }
+  .tabs { display: flex; gap: 4px; flex-shrink: 0 }
+  .tabs a { font-size: 12px; padding: 5px 11px; border: 1px solid #e0e0e0;
+            border-radius: 5px; text-decoration: none; color: #777; background: #fff }
+  .tabs a:hover { border-color: #aaa; color: #333 }
+  .tabs a[aria-current] { background: #1b1b1b; border-color: #1b1b1b; color: #fff }
+  figure { margin: 0 0 24px; background: #fff; border: 1px solid #e6e6e6;
+           border-radius: 6px; padding: 14px }
+  figure img { display: block; width: 100%; height: auto }
+  h2 { font-size: 10px; font-weight: 600; text-transform: uppercase;
+       letter-spacing: 0.07em; color: #999; margin: 26px 0 9px }
+  p { margin: 0 0 11px; max-width: 680px }
+  .step { background: #fff; border: 1px solid #e6e6e6; border-radius: 6px;
+          padding: 13px 15px; margin: 0 0 9px }
+  .step b { display: block; font-size: 14px; margin-bottom: 3px }
+  .step span { color: #666; font-size: 14px }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
+         background: #f2f2f2; padding: 1px 4px; border-radius: 3px }
+</style>
+</head>
+<body>
+<div class="top">
+  <div>
+    <h1>VoiceBridge</h1>
+    <p class="by">Trained and powered by <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAzElEQVR42u3ZsQnCQBSA4YeFUSGHIhaCXbosIFikEyzsLASHsHIBncANMkEmcCDHOPP6eJFgwjP+xd+FkC+BezlOls+z/+UEAAAAfwAYuMiLyNdzt6wbQBsPr8WXNQAAAAB8cNG8OLSSAoab1dvMDzIFhL4QAAAAANQ3y/d+fEwbpYDpfVuZ3rcTQN1bNDHIAAAA0GOA/lVOyiWxSSaWUSYxAAAAbAMWj1NwUx+Vm/eqRrvEBsD8IAMAAEDPAaHjKXfN7AM4pQQAAECwFwWMbBsS2YwXAAAAAElFTkSuQmCC" alt=""><b>Baseten</b></p>
+  </div>
+  <nav class="tabs"><a href="index.html">Demo</a><a href="architecture.html" aria-current="page">Architecture</a><a href="benchmarks.html">Benchmarks</a></nav>
+</div>
+
+<figure><img src="architecture.png"
+  alt="VoiceBridge architecture: live input to speech recovery to personal voice, with offline adaptation on Baseten"></figure>
+
+<h2>How it works</h2>
+
+<div class="step"><b>1. Capture</b><span>The browser reads the microphone or a clip
+with the Web Audio API and sends 20 ms PCM frames over a WebSocket. Frames are
+paced against the wall clock, so what you hear and what you read stay in step.</span></div>
+
+<div class="step"><b>2. Recover</b><span>Cohere Transcribe, adapted with LoRA,
+runs on a Baseten H100 behind a WebSocket endpoint and returns a revised
+transcript roughly every 400 ms. Only the shared prefix with the previous
+hypothesis is treated as settled; the rest is shown greyed because later audio
+can still change it.</span></div>
+
+<div class="step"><b>3. Score</b><span>Neither candidate model ships a usable
+confidence signal, so we compute one from token log-probabilities. Above
+<code>0.879</code> the transcript is accepted. Below it the system asks,
+offering beam-search alternatives with the model's own best guess first.</span></div>
+
+<div class="step"><b>4. Speak</b><span>The confirmed sentence goes to the voice
+renderer: MeloTTS generates the speech, then OpenVoice V2 repaints it with a
+voice print taken from the speaker's own recordings. Audio arrives about a
+second after the sentence ends.</span></div>
+
+<h2>Offline adaptation</h2>
+<p>The bottom band of the diagram is training, which happens once rather than per
+request. TORGO dysarthric speech was used to adapt two candidate recognizers,
+Cohere Transcribe and NVIDIA NeMo Parakeet. Both were scored with one evaluator
+and one text normalizer, and Cohere won on the only matched comparison, so it is
+the model the live path calls.</p>
+
+<h2>Two decisions worth knowing</h2>
+<p><b>Only the encoder is adapted.</b> Dysarthria is an acoustic problem, not a
+linguistic one, and the encoder holds 91.8% of this model's parameters. The
+adapter trains 3.4M weights, 0.166% of the model, in 10.6 minutes.</p>
+<p><b>Voice conversion, not voice cloning.</b> OpenVoice transfers timbre only
+and leaves articulation to MeloTTS. Cloning the full delivery from a dysarthric
+reference would reproduce the slurring, which is the thing the system exists to
+remove.</p>
+</body>
+</html>
